@@ -1,0 +1,4 @@
+#
+# Initializer
+#
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.open.ai.eros.social.ErosSocialAutoConfiguration
