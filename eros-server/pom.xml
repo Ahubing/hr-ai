@@ -211,6 +211,12 @@
 
         <dependency>
             <groupId>com.open.ai</groupId>
+            <artifactId>hr-ai</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.open.ai</groupId>
             <artifactId>eros-knowledge</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <exclusions>

@@ -15,11 +15,11 @@ import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 public class MybatisPlusGeneratorUtil {
     public static void main(String[] args) {
         String author = "Eros-AI";
-        String database = "eros_ai";
+        String database = "hr-ai";
         String tableName = "sop";
         // 生成的数据库表 属于 哪一个模块就填写哪个
         // ai   user   pay  admin    bot  creator  social permission knowledge
-        String model = "text";
+        String model = "hr";
         System.out.println(System.getProperty("user.dir"));
         generateByTables(author, database,model,tableName);
     }

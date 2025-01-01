@@ -25,6 +25,7 @@
         <module>eors-lang-chain</module>
         <module>eros-ai-tool</module>
         <module>eros-text-match</module>
+        <module>hr-ai</module>
     </modules>
 
     <properties>
