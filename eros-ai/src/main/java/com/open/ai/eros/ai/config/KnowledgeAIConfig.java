@@ -1,4 +1,4 @@
-package com.open.ai.eros.knowledge.config;
+package com.open.ai.eros.ai.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

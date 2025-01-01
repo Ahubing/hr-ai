@@ -1,11 +1,11 @@
 package com.open.ai.eros.ai.vector.process;
 
+import com.open.ai.eros.ai.config.KnowledgeAIConfig;
 import com.open.ai.eros.ai.model.bean.vo.gpt.ChatCompletionResult;
 import com.open.ai.eros.ai.model.bean.vo.gpt.GptCompletionRequest;
 import com.open.ai.eros.ai.util.GptChatModelUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.db.constants.AIRoleEnum;
-import com.open.ai.eros.knowledge.config.KnowledgeAIConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
