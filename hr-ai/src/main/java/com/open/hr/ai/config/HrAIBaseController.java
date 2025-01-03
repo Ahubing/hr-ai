@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @创建时间：2023/12/14 14:41
  */
 @Slf4j
-@RequestMapping("/hr/ai/")
+@RequestMapping("/api/v1/")
 public class HrAIBaseController extends BaseController {
 
 }

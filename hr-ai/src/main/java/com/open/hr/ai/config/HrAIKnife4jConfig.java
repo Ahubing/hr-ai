@@ -64,7 +64,7 @@ public class HrAIKnife4jConfig {
                 .select()
                 //只显示api路径下的页面
                 .apis(RequestHandlerSelectors.basePackage("com.open.hr.ai"))
-                .paths(PathSelectors.regex("/hr/ai/.*"))
+                .paths(PathSelectors.regex("/api/v1/.*"))
                 .build()
                 .globalOperationParameters(pars);
         return webApi;
