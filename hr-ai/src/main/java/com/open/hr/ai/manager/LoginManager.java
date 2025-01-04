@@ -38,27 +38,23 @@ public class LoginManager {
     public ResultVO login(String userName, String password) {
         try {
             // 1、查询是否存在该用户
-            QueryWrapper queryWrapper = new QueryWrapper();
+            QueryWrapper<AmAdmin> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("username", userName);
             AmAdmin amAdmin = amAdminService.getOne(queryWrapper);
-
             // 判断用户是否存在
             if (amAdmin == null) {
                 return ResultVO.fail("用户不存在");
             }
-
             if (amAdmin.getStatus() == 0) {
                 return ResultVO.fail("用户未启用");
             }
             if (amAdmin.getStatus() == 1) {
                 return ResultVO.fail("用户被禁用");
             }
-
             // 3、验证密码是否正确
             if (!amAdmin.getPassword().equals(password)) {
                 return ResultVO.fail("用户名或密码错误");
             }
-
             // 4、登录成功
             CacheUserInfoVo cacheUserInfoVo = userManager.buildCacheUserInfoVo(amAdmin.convertToUser());
             Map<String, String> toHashMap = ObjectToHashMapConverter.convertObjectToHashMap(cacheUserInfoVo);
@@ -82,16 +78,13 @@ public class LoginManager {
 
     public ResultVO register(HrAddUserReq req) {
         // 1、查询是否存在该用户
-        QueryWrapper queryWrapper = new QueryWrapper();
+        QueryWrapper<AmAdmin> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", req.getUsername());
         AmAdmin amAdmin = amAdminService.getOne(queryWrapper);
-
         if (amAdmin != null) {
             return ResultVO.fail("当前账号已存在");
         }
-
         int addUserResult = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(),req.getMobile());
-
         return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
 
     }
