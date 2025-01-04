@@ -64,30 +64,31 @@ public class VerifyUserTokenAspect {
         HttpServletRequest request = WebUtils.getRequest();
         //放行OPTIONS请求
         String method = request.getMethod();
-        if("OPTIONS".equals(method)){
+        if ("OPTIONS".equals(method)) {
             return joinPoint.proceed();
         }
 
         CacheUserInfoVo userInfo = null;
         String token = request.getHeader(CommonConstant.USER_LOGIN_TOKEN);
-        log.info("VerifyUserTokenAspect token ={},uri={}，ip={}", token ,request.getRequestURI(), HttpUtil.getIpAddress());
+        log.info("VerifyUserTokenAspect token ={},uri={}，ip={}", token, request.getRequestURI(), HttpUtil.getIpAddress());
         if (!StringUtils.isEmpty(token)) {
-            Map<String, String> redisCacheUserInfo = redisClient.hgetAll(String.format(CommonConstant.USER_LOGIN_TOKEN_KEY,token));
-            if(!CollectionUtils.isEmpty(redisCacheUserInfo)){
+            Map<String, String> redisCacheUserInfo = redisClient.hgetAll(String.format(CommonConstant.USER_LOGIN_TOKEN_KEY, token));
+            if (!CollectionUtils.isEmpty(redisCacheUserInfo)) {
                 userInfo = new CacheUserInfoVo();
-                ObjectToHashMapConverter.setValuesToObject(redisCacheUserInfo,userInfo);
-            }else{
-                String activeProfile = environment.getActiveProfiles()[0];
-                if("dev".equals(activeProfile)){
-                    // 测试环境 token就是 账号
-                    userInfo = loginUserService.getCacheUserInfoVo(token);
-                    if(userInfo == null){
-                        // 获取不到，用户未登录
-                        log.warn("user not login, token={}", token);
-                        return ResultVO.fail(BaseCodeEnum.LOGIN_EXPIRE);
-                    }
-                    userInfo.setToken(token);
-                }
+                ObjectToHashMapConverter.setValuesToObject(redisCacheUserInfo, userInfo);
+            } else {
+                return ResultVO.fail(BaseCodeEnum.LOGIN_EXPIRE);
+//                String activeProfile = environment.getActiveProfiles()[0];
+//                if ("dev".equals(activeProfile)) {
+//                    // 测试环境 token就是 账号
+//                    userInfo = loginUserService.getCacheUserInfoVo(token);
+//                    if (userInfo == null) {
+//                        // 获取不到，用户未登录
+//                        log.warn("user not login, token={}", token);
+//                        return ResultVO.fail(BaseCodeEnum.LOGIN_EXPIRE);
+//                    }
+//                    userInfo.setToken(token);
+//                }
             }
         }
 
@@ -96,10 +97,10 @@ public class VerifyUserTokenAspect {
             log.warn("user not login, token={}", token);
             return ResultVO.fail(BaseCodeEnum.LOGIN_EXPIRE);
         }
-        if(userInfo!=null){
-            if(role.length > 0){
+        if (userInfo != null) {
+            if (role.length > 0) {
                 boolean anyMatch = Arrays.asList(role).contains(RoleEnum.getByRole(userInfo.getRole()));
-                if(!anyMatch){
+                if (!anyMatch) {
                     return ResultVO.fail("没有该接口访问权限！");
                 }
             }
@@ -108,7 +109,7 @@ public class VerifyUserTokenAspect {
         }
         Object proceed = joinPoint.proceed();
         //一次请求后需要删除线程变量，否则会造成内存泄漏
-        if(userInfo!=null){
+        if (userInfo != null) {
             SessionUser.remove();
         }
         return proceed;
