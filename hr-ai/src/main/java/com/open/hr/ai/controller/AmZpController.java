@@ -37,10 +37,7 @@ public class AmZpController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("/list")
     public ResultVO<AmZpAccoutsResultVo> list() {
-        Long id = SessionUser.get().getId();//
-        if (id <= 0) {
-            return ResultVO.fail("登录失效，请重新登录");
-        }
+        Long id = SessionUser.get().getId();
         return amZpManager.getAccouts(id);
     }
 
@@ -58,12 +55,7 @@ public class AmZpController extends HrAIBaseController {
     @PostMapping("/add_platform")
     public ResultVO addPlatform(@RequestBody @Valid AmZpPlatformAddReq req) {
 
-        String name = req.getName();
-        if (StringUtils.isEmpty(name)) {
-            return ResultVO.fail("添加失败,名称不能为空");
-        }
-
-        return amZpManager.addPlatform(name);
+        return amZpManager.addPlatform(req.getName());
     }
 
     @ApiOperation(value = "修改招聘平台名称", notes = "修改招聘平台名称", httpMethod = "POST", response = ResultVO.class)
@@ -73,10 +65,6 @@ public class AmZpController extends HrAIBaseController {
 
         Long id = req.getId();
         String name = req.getName();
-        if (StringUtils.isEmpty(name) || id <= 0) {
-            return ResultVO.fail("参数有误：" + id + "，" + name);
-        }
-
         return amZpManager.modifyPlatformName(id, name);
     }
 
@@ -85,13 +73,10 @@ public class AmZpController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/delete_platform")
     public ResultVO deletePlatformName(@RequestBody @Valid AmZpPlatformDelReq req) {
-
-
         Long id = req.getId();
         if (id <= 0) {
             return ResultVO.fail("参数有误：" + id);
         }
-
         return amZpManager.deletePlatformName(id);
     }
 
@@ -105,14 +90,12 @@ public class AmZpController extends HrAIBaseController {
         if (uid <= 0) {
             return ResultVO.fail("登录失效，请重新登录");
         }
-
         Long platform_id = req.getPlatformId();
         String account = req.getAccount();
         String city = req.getCity();
         if (platform_id <= 0 || isEmpty(account) || isEmpty(city)) {
             return ResultVO.fail("参数有误！");
         }
-
         return amZpManager.addAccount(uid, platform_id, account, city);
     }
 
@@ -121,7 +104,6 @@ public class AmZpController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/delete_account")
     public ResultVO delAccount(@RequestBody @Valid AmZpAccountDelReq req) {
-
         String id = req.getId();
         if (isEmpty(id)) {
             return ResultVO.fail("id不能为空");
@@ -134,7 +116,6 @@ public class AmZpController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/modify_running_status")
     public ResultVO modifyRunningStatus(@RequestBody @Valid AmZpAccountModifyStatusReq req) {
-
         String id = req.getId();
         int status = req.getIs_running() >= 1 ? 1 : 0;
         if (isEmpty(id)) {
@@ -149,6 +130,7 @@ public class AmZpController extends HrAIBaseController {
         // TODO 需要生成二维码信息--php未实现，不知业务逻辑
         return ResultVO.fail("客户端未启动");
     }
+
 
     @ApiOperation(value = "退出登录", notes = "退出登录", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken
