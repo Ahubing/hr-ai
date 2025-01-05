@@ -29,7 +29,7 @@ public class AmAdmin implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    private Long id;
 
     /**
      * 账号
@@ -83,10 +83,13 @@ public class AmAdmin implements Serializable {
 
     public User convertToUser() {
         User user = new User();
+        user.setId(id);
         user.setUserName(username);
         user.setPassword(password);
         user.setEmail(email);
+        // todo 特殊处理 esc
         user.setStatus(status == 2 ? "ACTIVE" : "DISABLED");
+        user.setRole("all".equals(specialPermission) ? "system" : "user");//有特殊权限默认系统管理员。否则，普通用户
         return user;
     }
 }

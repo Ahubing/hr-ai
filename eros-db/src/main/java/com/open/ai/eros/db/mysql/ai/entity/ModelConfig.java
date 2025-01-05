@@ -23,13 +23,12 @@ import java.time.LocalDateTime;
 @TableName("model_config")
 public class ModelConfig implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-      private Long id;
+    private Long id;
 
     /**
      * ai模型 以逗号分开
-     *
      */
     private String templateModel;
 

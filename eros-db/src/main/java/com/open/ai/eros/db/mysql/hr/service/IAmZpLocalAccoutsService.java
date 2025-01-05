@@ -3,6 +3,8 @@ package com.open.ai.eros.db.mysql.hr.service;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 /**
  * <p>
  * 招聘本地账户 服务类
@@ -13,4 +15,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IAmZpLocalAccoutsService extends IService<AmZpLocalAccouts> {
 
+
+    List<AmZpLocalAccouts> getList(Long id);
 }
