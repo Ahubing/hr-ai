@@ -53,6 +53,7 @@ public class ChatBotController extends HrAIBaseController {
         if (Objects.isNull(addAccountReq)) {
             return ResultVO.fail("参数不能为空");
         }
+        addAccountReq.setAdminId(getUserId());
         return chatBotManager.AddAccount(addAccountReq);
     }
 

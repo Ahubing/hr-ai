@@ -44,7 +44,7 @@ public class AddAccountReq {
     /**
      * 用户id
      */
-    private Integer adminId;
+    private Long adminId;
 
 
 }

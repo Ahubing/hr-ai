@@ -1,13 +1,17 @@
-package com.open.ai.eros.db.mysql.hr.entity;
+package com.open.hr.ai.bean.req;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
-import java.io.Serializable;
+import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -20,39 +24,45 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("am_prompt")
-public class AmPrompt implements Serializable {
+public class AddOrUpdateAmPromptReq {
 
-    private static final long serialVersionUID=1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
+
 
     private Long adminId;
 
     /**
      * 名称
      */
+    @NotEmpty(message = "名称不能为空")
+    @ApiModelProperty(value = "名称", required = true)
     private String name;
 
     /**
      * 模型
      */
+    @NotEmpty(message = "模型不能为空")
+    @ApiModelProperty(value = "模型", required = true)
     private String model;
 
     /**
      * AI客服回复
      */
+    @ApiModelProperty(value = "AI客服回复")
     private String prompt;
 
     /**
      * AI引导prompt
      */
+    @ApiModelProperty(value = "AI引导prompt")
     private String prompt2;
 
     /**
      * 回复引导是否开启 类型.0html提示词，1为说明书AI生成提示词
      */
+    @NotNull(message = "回复引导是否开启 类型不能为空")
+    @ApiModelProperty(value = "回复引导是否开启 类型.0html提示词，1为说明书AI生成提示词", required = true)
     private Integer type;
 
     /**
@@ -60,15 +70,6 @@ public class AmPrompt implements Serializable {
      */
     private Integer typeA;
 
-    /**
-     * 创建时间
-     */
-    private LocalDateTime createTime;
-
-    /**
-     * 删除时间
-     */
-    private LocalDateTime deleteTime;
 
     /**
      * 人员ID
