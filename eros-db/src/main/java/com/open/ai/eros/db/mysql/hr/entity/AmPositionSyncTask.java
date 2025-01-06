@@ -32,7 +32,7 @@ public class AmPositionSyncTask implements Serializable {
     /**
      * 状态.0未开始，1同步中，2同步完成
      */
-    private Boolean status;
+    private Integer status;
 
 
 }

@@ -27,12 +27,12 @@ public class AmChatbotOptionsConfig implements Serializable {
       @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 关闭职位是否继续跟进
      */
-    private Boolean isContinueFollow;
+    private Integer isContinueFollow;
 
 
 }

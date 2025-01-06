@@ -1,13 +1,15 @@
-package com.open.ai.eros.db.mysql.hr.entity;
+package com.open.hr.ai.bean.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
-import java.io.Serializable;
+import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptionsItems;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * <p>
@@ -20,8 +22,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("am_chatbot_options")
-public class AmChatbotOptions implements Serializable {
+public class AmChatbotOptionsVo implements Serializable {
 
     private static final long serialVersionUID=1L;
 
@@ -41,7 +42,7 @@ public class AmChatbotOptions implements Serializable {
     /**
      * 方案类型。0为boss从未回复，1为boss询问信息后
      */
-    private Integer type;
+    private Boolean type;
 
     /**
      * 男士称呼别名
@@ -72,6 +73,10 @@ public class AmChatbotOptions implements Serializable {
      * 更新时间
      */
     private LocalDateTime updateTime;
+
+    private Integer relativePositionNums;
+
+    private List<AmChatbotOptionsItems> items;
 
 
 }

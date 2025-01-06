@@ -30,7 +30,7 @@ public class AmPositionSection implements Serializable {
     /**
      * 归属的账号
      */
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 部门名称

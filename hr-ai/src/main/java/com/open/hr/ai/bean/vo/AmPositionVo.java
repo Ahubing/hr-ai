@@ -1,18 +1,22 @@
-package com.open.ai.eros.db.mysql.hr.entity;
+package com.open.hr.ai.bean.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
-import java.io.Serializable;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * <p>
- * 
+ * 按照php来实现
  * </p>
  *
  * @author Eros-AI
@@ -21,12 +25,8 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("am_position")
-public class AmPosition implements Serializable {
+public class AmPositionVo {
 
-    private static final long serialVersionUID=1L;
-
-      @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**
@@ -100,6 +100,42 @@ public class AmPosition implements Serializable {
      * 拓展字段，json保存职位数据
      */
     private String extendParams;
+
+    /**
+     * 岗位
+     */
+    private List<AmPositionPost> amPositionPost;
+
+    /**
+     * 用户名称
+     */
+    private String userName;
+
+    /**
+     * 通道名称
+     */
+    private String channelName;
+
+
+    /**
+     * boss 账号
+     */
+    private String bossAccount;
+
+    /**
+     * ai_assitant
+     */
+    private String aiAssistant;
+
+    /**
+     * section
+     */
+    private String section;
+
+    /**
+     * extend_params
+     */
+    private JSONObject detail;
 
 
 }

@@ -46,7 +46,7 @@ public class AmClientTasks implements Serializable {
     /**
      * 状态。0未开始，1进行中，2已完成，3失败
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 重试次数，最多3次

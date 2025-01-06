@@ -1,17 +1,18 @@
-package com.open.ai.eros.db.mysql.hr.entity;
+package com.open.hr.ai.bean.vo;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
-import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
 /**
  * <p>
- * 
+ * 模型训练广场角色
  * </p>
  *
  * @author Eros-AI
@@ -20,8 +21,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("am_chatbot_options")
-public class AmChatbotOptions implements Serializable {
+public class AmSquareRolesVo implements Serializable {
 
     private static final long serialVersionUID=1L;
 
@@ -29,39 +29,39 @@ public class AmChatbotOptions implements Serializable {
     private Integer id;
 
     /**
-     * 方案名
+     * 角色名称
      */
     private String name;
 
     /**
-     * 关联的职位ids,用英文逗号分割
+     * 描述
      */
-    private String positionIds;
+    private String description;
 
     /**
-     * 方案类型。0为boss从未回复，1为boss询问信息后
-     */
-    private Integer type;
-
-    /**
-     * 男士称呼别名
-     */
-    private String manAlias;
-
-    /**
-     * 女士称呼别名
-     */
-    private String womanAlias;
-
-    /**
-     * 复聊持续天数，单位：天
-     */
-    private Integer rechatDuration;
-
-    /**
-     * 创建人的id
+     * 创建者id
      */
     private Integer adminId;
+
+    /**
+     * 行业
+     */
+    private String profession;
+
+    /**
+     * 关键词，英文逗号分割
+     */
+    private String keywords;
+
+    /**
+     * 使用次数
+     */
+    private Integer useNums;
+
+    /**
+     * 效率提升，如：50；表示50%
+     */
+    private BigDecimal efficiencyUp;
 
     /**
      * 创建时间
