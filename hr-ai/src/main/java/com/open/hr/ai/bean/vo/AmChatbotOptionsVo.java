@@ -42,7 +42,7 @@ public class AmChatbotOptionsVo implements Serializable {
     /**
      * 方案类型。0为boss从未回复，1为boss询问信息后
      */
-    private Boolean type;
+    private Integer type;
 
     /**
      * 男士称呼别名

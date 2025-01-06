@@ -346,8 +346,17 @@ public class ChatBotPositionManager {
             }
             AmPositionVo amPositionVo = AmPositionConvert.I.converAmPositionVo(amPosition);
             AmPositionSection section = amPositionSectionService.getById(amPosition.getSectionId());
+            if (Objects.isNull(section)) {
+                return ResultVO.fail("部门不存在");
+            }
             MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
+            if (Objects.isNull(miniUniUser)) {
+                return ResultVO.fail("招聘用户不存在");
+            }
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(amPosition.getBossId());
+            if (Objects.isNull(amZpLocalAccouts)) {
+                return ResultVO.fail("boss账号不存在");
+            }
             amPositionVo.setSection(section.getName());
             amPositionVo.setUserName(miniUniUser.getName());
             amPositionVo.setChannelName("BOSS直聘");

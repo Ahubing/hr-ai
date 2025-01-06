@@ -47,7 +47,7 @@ public class AmZpLocalAccoutsVo implements Serializable {
     /**
      * 账号类型，0本地，1服务端线上
      */
-    private Boolean type;
+    private Integer type;
 
     /**
      * 账号
@@ -82,12 +82,12 @@ public class AmZpLocalAccoutsVo implements Serializable {
     /**
      * 同步状态。0待同步，1已同步
      */
-    private Boolean isSync;
+    private Integer isSync;
 
     /**
      * 运行状态。服务端脚本使用
      */
-    private Boolean isRunning;
+    private Integer isRunning;
 
     /**
      * 创建时间

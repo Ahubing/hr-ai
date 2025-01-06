@@ -53,7 +53,7 @@ public class AmZpLocalAccouts implements Serializable {
     /**
      * 账号类型，0本地，1服务端线上
      */
-    private int type;
+    private Integer type;
 
     /**
      * 账号

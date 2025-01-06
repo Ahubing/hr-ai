@@ -144,7 +144,7 @@ public class ChatBotPositionController extends HrAIBaseController {
 
     @ApiOperation("查询职位详情")
     @VerifyUserToken
-    @PostMapping("position/detail")
+    @GetMapping("position/detail")
     public ResultVO getPositionDetail(@RequestParam(value = "id",required = true) Integer id) {
         return chatBotPositionManager.getPositionDetail(id);
     }

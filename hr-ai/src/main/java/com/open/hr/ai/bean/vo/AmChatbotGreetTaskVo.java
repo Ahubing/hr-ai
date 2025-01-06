@@ -40,7 +40,7 @@ public class AmChatbotGreetTaskVo implements Serializable {
     /**
      * 任务类型。0每日任务，1临时任务，2复聊
      */
-    private Boolean taskType;
+    private Integer taskType;
 
     /**
      * 执行时间
