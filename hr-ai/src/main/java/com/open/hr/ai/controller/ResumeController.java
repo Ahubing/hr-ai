@@ -50,4 +50,6 @@ public class ResumeController extends HrAIBaseController {
     private ResultVO resumeSearch(@RequestParam(value = "id", required = true) Integer id) {
         return  ResultVO.success("智能匹配");
     }
+
+
 }

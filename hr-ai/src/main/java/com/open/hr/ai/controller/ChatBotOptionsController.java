@@ -40,7 +40,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("chatbotoptions/detail")
     private ResultVO chatBotOptionsDetail(@RequestParam(value = "id",required = true) Integer id) {
-        return chatBotOptionsManager.detail(id);
+        return chatBotOptionsManager.chatbotOptionsDetail(id);
     }
 
 
@@ -51,7 +51,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
         if (Objects.isNull(req)){
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotOptionsManager.edit(req);
+        return chatBotOptionsManager.addOrUpdateChatbotOptions(req);
     }
 
     @ApiOperation("新增/编辑方案执行话术项目")

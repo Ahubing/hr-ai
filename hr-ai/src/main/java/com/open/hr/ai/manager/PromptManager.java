@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @Author liuzilin
+ * 逻辑按照php处理的
+ *
  * @Date 2025/1/6 20:00
  */
 @Slf4j
@@ -26,41 +27,41 @@ public class PromptManager {
     @Resource
     private AmPromptServiceImpl amPromptService;
 
-    public ResultVO promptList(Integer type, Long adminId) {
+    public ResultVO getPromptList(Integer type, Long adminId) {
         try {
             QueryWrapper<AmPrompt> queryWrapper = new QueryWrapper<>();
             JSONObject jsonObject = new JSONObject();
             if (Objects.isNull(type)) {
-                queryWrapper.eq("admin_id",adminId);
+                queryWrapper.eq("admin_id", adminId);
                 List<AmPrompt> amPrompt = amPromptService.list(queryWrapper);
-                jsonObject.put("prompts",amPrompt);
-            }else {
-                queryWrapper.eq("admin_id",adminId).eq("type",type);
+                jsonObject.put("prompts", amPrompt);
+            } else {
+                queryWrapper.eq("admin_id", adminId).eq("type", type);
                 List<AmPrompt> amPrompt = amPromptService.list(queryWrapper);
-                jsonObject.put("prompts",amPrompt);
+                jsonObject.put("prompts", amPrompt);
             }
             return ResultVO.success(jsonObject);
-        }catch (Exception e){
-            log.error("获取AI跟进prompt列表异常 type={},adminId={}",type,adminId,e);
+        } catch (Exception e) {
+            log.error("获取AI跟进prompt列表异常 type={},adminId={}", type, adminId, e);
         }
-       return ResultVO.fail("获取AI跟进prompt列表异常");
+        return ResultVO.fail("获取AI跟进prompt列表异常");
     }
 
-    public ResultVO promptDetail(Integer id) {
+    public ResultVO getPromptDetail(Integer id) {
         try {
             AmPrompt amPrompt = amPromptService.getById(id);
             return ResultVO.success(amPrompt);
-        }catch (Exception e){
-            log.error("获取AI跟进prompt列表异常 id={}",id,e);
+        } catch (Exception e) {
+            log.error("获取AI跟进prompt列表异常 id={}", id, e);
         }
         return ResultVO.fail("获取AI跟进prompt详情异常");
     }
 
 
-    public ResultVO addOrUpdate(AddOrUpdateAmPromptReq req) {
+    public ResultVO addOrUpdatePrompt(AddOrUpdateAmPromptReq req) {
         try {
             AmPrompt amPrompt = new AmPrompt();
-            if (Objects.isNull(req.getId())){
+            if (Objects.isNull(req.getId())) {
                 amPrompt.setAdminId(req.getAdminId());
                 amPrompt.setName(req.getName());
                 amPrompt.setModel(req.getModel());
@@ -73,34 +74,34 @@ public class PromptManager {
                 amPrompt.setIsRead(req.getIsRead());
                 amPrompt.setTags(req.getTags());
                 amPrompt.setCreateTime(LocalDateTime.now());
-            }else {
+            } else {
                 amPrompt = amPromptService.getById(req.getId());
                 amPrompt.setName(req.getName());
                 amPrompt.setModel(req.getModel());
                 amPrompt.setType(req.getType());
                 amPrompt.setAdminId(req.getAdminId());
-                if (StringUtils.isNotBlank(req.getPrompt())){
+                if (StringUtils.isNotBlank(req.getPrompt())) {
                     amPrompt.setPrompt(req.getPrompt());
                 }
-                if (StringUtils.isNotBlank(req.getPrompt2())){
+                if (StringUtils.isNotBlank(req.getPrompt2())) {
                     amPrompt.setPrompt2(req.getPrompt2());
                 }
                 amPromptService.updateById(amPrompt);
             }
             return ResultVO.success(amPrompt);
-        }catch (Exception e){
-            log.error("prompt新增或修改 req={}",JSONObject.toJSONString(req),e);
+        } catch (Exception e) {
+            log.error("prompt新增或修改 req={}", JSONObject.toJSONString(req), e);
         }
         return ResultVO.fail("prompt新增或修改异常");
     }
 
 
-    public ResultVO deleteById(Integer id) {
+    public ResultVO deletePromptById(Integer id) {
         try {
             boolean result = amPromptService.removeById(id);
             return result ? ResultVO.success() : ResultVO.fail("删除prompt失败");
-        }catch (Exception e){
-            log.error("删除prompt异常 id={}",id,e);
+        } catch (Exception e) {
+            log.error("删除prompt异常 id={}", id, e);
         }
         return ResultVO.fail("删除prompt失败异常");
     }

@@ -26,6 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * 逻辑按照php处理的, 暂时未调试
  * @Date 2025/1/4 13:32
  */
 @Component
@@ -57,8 +58,6 @@ public class ChatBotManager {
 
     @Resource
     private AmChatbotOptionsServiceImpl amChatbotOptionsService;
-
-
 
     @Resource
     private AmPositionSyncTaskServiceImpl amPositionSyncTaskService;
@@ -246,7 +245,7 @@ public class ChatBotManager {
                 amClientTasks.setCreateTime(LocalDateTime.now());
                 amClientTasks.setUpdateTime(LocalDateTime.now());
                 amClientTasksService.save(amClientTasks);
-                //TODO:  php  sendToWap($account_id,'job_list',$_data); 是什么实现
+                //TODO:  php  sendToWap($account_id,'job_list',$_data); 没实现
             }else {
                 if(amPositionSyncTask.getStatus() ==2){
                     amPositionSyncTask.setStatus(0);
@@ -261,7 +260,7 @@ public class ChatBotManager {
                     amClientTasks.setCreateTime(LocalDateTime.now());
                     amClientTasks.setUpdateTime(LocalDateTime.now());
                     amClientTasksService.save(amClientTasks);
-                    //TODO:  php  sendToWap($account_id,'job_list',$_data);  是什么实现
+                    //TODO:  php  sendToWap($account_id,'job_list',$_data);  没实现
                 }else {
                     return ResultVO.fail(JSONObject.toJSONString(map));
                 }

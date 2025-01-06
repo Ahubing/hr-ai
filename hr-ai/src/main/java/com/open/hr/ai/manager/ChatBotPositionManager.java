@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @Author liuzilin
+ * 逻辑按照php处理的, 暂时未调试
  * @Date 2025/1/4 23:28
  */
 @Component
@@ -268,7 +268,6 @@ public class ChatBotPositionManager {
     }
 
 
-
     /**
      * 获取岗位列表
      *
@@ -364,6 +363,7 @@ public class ChatBotPositionManager {
 
     /**
      * todo 根据php 代码,获取职位列表 先用json 处理
+     *
      * @return
      */
     public ResultVO getPositionList(SearchPositionListReq req) {
@@ -373,9 +373,9 @@ public class ChatBotPositionManager {
             QueryWrapper<AmPositionSection> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("admin_id", req.getAdminId());
             AmPositionSection serviceOne = amPositionSectionService.getOne(queryWrapper, false);
-           if (Objects.isNull(serviceOne)) {
-               return ResultVO.fail("部门不存在");
-           }
+            if (Objects.isNull(serviceOne)) {
+                return ResultVO.fail("部门不存在");
+            }
             QueryWrapper<AmPosition> amPositionQueryWrapper = new QueryWrapper<>();
             amPositionQueryWrapper.eq("admin_id", req.getAdminId());
 
@@ -402,7 +402,7 @@ public class ChatBotPositionManager {
             }
             if (Objects.nonNull(req.getAccountId())) {
                 amPositionQueryWrapper.like("boss_id", req.getAccountId());
-            }else {
+            } else {
                 QueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new QueryWrapper<>();
                 accoutsQueryWrapper.eq("admin_id", req.getAdminId());
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(accoutsQueryWrapper);
@@ -421,7 +421,7 @@ public class ChatBotPositionManager {
 
 
             QueryWrapper<AmZpPlatforms> platformsQueryWrapper = new QueryWrapper<>();
-            platformsQueryWrapper.gt("id",0);
+            platformsQueryWrapper.gt("id", 0);
             List<AmZpPlatforms> amZpPlatforms = amZpPlatformsService.list(platformsQueryWrapper);
 
 
@@ -469,20 +469,18 @@ public class ChatBotPositionManager {
             jsonObject.put("total", total);
             jsonObject.put("current_page", amPositionVos);
             jsonObject.put("size", req.getSize());
-            jsonObject.put("recruiters",miniUniUsers);
-            jsonObject.put("accouts",localAccouts);
-            jsonObject.put("platforms",amZpPlatforms);
-            jsonObject.put("sections",amPositionSections);
-            jsonObject.put("positions",amPositions);
-            jsonObject.put("ais",amSquareRoles);
+            jsonObject.put("recruiters", miniUniUsers);
+            jsonObject.put("accouts", localAccouts);
+            jsonObject.put("platforms", amZpPlatforms);
+            jsonObject.put("sections", amPositionSections);
+            jsonObject.put("positions", amPositions);
+            jsonObject.put("ais", amSquareRoles);
             return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("查询职位详情异常 req={}", JSONObject.toJSONString(req), e);
             return ResultVO.fail("系统异常, 获取成功失败");
         }
     }
-
-
 
 
 }

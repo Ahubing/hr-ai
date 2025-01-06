@@ -24,7 +24,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * @Author liuzilin
+ * 逻辑按照php处理的, 暂时未调试
+ *
  * @Date 2025/1/4 23:28
  */
 @Component
@@ -41,18 +42,18 @@ public class ChatBotOptionsManager {
     @Resource
     private AmChatbotOptionAiRoleServiceImpl amChatbotOptionAiRoleService;
 
-    public ResultVO chatbotOptionsList(Long adminId,Integer type,String keyword) {
+    public ResultVO chatbotOptionsList(Long adminId, Integer type, String keyword) {
         try {
             QueryWrapper<AmChatbotOptions> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("admin_id", adminId);
             queryWrapper.eq("type", type);
-            if (keyword != null && !"".equals(keyword)){
+            if (keyword != null && !"".equals(keyword)) {
                 queryWrapper.like("name", keyword);
             }
             queryWrapper.orderByAsc("id");
             List<AmChatbotOptionsVo> amChatbotOptionsList = amChatbotOptionsService.list(queryWrapper).stream().map(AmChatBotOptionConvert.I::convertOptionVo).collect(Collectors.toList());
             for (AmChatbotOptionsVo amChatbotOptionsVo : amChatbotOptionsList) {
-                amChatbotOptionsVo.setRelativePositionNums(StringUtils.isNotBlank(amChatbotOptionsVo.getPositionIds()) ?amChatbotOptionsVo.getPositionIds().split(",").length : 0 );
+                amChatbotOptionsVo.setRelativePositionNums(StringUtils.isNotBlank(amChatbotOptionsVo.getPositionIds()) ? amChatbotOptionsVo.getPositionIds().split(",").length : 0);
                 QueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new QueryWrapper<>();
                 itemsQueryWrapper.eq("option_id", amChatbotOptionsVo.getId());
                 List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.list(itemsQueryWrapper);
@@ -62,38 +63,38 @@ public class ChatBotOptionsManager {
                 amChatbotOptionsVo.setItems(amChatbotOptionsItemsService.list(itemsQueryWrapper));
             }
             return ResultVO.success(amChatbotOptionsList);
-        }catch (Exception e){
-            log.error("获取方案列表失败 adminId={},type={},keyWord={}",adminId,type,keyword,e);
+        } catch (Exception e) {
+            log.error("获取方案列表失败 adminId={},type={},keyWord={}", adminId, type, keyword, e);
         }
         return ResultVO.fail("系统异常,获取方案列表失败");
     }
 
 
-    public ResultVO detail(Integer id) {
+    public ResultVO chatbotOptionsDetail(Integer id) {
         try {
             AmChatbotOptions amChatbotOptions = amChatbotOptionsService.getById(id);
             AmChatbotOptionsVo amChatbotOptionsVo = AmChatBotOptionConvert.I.convertOptionVo(amChatbotOptions);
-            amChatbotOptionsVo.setRelativePositionNums(StringUtils.isNotBlank(amChatbotOptionsVo.getPositionIds()) ?amChatbotOptionsVo.getPositionIds().split(",").length : 0 );
+            amChatbotOptionsVo.setRelativePositionNums(StringUtils.isNotBlank(amChatbotOptionsVo.getPositionIds()) ? amChatbotOptionsVo.getPositionIds().split(",").length : 0);
             QueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new QueryWrapper<>();
             itemsQueryWrapper.eq("option_id", amChatbotOptionsVo.getId());
             List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.list(itemsQueryWrapper);
             for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
                 amChatbotOptionsItem.setRepeatContent(StringUtils.isNotBlank(amChatbotOptionsItem.getContent()) ? amChatbotOptionsItem.getContent().split("\\|").length : new ArrayList<>());
             }
-             amChatbotOptionsVo.setItems(amChatbotOptionsItems);
+            amChatbotOptionsVo.setItems(amChatbotOptionsItems);
             return ResultVO.success(amChatbotOptionsVo);
-        }catch (Exception e){
-            log.error("获取方案列表详情 id={}",id,e);
+        } catch (Exception e) {
+            log.error("获取方案列表详情 id={}", id, e);
         }
         return ResultVO.fail("系统异常,获取方案详情失败");
     }
 
 
-    public ResultVO edit(AddOrUpdateAmChatbotOptions req) {
+    public ResultVO addOrUpdateChatbotOptions(AddOrUpdateAmChatbotOptions req) {
         try {
-            if (Objects.nonNull(req.getId())){
+            if (Objects.nonNull(req.getId())) {
                 AmChatbotOptions amChatbotOptions = amChatbotOptionsService.getById(req.getId());
-                if (Objects.isNull(amChatbotOptions)){
+                if (Objects.isNull(amChatbotOptions)) {
                     return ResultVO.fail("方案不存在");
                 }
                 amChatbotOptions.setName(req.getName());
@@ -106,7 +107,7 @@ public class ChatBotOptionsManager {
                 amChatbotOptions.setUpdateTime(LocalDateTime.now());
                 amChatbotOptionsService.updateById(amChatbotOptions);
                 return ResultVO.success(amChatbotOptions);
-            }else {
+            } else {
                 AmChatbotOptions amChatbotOptions = new AmChatbotOptions();
                 amChatbotOptions.setName(req.getName());
                 amChatbotOptions.setPositionIds(req.getPositionIds());
@@ -120,17 +121,17 @@ public class ChatBotOptionsManager {
                 amChatbotOptionsService.save(amChatbotOptions);
                 return ResultVO.success(amChatbotOptions);
             }
-        }catch (Exception e){
-            log.error("编辑或新增方案 req={}", JSONObject.toJSONString(req),e);
+        } catch (Exception e) {
+            log.error("编辑或新增方案 req={}", JSONObject.toJSONString(req), e);
         }
         return ResultVO.fail("系统异常,编辑或新增方案失败");
     }
 
     public ResultVO editItems(AddOrUpdateAmChatbotOptionsItems req) {
         try {
-            if (Objects.nonNull(req.getId())){
+            if (Objects.nonNull(req.getId())) {
                 AmChatbotOptionsItems amChatbotOptionsItems = amChatbotOptionsItemsService.getById(req.getId());
-                if (Objects.isNull(amChatbotOptionsItems)){
+                if (Objects.isNull(amChatbotOptionsItems)) {
                     return ResultVO.fail("方案执行话术项目不存在");
                 }
                 amChatbotOptionsItems.setOptionId(req.getOptionId());
@@ -143,7 +144,7 @@ public class ChatBotOptionsManager {
                 amChatbotOptionsItems.setUpdateTime(LocalDateTime.now());
                 amChatbotOptionsItemsService.updateById(amChatbotOptionsItems);
                 return ResultVO.success(amChatbotOptionsItems);
-            }else {
+            } else {
                 AmChatbotOptionsItems amChatbotOptionsItems = new AmChatbotOptionsItems();
                 amChatbotOptionsItems.setOptionId(req.getOptionId());
                 amChatbotOptionsItems.setContent(req.getContent());
@@ -156,8 +157,8 @@ public class ChatBotOptionsManager {
                 amChatbotOptionsItemsService.save(amChatbotOptionsItems);
                 return ResultVO.success(amChatbotOptionsItems);
             }
-        }catch (Exception e){
-            log.error("新增/编辑方案执行话术项目异常 req={}", JSONObject.toJSONString(req),e);
+        } catch (Exception e) {
+            log.error("新增/编辑方案执行话术项目异常 req={}", JSONObject.toJSONString(req), e);
         }
         return ResultVO.fail("系统异常,新增/编辑方案执行话术项目失败");
     }
@@ -165,8 +166,8 @@ public class ChatBotOptionsManager {
     public ResultVO getAiRoles() {
         try {
             return ResultVO.success(amChatbotOptionAiRoleService.list());
-        }catch (Exception e){
-            log.error("获取AI角色列表",e);
+        } catch (Exception e) {
+            log.error("获取AI角色列表", e);
         }
         return ResultVO.fail("系统异常,获取AI角色列表失败");
     }
@@ -175,8 +176,8 @@ public class ChatBotOptionsManager {
         try {
             boolean result = amChatbotOptionsService.removeById(id);
             return result ? ResultVO.success("删除成功") : ResultVO.fail("删除失败");
-        }catch (Exception e){
-            log.error("删除失败 id={}",id,e);
+        } catch (Exception e) {
+            log.error("删除失败 id={}", id, e);
         }
         return ResultVO.fail("系统异常,删除失败");
     }
@@ -185,8 +186,8 @@ public class ChatBotOptionsManager {
         try {
             boolean result = amChatbotOptionsItemsService.removeById(id);
             return result ? ResultVO.success("删除成功") : ResultVO.fail("删除失败");
-        }catch (Exception e){
-            log.error("删除失败 id={}",id,e);
+        } catch (Exception e) {
+            log.error("删除失败 id={}", id, e);
         }
         return ResultVO.fail("系统异常,删除失败");
     }

@@ -29,34 +29,34 @@ public class PromptController extends HrAIBaseController {
     @ApiOperation("获取AI跟进prompt列表")
     @VerifyUserToken
     @GetMapping("prompt/list")
-    private ResultVO promptList(@RequestParam(value = "type", required = false) Integer type) {
+    private ResultVO getPromptList(@RequestParam(value = "type", required = false) Integer type) {
         Long adminId = getUserId();
-        return promptManager.promptList(type, adminId);
+        return promptManager.getPromptList(type, adminId);
     }
 
     @ApiOperation("获取AI跟进prompt详情")
     @VerifyUserToken
     @GetMapping("prompt/detail")
-    private ResultVO promptDetail(@RequestParam(value = "id", required = true) Integer id) {
-        return promptManager.promptDetail(id);
+    private ResultVO getPromptDetail(@RequestParam(value = "id", required = true) Integer id) {
+        return promptManager.getPromptDetail(id);
     }
 
 
     @ApiOperation("prompt新增或修改")
     @VerifyUserToken
     @PostMapping("prompt/edit")
-    private ResultVO promptEdit(@RequestBody @Valid AddOrUpdateAmPromptReq req) {
+    private ResultVO addOrUpdatePrompt(@RequestBody @Valid AddOrUpdateAmPromptReq req) {
         if (req == null) {
             return ResultVO.fail("参数不能为空");
         }
         req.setAdminId(getUserId());
-        return promptManager.addOrUpdate(req);
+        return promptManager.addOrUpdatePrompt(req);
     }
 
     @ApiOperation("删除prompt")
     @VerifyUserToken
     @GetMapping("prompt/delete")
-    private ResultVO promptEdit(@RequestParam(value = "id", required = true) Integer id) {
-        return promptManager.deleteById(id);
+    private ResultVO deletePromptById(@RequestParam(value = "id", required = true) Integer id) {
+        return promptManager.deletePromptById(id);
     }
 }

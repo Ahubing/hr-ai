@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @Author liuzilin
+ * 逻辑按照php处理的, 暂时未调试
  * @Date 2025/1/6 20:00
  */
 @Slf4j
@@ -39,6 +39,7 @@ public class ResumeManager {
         }
         return ResultVO.fail("获取简历详情异常");
     }
+
 
 
 
