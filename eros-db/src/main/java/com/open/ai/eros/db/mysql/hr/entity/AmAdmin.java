@@ -3,15 +3,18 @@ package com.open.ai.eros.db.mysql.hr.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
+import com.open.ai.eros.db.mysql.user.entity.User;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author Eros-AI
@@ -23,10 +26,10 @@ import lombok.experimental.Accessors;
 @TableName("am_admin")
 public class AmAdmin implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
-    private Integer id;
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
 
     /**
      * 账号
@@ -55,7 +58,7 @@ public class AmAdmin implements Serializable {
     /**
      * 状态。0未启用，1禁用，2启用
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 特殊权限
@@ -78,4 +81,15 @@ public class AmAdmin implements Serializable {
     private Integer createTime;
 
 
+    public User convertToUser() {
+        User user = new User();
+        user.setId(id);
+        user.setUserName(username);
+        user.setPassword(password);
+        user.setEmail(email);
+        // todo 特殊处理 esc
+        user.setStatus(status == 2 ? "ACTIVE" : "DISABLED");
+        user.setRole("all".equals(specialPermission) ? "system" : "user");//有特殊权限默认系统管理员。否则，普通用户
+        return user;
+    }
 }

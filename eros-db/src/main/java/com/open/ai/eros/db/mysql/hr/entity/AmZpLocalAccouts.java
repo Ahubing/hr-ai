@@ -1,8 +1,10 @@
 package com.open.ai.eros.db.mysql.hr.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -21,12 +23,12 @@ import lombok.experimental.Accessors;
 @TableName("am_zp_local_accouts")
 public class AmZpLocalAccouts implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * 主键，唯一
      */
-      private String id;
+    private String id;
 
     /**
      * 用来验证，为了避免不同平台id类型可能不同。
@@ -36,17 +38,22 @@ public class AmZpLocalAccouts implements Serializable {
     /**
      * 管理员id
      */
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 平台id
      */
-    private Integer platformId;
+    private Long platformId;
+
+    /**
+     * 平台名称
+     */
+    private String platform;
 
     /**
      * 账号类型，0本地，1服务端线上
      */
-    private Boolean type;
+    private int type;
 
     /**
      * 账号
@@ -81,12 +88,12 @@ public class AmZpLocalAccouts implements Serializable {
     /**
      * 同步状态。0待同步，1已同步
      */
-    private Boolean isSync;
+    private int isSync;
 
     /**
      * 运行状态。服务端脚本使用
      */
-    private Boolean isRunning;
+    private int isRunning;
 
     /**
      * 创建时间

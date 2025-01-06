@@ -2,6 +2,9 @@ package com.open.ai.eros.db.mysql.hr.mapper;
 
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.open.ai.eros.db.mysql.user.entity.User;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * <p>
@@ -13,4 +16,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface AmAdminMapper extends BaseMapper<AmAdmin> {
 
+    @Select("select  * from am_admin where username = #{account} and `status` = 2  limit 1  ")
+    AmAdmin getUserByAccount(@Param("account") String account);
 }
