@@ -65,8 +65,6 @@ public class ChatBotManager {
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
 
-    @Resource
-    private AmZpLocalAccoutsConvert amZpLocalAccoutsConvert;
 
 
     public ResultVO getLocalAccounts(Long adminId) {
@@ -81,7 +79,7 @@ public class ChatBotManager {
                 return ResultVO.success();
             }
 
-            List<AmZpLocalAccoutsVo> amZpLocalAccoutsVos = localAccounts.stream().map(amZpLocalAccoutsConvert::convertAmZpLocalAccounts).collect(Collectors.toList());
+            List<AmZpLocalAccoutsVo> amZpLocalAccoutsVos = localAccounts.stream().map(AmZpLocalAccoutsConvert.I::convertAmZpLocalAccounts).collect(Collectors.toList());
             List<AmZpPlatforms> platforms = amZpPlatformsService.list();
 
             for (AmZpLocalAccoutsVo account : amZpLocalAccoutsVos) {
@@ -159,7 +157,7 @@ public class ChatBotManager {
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail("账号不存在");
             }
-            AmZpLocalAccoutsVo amZpLocalAccoutsVo = amZpLocalAccoutsConvert.convertAmZpLocalAccounts(amZpLocalAccouts);
+            AmZpLocalAccoutsVo amZpLocalAccoutsVo = AmZpLocalAccoutsConvert.I.convertAmZpLocalAccounts(amZpLocalAccouts);
             return ResultVO.success(amZpLocalAccoutsVo);
         } catch (Exception e) {
             log.error("getGreetByAccountId error id=", e);
