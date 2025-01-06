@@ -31,7 +31,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("获取本地登录账号列表")
     @VerifyUserToken
     @GetMapping("chatbot/get_local_accounts")
-    private ResultVO getLocalAccounts() {
+    public ResultVO getLocalAccounts() {
         Long adminId = getUserId();
         return chatBotManager.getLocalAccounts(adminId);
     }
@@ -40,7 +40,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("获取招聘平台列表(与多账号登录共用)")
     @VerifyUserToken
     @GetMapping("chatbot/platforms")
-    private ResultVO getPlatforms() {
+    public ResultVO getPlatforms() {
         return chatBotManager.getPlatforms();
     }
 
@@ -49,7 +49,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("添加本地招聘账号")
     @VerifyUserToken
     @PostMapping("chatbot/add_account")
-    private ResultVO AddAccount(@RequestBody @Valid AddAccountReq addAccountReq) {
+    public ResultVO AddAccount(@RequestBody @Valid AddAccountReq addAccountReq) {
         if (Objects.isNull(addAccountReq)) {
             return ResultVO.fail("参数不能为空");
         }

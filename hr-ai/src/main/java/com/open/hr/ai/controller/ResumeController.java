@@ -32,7 +32,7 @@ public class ResumeController extends HrAIBaseController {
     @ApiOperation("获取简历详情")
     @VerifyUserToken
     @GetMapping("resume/detail")
-    private ResultVO promptDetail(@RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO promptDetail(@RequestParam(value = "id", required = true) Integer id) {
         return resumeManager.resumeDetail(id);
     }
 
@@ -47,7 +47,7 @@ public class ResumeController extends HrAIBaseController {
     @ApiOperation("智能匹配")
     @VerifyUserToken
     @GetMapping("resume/search")
-    private ResultVO resumeSearch(@RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO resumeSearch(@RequestParam(value = "id", required = true) Integer id) {
         return  ResultVO.success("智能匹配");
     }
 

@@ -29,7 +29,6 @@ import java.util.Base64;
  */
 @Slf4j
 @RestController
-@RequestMapping("/login/")
 public class LoginController extends HrAIBaseController {
 
     @Autowired
