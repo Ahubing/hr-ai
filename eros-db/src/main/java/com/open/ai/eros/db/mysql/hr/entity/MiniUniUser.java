@@ -34,7 +34,7 @@ public class MiniUniUser implements Serializable {
     /**
      * 所属的账号
      */
-    private Integer adminId;
+    private Long adminId;
 
     private String miniName;
 
@@ -111,17 +111,17 @@ public class MiniUniUser implements Serializable {
     /**
      * 性别，0女，1男
      */
-    private Boolean sex;
+    private Integer sex;
 
     /**
      * 用户状态。0未认证,1审核中，2已认证成功，3认证失败
      */
-    private Boolean status;
+    private Integer status;
 
     /**
      * 通知状态。0结果未通知，1已通知，2出错
      */
-    private Boolean notify;
+    private Integer notify;
 
     /**
      * 认证失败原因
@@ -131,7 +131,7 @@ public class MiniUniUser implements Serializable {
     /**
      * 是否拉进黑名单
      */
-    private Boolean isBlack;
+    private Integer isBlack;
 
     /**
      * 禁言结束时间
@@ -161,17 +161,17 @@ public class MiniUniUser implements Serializable {
     /**
      * 更新时间
      */
-    private Integer updateTime;
+    private LocalDateTime updateTime;
 
     /**
      * 创建时间
      */
-    private Integer createTime;
+    private LocalDateTime createTime;
 
     /**
      * 到期时间
      */
-    private Integer expiredTime;
+    private LocalDateTime expiredTime;
 
     /**
      * 特殊权限

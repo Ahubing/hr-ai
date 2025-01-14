@@ -39,7 +39,7 @@ public class AmChatbotGreetMessages implements Serializable {
     /**
      * 是否为系统发送给应聘者，0否，1是
      */
-    private Boolean isSystemSend;
+    private Integer isSystemSend;
 
     /**
      * 来源 uid

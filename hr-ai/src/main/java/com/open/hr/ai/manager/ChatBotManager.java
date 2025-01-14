@@ -7,10 +7,9 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.*;
-import com.open.hr.ai.bean.vo.AmChatbotGreetConditionVo;
-import com.open.hr.ai.bean.vo.AmChatbotGreetTaskVo;
-import com.open.hr.ai.bean.vo.AmChatbotPositionOptionVo;
-import com.open.hr.ai.bean.vo.AmZpLocalAccoutsVo;
+import com.open.hr.ai.bean.vo.*;
+import com.open.hr.ai.constant.AmClientTaskStatusEnums;
+import com.open.hr.ai.constant.PositionSyncTaskStatusEnums;
 import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
 import com.open.hr.ai.convert.AmChatBotGreetTaskConvert;
 import com.open.hr.ai.convert.AmChatBotPositionOptionConvert;
@@ -67,9 +66,10 @@ public class ChatBotManager {
 
 
 
-    public ResultVO getLocalAccounts(Long adminId) {
+    public ResultVO<AmZmLocalAccountsListVo> getLocalAccounts(Long adminId) {
 
         try {
+            AmZmLocalAccountsListVo amZmLocalAccountsListVo = new AmZmLocalAccountsListVo();
             LambdaQueryWrapper<AmZpLocalAccouts> lambdaQueryWrapper = new LambdaQueryWrapper<>();
             lambdaQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
 
@@ -93,11 +93,10 @@ public class ChatBotManager {
                 }
             }
 
-            Map<String, Object> data = new HashMap<>();
-            data.put("list", localAccounts);
-            data.put("platforms", platforms);
-            data.put("citys", Arrays.asList("北京", "上海", "深圳", "广州", "杭州", "成都"));
-            return ResultVO.success(data);
+            amZmLocalAccountsListVo.setLocalAccountsList(amZpLocalAccoutsVos);
+            amZmLocalAccountsListVo.setPlatforms(platforms);
+            amZmLocalAccountsListVo.setCitys(Arrays.asList("北京", "上海", "深圳", "广州", "杭州", "成都"));
+            return ResultVO.success(amZmLocalAccountsListVo);
         } catch (Exception e) {
             log.error("getLocalAccounts error", e);
         }
@@ -105,7 +104,7 @@ public class ChatBotManager {
     }
 
 
-    public ResultVO getPlatforms() {
+    public ResultVO<List<AmZpPlatforms>> getPlatforms() {
         try {
             List<AmZpPlatforms> platforms = amZpPlatformsService.list();
             return ResultVO.success(platforms);
@@ -115,12 +114,12 @@ public class ChatBotManager {
         return ResultVO.fail("获取平台列表失败");
     }
 
-    public ResultVO AddAccount(AddAccountReq addAccountReq) {
+    public ResultVO<AmZpLocalAccouts> AddAccount(AddAccountReq addAccountReq,Long adminId) {
         try {
 
-            QueryWrapper<AmZpLocalAccouts> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("admin_id", addAccountReq.getAdminId());
-            queryWrapper.eq("account", addAccountReq.getAccount());
+            LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
+            queryWrapper.eq(AmZpLocalAccouts::getAccount, addAccountReq.getAccount());
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper);
             if (Objects.nonNull(zpLocalAccouts)) {
                 return ResultVO.fail("账号已存在");
@@ -128,7 +127,7 @@ public class ChatBotManager {
             String uuid = UUID.randomUUID().toString();
             AmZpLocalAccouts amZpLocalAccouts = new AmZpLocalAccouts();
             amZpLocalAccouts.setId(uuid);
-            amZpLocalAccouts.setAdminId(addAccountReq.getAdminId());
+            amZpLocalAccouts.setAdminId(adminId);
             amZpLocalAccouts.setAccount(addAccountReq.getAccount());
             amZpLocalAccouts.setMobile(addAccountReq.getMobile());
             amZpLocalAccouts.setCity(addAccountReq.getCity());
@@ -151,7 +150,7 @@ public class ChatBotManager {
         return ResultVO.fail("删除账号失败");
     }
 
-    public ResultVO getGreetByAccountId(String id) {
+    public ResultVO<AmZpLocalAccoutsVo> getGreetByAccountId(String id) {
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(id);
             if (Objects.isNull(amZpLocalAccouts)) {
@@ -166,11 +165,12 @@ public class ChatBotManager {
     }
 
     @Transactional
-    public ResultVO getOptionsConfig(Long userId) {
+    public ResultVO<AmChatbotOptionsConfig> getOptionsConfig(Long userId) {
         try {
-            QueryWrapper<AmChatbotOptionsConfig> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("admin_id", userId);
+            LambdaQueryWrapper<AmChatbotOptionsConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotOptionsConfig::getAdminId, userId);
             AmChatbotOptionsConfig config = amChatbotOptionsConfigService.getOne(queryWrapper);
+            // 如果为空,则插入一条默认数据
             if (config == null) {
                 config = new AmChatbotOptionsConfig();
                 config.setAdminId(userId);
@@ -187,14 +187,14 @@ public class ChatBotManager {
 
 
     @Transactional
-    public ResultVO modifyOptionsConfig(UpdateOptionsConfigReq updateOptionsConfigReq) {
+    public ResultVO<AmChatbotOptionsConfig> modifyOptionsConfig(UpdateOptionsConfigReq updateOptionsConfigReq,Long adminId) {
         try {
-            QueryWrapper<AmChatbotOptionsConfig> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("admin_id", updateOptionsConfigReq.getAdminId());
+            LambdaQueryWrapper<AmChatbotOptionsConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotOptionsConfig::getAdminId, adminId);
             AmChatbotOptionsConfig config = amChatbotOptionsConfigService.getOne(queryWrapper);
             if (config == null) {
                 config = new AmChatbotOptionsConfig();
-                config.setAdminId(updateOptionsConfigReq.getAdminId());
+                config.setAdminId(adminId);
                 config.setIsContinueFollow(updateOptionsConfigReq.getIs_continue_follow());
                 amChatbotOptionsConfigService.save(config);
                 config = amChatbotOptionsConfigService.getOne(queryWrapper);
@@ -204,7 +204,7 @@ public class ChatBotManager {
             }
             return ResultVO.success(config);
         } catch (Exception e) {
-            log.error("modifyOptionsConfig error userId={}", updateOptionsConfigReq.getAdminId(), e);
+            log.error("modifyOptionsConfig error adminId={}", adminId, e);
         }
         return ResultVO.fail("修改方案配置失败");
 
@@ -214,55 +214,44 @@ public class ChatBotManager {
     public ResultVO syncPositions(SyncPositionsReq req) {
         HashMap<String,Object> map = new HashMap<>();
         try {
-            String taskType = "get_all_job";
-            QueryWrapper<AmZpLocalAccouts> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("id", req.getAccountId());
-            queryWrapper.eq("state", "active");
+            LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmZpLocalAccouts::getId, req.getAccountId());
+            queryWrapper.eq(AmZpLocalAccouts::getState, "active");
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
             if (Objects.isNull(zpLocalAccouts)){
                 return ResultVO.fail("boss账号非在线运行状态，请检查后重试！");
             }
-            map.put("boss_id",req.getAccountId());
-            map.put("browser_id",zpLocalAccouts.getBrowserId());
-            map.put("page",1);
-            QueryWrapper<AmPositionSyncTask> syncTaskQueryWrapper = new QueryWrapper<>();
-            syncTaskQueryWrapper.eq("account_id",req.getAccountId());
+            LambdaQueryWrapper<AmPositionSyncTask> syncTaskQueryWrapper = new LambdaQueryWrapper<>();
+            syncTaskQueryWrapper.eq(AmPositionSyncTask::getAccountId,req.getAccountId());
             AmPositionSyncTask amPositionSyncTask = amPositionSyncTaskService.getOne(syncTaskQueryWrapper, false);
             if (Objects.isNull(amPositionSyncTask)){
                 amPositionSyncTask = new AmPositionSyncTask();
                 amPositionSyncTask.setAccountId(req.getAccountId());
-                amPositionSyncTask.setStatus(0);
+                amPositionSyncTask.setStatus(PositionSyncTaskStatusEnums.NOT_START.getStatus());
                 amPositionSyncTaskService.save(amPositionSyncTask);
-
-                AmClientTasks amClientTasks = new AmClientTasks();
-                amClientTasks.setId(UUID.randomUUID().toString());
-                amClientTasks.setBossId(req.getAccountId());
-                amClientTasks.setTaskType(taskType);
-                amClientTasks.setStatus(0);
-                amClientTasks.setData(JSONObject.toJSONString(map));
-                amClientTasks.setCreateTime(LocalDateTime.now());
-                amClientTasks.setUpdateTime(LocalDateTime.now());
-                amClientTasksService.save(amClientTasks);
-                //TODO:  php  sendToWap($account_id,'job_list',$_data); 没实现
             }else {
-                if(amPositionSyncTask.getStatus() ==2){
-                    amPositionSyncTask.setStatus(0);
+                if(!Objects.equals(amPositionSyncTask.getStatus(), PositionSyncTaskStatusEnums.FINISH.getStatus())){
+                    amPositionSyncTask.setStatus(PositionSyncTaskStatusEnums.NOT_START.getStatus());
                     amPositionSyncTaskService.updateById(amPositionSyncTask);
-
-                    AmClientTasks amClientTasks = new AmClientTasks();
-                    amClientTasks.setId(UUID.randomUUID().toString());
-                    amClientTasks.setBossId(req.getAccountId());
-                    amClientTasks.setTaskType(taskType);
-                    amClientTasks.setStatus(0);
-                    amClientTasks.setData(JSONObject.toJSONString(map));
-                    amClientTasks.setCreateTime(LocalDateTime.now());
-                    amClientTasks.setUpdateTime(LocalDateTime.now());
-                    amClientTasksService.save(amClientTasks);
-                    //TODO:  php  sendToWap($account_id,'job_list',$_data);  没实现
                 }else {
-                    return ResultVO.fail(JSONObject.toJSONString(map));
+                    return ResultVO.fail("存在同步中的任务，请勿重复操作");
                 }
             }
+
+            String taskType = "get_all_job";
+            map.put("boss_id",req.getAccountId());
+            map.put("browser_id",zpLocalAccouts.getBrowserId());
+            map.put("page",1);
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setId(UUID.randomUUID().toString());
+            amClientTasks.setBossId(req.getAccountId());
+            amClientTasks.setTaskType(taskType);
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            amClientTasks.setData(JSONObject.toJSONString(map));
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setUpdateTime(LocalDateTime.now());
+            boolean result = amClientTasksService.save(amClientTasks);
+            log.info("syncPositions save amClientTasks result={}",result);
         } catch (Exception e) {
             log.error("modifyOptionsConfig error req={}", JSONObject.toJSONString(req), e);
             return ResultVO.fail("发送给boss脚本端失败，请联系管理员");
@@ -274,8 +263,8 @@ public class ChatBotManager {
     @Transactional
     public ResultVO modifyAllStatus(UpdateGreetConfigStatusReq req) {
         try {
-            QueryWrapper<AmChatbotGreetConfig> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("account_id", req.getAccountId());
+            LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConfig::getAccountId, req.getAccountId());
             AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper);
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
@@ -295,8 +284,8 @@ public class ChatBotManager {
     @Transactional
     public ResultVO modifyGreetStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {
         try {
-            QueryWrapper<AmChatbotGreetConfig> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("account_id", updateGreetStatusReq.getAccountId());
+            LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConfig::getAccountId, updateGreetStatusReq.getAccountId());
             AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper);
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
@@ -313,13 +302,13 @@ public class ChatBotManager {
     @Transactional
     public ResultVO modifyReChatStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {
         try {
-            QueryWrapper<AmChatbotGreetConfig> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("account_id", updateGreetStatusReq.getAccountId());
+            LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConfig::getAccountId, updateGreetStatusReq.getAccountId());
             AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper);
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
             }
-            amChatbotGreetConfig.setIsRechatOn(updateGreetStatusReq.getIsGreetOn());
+            amChatbotGreetConfig.setIsRechatOn(updateGreetStatusReq.getIsRechatOn());
             boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
             return result ? ResultVO.success() : ResultVO.fail("修改reChat状态失败");
         } catch (Exception e) {
@@ -332,8 +321,8 @@ public class ChatBotManager {
     @Transactional
     public ResultVO modifyAIOnStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {
         try {
-            QueryWrapper<AmChatbotGreetConfig> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("account_id", updateGreetStatusReq.getAccountId());
+            LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConfig::getAccountId, updateGreetStatusReq.getAccountId());
             AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper);
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
@@ -373,13 +362,13 @@ public class ChatBotManager {
      * 先跟着php的逻辑实现..
      */
     @Transactional
-    public ResultVO setGreetTask(AddOrUpdateAmChatbotGreetTask req) {
+    public ResultVO<AmChatbotGreetTask> setGreetTask(AddOrUpdateAmChatbotGreetTask req) {
         try {
             if (Objects.nonNull(req.getConditionsId())) {
-                QueryWrapper<AmChatbotGreetTask> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("conditions_id", req.getConditionsId());
-                queryWrapper.eq("position_id", req.getPositionId());
-                queryWrapper.eq("exec_time", req.getExecTime());
+                LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmChatbotGreetTask::getConditionsId, req.getConditionsId());
+                queryWrapper.eq(AmChatbotGreetTask::getPositionId, req.getPositionId());
+                queryWrapper.eq(AmChatbotGreetTask::getExecTime, req.getExecTime());
                 AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getOne(queryWrapper);
                 if (Objects.isNull(amChatbotGreetTask)) {
                     AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(req.getConditionsId());
@@ -391,26 +380,28 @@ public class ChatBotManager {
             if (Objects.nonNull(req.getId())) {
                 AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
                 amChatbotGreetTaskService.updateById(amChatbotGreetTask);
+                return ResultVO.success(amChatbotGreetTask);
             } else {
                 // 检查同个任务时段 task_type 0
                 if (req.getTaskType() == 0) {
-                    QueryWrapper<AmChatbotGreetTask> queryWrapper = new QueryWrapper<>();
-                    queryWrapper.eq("exec_time", req.getExecTime());
-                    queryWrapper.eq("task_type", 0);
-                    queryWrapper.eq("account_id", req.getAccountId());
-                    queryWrapper.eq("position_id", req.getPositionId());
+                    LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
+                    queryWrapper.eq(AmChatbotGreetTask::getExecTime, req.getExecTime());
+                    queryWrapper.eq(AmChatbotGreetTask::getTaskType, 0);
+                    queryWrapper.eq(AmChatbotGreetTask::getAccountId, req.getAccountId());
+                    queryWrapper.eq(AmChatbotGreetTask::getPositionId, req.getPositionId());
                     AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getOne(queryWrapper);
                     if (Objects.nonNull(amChatbotGreetTask)) {
                         return ResultVO.fail("每日任务同个时段同个职位，不能新增多个任务，如需修改，请提交对应的任务id");
                     }
                 }
-                // 跟着php 以秒进行存储..
-                req.setCreateTime((int) (System.currentTimeMillis() / 1000));
+                req.setCreateTime(LocalDateTime.now());
                 AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
-                amChatbotGreetTaskService.save(amChatbotGreetTask);
+                boolean result = amChatbotGreetTaskService.save(amChatbotGreetTask);
+                log.info("setGreetTask save amChatbotGreetTask result={}",result);
                 req.setId(amChatbotGreetTask.getId());
+                return ResultVO.success(amChatbotGreetTask);
+
             }
-            return ResultVO.success(req);
         } catch (Exception e) {
             log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(req), e);
         }
@@ -421,67 +412,93 @@ public class ChatBotManager {
      /**
      * 先跟着php的逻辑实现..
      */
-    @Transactional
-    public ResultVO getGreetTasks(SearchAmChatbotGreetTask req) {
-        QueryWrapper<AmChatbotGreetTask> queryWrapper = new QueryWrapper<>();
-        QueryWrapper<AmChatbotGreetTask> queryWrapperInner = new QueryWrapper<>();
+     @Transactional
+     public ResultVO<List<AmChatbotGreetTaskVo>> getGreetTasks(SearchAmChatbotGreetTask req) {
+         try {
+             // 构建基础查询条件
+             LambdaQueryWrapper<AmChatbotGreetTask> baseQuery = buildBaseQuery(req);
 
-        queryWrapper.eq("account_id", req.getAccountId());
-        queryWrapper.eq("task_type", req.getTaskType());
-        queryWrapperInner.eq("account_id", req.getAccountId());
-        queryWrapperInner.eq("task_type", req.getTaskType());
+             // 按时间段归类
+             if (req.getTaskType() == 0) {
+                 return handleGroupedTasks(req, baseQuery);
+             } else {
+                 return handleUngroupedTasks(baseQuery);
+             }
+         } catch (Exception e) {
+             log.error("getGreetTasks error, req={}", JSONObject.toJSONString(req), e);
+             return ResultVO.fail("程序异常,获取任务列表失败");
+         }
+     }
+
+    private LambdaQueryWrapper<AmChatbotGreetTask> buildBaseQuery(SearchAmChatbotGreetTask req) {
+        LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmChatbotGreetTask::getAccountId, req.getAccountId())
+                .eq(AmChatbotGreetTask::getTaskType, req.getTaskType());
         if (Objects.nonNull(req.getId())) {
-            queryWrapper.eq("id", req.getId());
-            queryWrapperInner.eq("id", req.getId());
+            queryWrapper.eq(AmChatbotGreetTask::getId, req.getId());
         }
         if (Objects.nonNull(req.getExecTime())) {
-            queryWrapper.eq("exec_time", req.getExecTime());
-            queryWrapperInner.eq("exec_time", req.getExecTime());
+            queryWrapper.eq(AmChatbotGreetTask::getExecTime, req.getExecTime());
         }
-        try {
-            //按时间段归类
-            if (req.getTaskType() == 0) {
-                queryWrapper.groupBy("exec_time");
-                queryWrapper.orderByAsc("id");
-                List<AmChatbotGreetTaskVo> amChatbotGreetTaskVoList = amChatbotGreetTaskService.list(queryWrapper).stream().map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo).collect(Collectors.toList());
-                for (AmChatbotGreetTaskVo amChatbotGreetTask : amChatbotGreetTaskVoList) {
-                    if (Objects.isNull(req.getExecTime())) {
-                        queryWrapperInner.eq("exec_time", amChatbotGreetTask.getExecTime());
-                    }
-                    List<AmChatbotGreetTaskVo> innerTaskList = amChatbotGreetTaskService.list(queryWrapperInner).stream().map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo).collect(Collectors.toList());
-                    for (AmChatbotGreetTaskVo chatbotGreetTask : innerTaskList) {
-                        if (Objects.nonNull(chatbotGreetTask.getConditionsId())) {
-                            AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(chatbotGreetTask.getConditionsId());
-                            AmChatbotGreetConditionVo amChatbotGreetConditionVo = AmChatBotGreetConditionConvert.I.convertGreetConditionVo(condition);
-                            chatbotGreetTask.setConditionVo(amChatbotGreetConditionVo);
-                        }
-                    }
-                    amChatbotGreetTask.setTasks(innerTaskList);
-                    amChatbotGreetTask.setTotal(innerTaskList.size());
-                }
-                return ResultVO.success(amChatbotGreetTaskVoList);
-            } 
-            else {
-                queryWrapper.orderByAsc("id");
-                List<AmChatbotGreetTaskVo> amChatbotGreetTaskVos = amChatbotGreetTaskService.list(queryWrapper).stream().map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo).collect(Collectors.toList());
-                    for (AmChatbotGreetTaskVo chatbotGreetTask : amChatbotGreetTaskVos) {
-                        if (Objects.nonNull(chatbotGreetTask.getConditionsId())) {
-                            AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(chatbotGreetTask.getConditionsId());
-                            AmChatbotGreetConditionVo amChatbotGreetConditionVo = AmChatBotGreetConditionConvert.I.convertGreetConditionVo(condition);
-                            chatbotGreetTask.setConditionVo(amChatbotGreetConditionVo);
-                        }
-                    }
-                return ResultVO.success(amChatbotGreetTaskVos);
+        return queryWrapper;
+    }
+
+    private ResultVO<List<AmChatbotGreetTaskVo>> handleGroupedTasks(SearchAmChatbotGreetTask req, LambdaQueryWrapper<AmChatbotGreetTask> baseQuery) {
+        // 按时间分组并排序
+        baseQuery.groupBy(AmChatbotGreetTask::getExecTime)
+                .orderByAsc(AmChatbotGreetTask::getId);
+
+        List<AmChatbotGreetTaskVo> groupedTasks = amChatbotGreetTaskService.list(baseQuery).stream()
+                .map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo)
+                .collect(Collectors.toList());
+
+        for (AmChatbotGreetTaskVo groupedTask : groupedTasks) {
+            // 动态更新查询条件
+            LambdaQueryWrapper<AmChatbotGreetTask> innerQuery = buildBaseQuery(req);
+            if (Objects.isNull(req.getExecTime())) {
+                innerQuery.eq(AmChatbotGreetTask::getExecTime, groupedTask.getExecTime());
             }
-        } catch (Exception e) {
-            log.error("getGreetTask error req={}", JSONObject.toJSONString(req), e);
+
+            // 查询子任务
+            List<AmChatbotGreetTaskVo> innerTaskList = amChatbotGreetTaskService.list(innerQuery).stream()
+                    .map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo)
+                    .peek(this::populateConditionVo) // 填充条件信息
+                    .collect(Collectors.toList());
+
+            // 设置子任务和总数
+            groupedTask.setTasks(innerTaskList);
+            groupedTask.setTotal(innerTaskList.size());
         }
-        return ResultVO.fail("程序异常,获取任务列表失败");
+
+        return ResultVO.success(groupedTasks);
+    }
+
+    private ResultVO<List<AmChatbotGreetTaskVo>> handleUngroupedTasks(LambdaQueryWrapper<AmChatbotGreetTask> baseQuery) {
+        // 按 ID 排序
+        baseQuery.orderByAsc(AmChatbotGreetTask::getId);
+
+        List<AmChatbotGreetTaskVo> tasks = amChatbotGreetTaskService.list(baseQuery).stream()
+                .map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo)
+                .peek(this::populateConditionVo) // 填充条件信息
+                .collect(Collectors.toList());
+
+        return ResultVO.success(tasks);
+    }
+
+    private void populateConditionVo(AmChatbotGreetTaskVo taskVo) {
+        if (Objects.nonNull(taskVo.getConditionsId())) {
+            AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(taskVo.getConditionsId());
+            if (condition != null) {
+                AmChatbotGreetConditionVo conditionVo = AmChatBotGreetConditionConvert.I.convertGreetConditionVo(condition);
+                taskVo.setConditionVo(conditionVo);
+            }
+        }
     }
 
 
 
-     /**
+
+    /**
      * 先跟着php的逻辑实现..
      */
     @Transactional
@@ -499,10 +516,10 @@ public class ChatBotManager {
      * 先跟着php的逻辑实现..
      */
     @Transactional
-    public ResultVO getConditionByPositionId(Integer positionId) {
+    public ResultVO<AmChatbotGreetCondition> getConditionByPositionId(Integer positionId) {
         try {
-            QueryWrapper<AmChatbotGreetCondition> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("position_id", positionId);
+            LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetCondition::getPositionId, positionId);
             AmChatbotGreetCondition amChatbotGreetCondition = amChatbotGreetConditionService.getOne(queryWrapper, false);
             return Objects.nonNull(amChatbotGreetCondition) ? ResultVO.success(amChatbotGreetCondition) : ResultVO.fail("条件未设置，无数据");
         } catch (Exception e) {
@@ -516,15 +533,15 @@ public class ChatBotManager {
      * 先跟着php的逻辑实现..
      */
     @Transactional
-    public ResultVO getPositionOptions(SearchPositionOptions req) {
+    public ResultVO<List<AmChatbotPositionOptionVo>> getPositionOptions(SearchPositionOptions req) {
         try {
-            QueryWrapper<AmChatbotPositionOption> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("account_id", req.getAccountId());
+            LambdaQueryWrapper<AmChatbotPositionOption> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotPositionOption::getAccountId, req.getAccountId());
 
             List<AmChatbotPositionOption> amChatbotPositionOptions = amChatbotPositionOptionService.list(queryWrapper);
 
             if (Objects.nonNull(req.getPositionId())){
-                queryWrapper.eq("position_id", req.getPositionId());
+                queryWrapper.eq(AmChatbotPositionOption::getPositionId, req.getPositionId());
                 amChatbotPositionOptions =  amChatbotPositionOptionService.list(queryWrapper);
             }
             if (CollectionUtils.isEmpty(amChatbotPositionOptions)) {
@@ -534,8 +551,8 @@ public class ChatBotManager {
             for (AmChatbotPositionOptionVo amChatbotPositionOption : amChatbotPositionOptionVos) {
                 amChatbotPositionOption.setAmSquareRoles(amSquareRolesService.getById(amChatbotPositionOption.getSquareRoleId()));
                 amChatbotPositionOption.setAmChatbotOptions( amChatbotOptionsService.getById(amChatbotPositionOption.getRechatOptionId()));
-                QueryWrapper<AmChatbotGreetCondition> optionQueryWrapper = new QueryWrapper<>();
-                amChatbotPositionOption.setAmChatbotGreetCondition(amChatbotGreetConditionService.getOne(optionQueryWrapper.eq("account_id",req.getAccountId()).eq("position_id",amChatbotPositionOption.getPositionId()), false));
+                LambdaQueryWrapper<AmChatbotGreetCondition> optionQueryWrapper = new LambdaQueryWrapper<>();
+                amChatbotPositionOption.setAmChatbotGreetCondition(amChatbotGreetConditionService.getOne(optionQueryWrapper.eq(AmChatbotGreetCondition::getAccountId,req.getAccountId()).eq(AmChatbotGreetCondition::getPositionId,amChatbotPositionOption.getPositionId()), false));
             }
             return  ResultVO.success(amChatbotPositionOptionVos);
         } catch (Exception e) {
@@ -550,7 +567,7 @@ public class ChatBotManager {
      * 先跟着php的逻辑实现..
      */
     @Transactional
-    public ResultVO setPositionOption(AddPositionOptions req) {
+    public ResultVO<AmChatbotPositionOption> setPositionOption(AddPositionOptions req) {
         try {
 
             AmChatbotPositionOption chatbotPositionOption = new AmChatbotPositionOption();
@@ -559,9 +576,9 @@ public class ChatBotManager {
             chatbotPositionOption.setSquareRoleId(req.getSquareRoleId());
             chatbotPositionOption.setRechatOptionId(req.getRechatOptionId());
 
-            QueryWrapper<AmChatbotPositionOption> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("account_id", req.getAccountId());
-            queryWrapper.eq("position_id", req.getPositionId());
+            LambdaQueryWrapper<AmChatbotPositionOption> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotPositionOption::getAccountId, req.getAccountId());
+            queryWrapper.eq(AmChatbotPositionOption::getPositionId, req.getPositionId());
             AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(queryWrapper,false);
             if (Objects.nonNull(amChatbotPositionOption)) {
                 amChatbotPositionOption.setSquareRoleId(req.getSquareRoleId());

@@ -31,20 +31,20 @@ public class UpdateGreetConfigStatusReq {
     /**
      * 是否开启打招呼任务
      */
-    @NotNull(message = "isGreetOn不能为空")
-    private Boolean isGreetOn;
+    @ApiModelProperty(value = "是否开启打招呼任务",required = false, notes = "3个字段必须选一个,是否开启打招呼任务")
+    private Integer isGreetOn;
 
     /**
      * 是否开启复聊
      */
-    @NotNull(message = "isRechatOn不能为空")
-    private Boolean isRechatOn;
+    @ApiModelProperty( value= "isRechatOn不能为空",required = false, notes = "3个字段必须选一个,是否开启复聊")
+    private Integer isRechatOn;
 
     /**
      * 是否开启ai跟进
      */
-    @NotNull(message = "isAiOn不能为空")
-    private Boolean isAiOn;
+    @ApiModelProperty(value = "isAiOn不能为空",required = false, notes = "3个字段必须选一个,是否开启ai跟进")
+    private Integer isAiOn;
 
 
 }

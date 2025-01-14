@@ -31,12 +31,12 @@ public class AmChatbotGreetResult implements Serializable {
     /**
      * boss的id
      */
-    private Integer accountId;
+    private String accountId;
 
     /**
      * 用户的id
      */
-    private Long userId;
+    private String userId;
 
     /**
      * 任务id;有没有任务id,决定完成率
@@ -49,9 +49,9 @@ public class AmChatbotGreetResult implements Serializable {
     private Integer rechatItem;
 
     /**
-     * 是否完成；0否，1是
+     * 是否完成；0否，1是,2已经收到用户消息
      */
-    private Boolean success;
+    private Integer success;
 
     /**
      * 出错的话提示错误

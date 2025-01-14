@@ -2,6 +2,8 @@ package com.open.hr.ai.bean.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptionsItems;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,7 +15,7 @@ import java.util.List;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author Eros-AI
@@ -24,9 +26,9 @@ import java.util.List;
 @Accessors(chain = true)
 public class AmChatbotOptionsVo implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**
@@ -67,16 +69,18 @@ public class AmChatbotOptionsVo implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime updateTime;
 
     private Integer relativePositionNums;
 
-    private List<AmChatbotOptionsItems> items;
+    private List<AmChatbotOptionsItemsVo> items;
 
 
 }

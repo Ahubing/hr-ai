@@ -1,5 +1,7 @@
 package com.open.hr.ai.manager;
 
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
@@ -11,6 +13,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmZpPlatformsServiceImpl;
 import com.open.hr.ai.bean.AmZpAccoutsResultVo;
 import com.open.hr.ai.bean.AmZpPlatformsResultVo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -126,5 +129,21 @@ public class AmZpManager {
 
         boolean success = amZpLocalAccoutsService.modifyRunningStatus(id, status);
         return success ? ResultVO.success() : ResultVO.fail("删除失败，请稍后重试");
+    }
+
+
+    public ResultVO getLoginQrcode(Long adminId){
+        LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
+        AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
+        if (zpLocalAccouts == null) {
+            return ResultVO.fail("账户不存在");
+        }
+        String extra = zpLocalAccouts.getExtra();
+        if (StringUtils.isNotBlank(extra)) {
+            JSONObject jsonObject = JSONObject.parseObject(extra);
+            return ResultVO.success(jsonObject);
+        }
+        return ResultVO.fail("获取失败");
     }
 }

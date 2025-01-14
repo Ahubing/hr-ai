@@ -30,7 +30,7 @@ public class AmChatbotPositionOption implements Serializable {
     /**
      * 账号id
      */
-    private Integer accountId;
+    private String accountId;
 
     /**
      * 职位id

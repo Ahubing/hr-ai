@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 /**
  * <p>
  * 招聘平台
-
+ *
  * </p>
  *
  * @author Eros-AI
@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class AmZpPlatformsVo{
+public class AmZpPlatformsVo {
 
 
     private Integer id;

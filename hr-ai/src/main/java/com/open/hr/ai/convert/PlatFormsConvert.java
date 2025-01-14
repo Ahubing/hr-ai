@@ -13,5 +13,4 @@ public interface PlatFormsConvert {
 
     PlatFormsConvert I = Mappers.getMapper(PlatFormsConvert.class);
 
-    AmZpLocalAccoutsVo convertAmZpLocalAccounts(AmZpPlatforms amZpPlatforms);
 }

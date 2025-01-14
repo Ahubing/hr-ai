@@ -32,7 +32,7 @@ public class AmResume implements Serializable {
     /**
      * 当前登录的总账号的id
      */
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 账号id  local_accounts的id
@@ -48,7 +48,7 @@ public class AmResume implements Serializable {
     /**
      * 脚本返回的用户id
      */
-    private Integer uid;
+    private String uid;
 
     /**
      * 类型。0初筛 1邀约跟进，2面试安排 3已发offer 4已入职  5全部
@@ -83,7 +83,7 @@ public class AmResume implements Serializable {
     /**
      * 0女，1男
      */
-    private Boolean gender;
+    private Integer gender;
 
     /**
      * 薪资
@@ -175,6 +175,21 @@ public class AmResume implements Serializable {
      * 创建时间
      */
     private LocalDateTime createTime;
+
+    /**
+     * 手机
+     */
+    private String phone;
+
+    /**
+     * 微信
+     */
+    private String wechat;
+
+    /**
+     * 邮箱
+     */
+    private String email;
 
 
 }

@@ -3,6 +3,7 @@ package com.open.hr.ai.bean.req;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -13,16 +14,16 @@ public class AddPositionOptions {
 
 
     @NotNull(message = "positionId不能为空")
-    @ApiModelProperty("职位id")
+    @ApiModelProperty(value = "职位id", required = true, notes = "职位id不能为空")
     private Integer positionId;
 
-    @NotNull(message = "account_id不能为空")
-    @ApiModelProperty("账号id;在chatbot基础设置添加的账号")
-    private Integer accountId;
+    @NotEmpty(message = "account_id不能为空")
+    @ApiModelProperty(value = "账号id;", required = true, notes = "不能为空, 在chatbot基础设置添加的账号")
+    private String accountId;
 
-    @ApiModelProperty("AI方案,在广场角色里选。与rechat_option_id至少选一个")
+    @ApiModelProperty(value = "AI方案", required = false, notes = "在广场角色里选。与rechat_option_id至少选一个")
     private Integer squareRoleId;
 
-    @ApiModelProperty("复聊方案id,在方案列表选取。与square_role_id至少选一个")
+    @ApiModelProperty(value = "复聊方案id", required = false, notes = "复聊方案id,在方案列表选取。与square_role_id至少选一个")
     private Integer rechatOptionId;
 }

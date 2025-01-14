@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * <p>
@@ -23,9 +24,9 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class AmSquareRolesVo implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**
@@ -51,7 +52,7 @@ public class AmSquareRolesVo implements Serializable {
     /**
      * 关键词，英文逗号分割
      */
-    private String keywords;
+    private List<String> keywords;
 
     /**
      * 使用次数

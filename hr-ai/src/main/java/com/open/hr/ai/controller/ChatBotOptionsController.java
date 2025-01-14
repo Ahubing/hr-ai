@@ -2,8 +2,10 @@ package com.open.hr.ai.controller;
 
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptionAiRole;
 import com.open.hr.ai.bean.req.AddOrUpdateAmChatbotOptions;
 import com.open.hr.ai.bean.req.AddOrUpdateAmChatbotOptionsItems;
+import com.open.hr.ai.bean.vo.AmChatbotOptionsVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotOptionsManager;
 import io.swagger.annotations.Api;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -30,7 +33,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("获取方案列表")
     @VerifyUserToken
     @GetMapping("chatbotoptions/list")
-    public ResultVO chatBotOptionsList(@RequestParam(value = "type",required = true) Integer type,@RequestParam(value = "keyword",required = false) String keyword) {
+    public ResultVO<List<AmChatbotOptionsVo>> chatBotOptionsList(@RequestParam(value = "type",required = true) Integer type,@RequestParam(value = "keyword",required = false) String keyword) {
         Long adminId = getUserId();
         return chatBotOptionsManager.chatbotOptionsList(adminId,type,keyword);
     }
@@ -39,7 +42,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("获取方案详情")
     @VerifyUserToken
     @GetMapping("chatbotoptions/detail")
-    public ResultVO chatBotOptionsDetail(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO<AmChatbotOptionsVo> chatBotOptionsDetail(@RequestParam(value = "id",required = true) Integer id) {
         return chatBotOptionsManager.chatbotOptionsDetail(id);
     }
 
@@ -68,7 +71,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("获取AI角色列表")
     @VerifyUserToken
     @GetMapping("chatbotoptions/get_ai_roles")
-    public ResultVO getAiRoles() {
+    public ResultVO<List<AmChatbotOptionAiRole>> getAiRoles() {
         return chatBotOptionsManager.getAiRoles();
     }
 

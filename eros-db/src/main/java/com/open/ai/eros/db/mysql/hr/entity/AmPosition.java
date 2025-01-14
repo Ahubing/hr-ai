@@ -32,7 +32,7 @@ public class AmPosition implements Serializable {
     /**
      * 所属大账户id
      */
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 职位名称

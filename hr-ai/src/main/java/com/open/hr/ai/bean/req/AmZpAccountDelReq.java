@@ -17,7 +17,7 @@ import java.io.Serializable;
 @Builder
 public class AmZpAccountDelReq implements Serializable {
 
-    @ApiModelProperty("招聘账号id")
+    @ApiModelProperty(value = "招聘账号id", required = true, notes = "招聘账号id不能为空")
     @NotEmpty(message = "招聘账号id不能为空")
     private String id;
 

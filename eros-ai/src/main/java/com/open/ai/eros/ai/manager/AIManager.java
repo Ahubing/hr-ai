@@ -20,6 +20,11 @@ import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.creator.bean.vo.BMaskVo;
 import com.open.ai.eros.creator.manager.MaskManager;
+import dev.ai4j.openai4j.chat.UserMessage;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.output.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +33,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 /**
  * @类名：AIManager
@@ -250,6 +255,19 @@ public class AIManager {
                 break;
             }
         }
+    }
+
+    public String aiChatMessFunction(List<dev.langchain4j.data.message.ChatMessage> messages) {
+        ChatLanguageModel model = OpenAiChatModel.builder()
+                .apiKey("sk-ZfLhlVjKuhKdZ8qY33C1A655C7104840A9Cc175250C05752")
+                .baseUrl("https://zen-vip.zeabur.app/v1")
+                .modelName("gpt-4o-2024-05-13")
+                .build();
+
+
+        Response<AiMessage> generate = model.generate(messages);
+        AiMessage content = generate.content();
+        return content.text();
     }
 
 

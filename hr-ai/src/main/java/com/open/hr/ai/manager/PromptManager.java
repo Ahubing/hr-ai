@@ -1,7 +1,7 @@
 package com.open.hr.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPrompt;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPromptServiceImpl;
@@ -27,27 +27,25 @@ public class PromptManager {
     @Resource
     private AmPromptServiceImpl amPromptService;
 
-    public ResultVO getPromptList(Integer type, Long adminId) {
+    public ResultVO<List<AmPrompt>> getPromptList(Integer type, Long adminId) {
         try {
-            QueryWrapper<AmPrompt> queryWrapper = new QueryWrapper<>();
-            JSONObject jsonObject = new JSONObject();
+            LambdaQueryWrapper<AmPrompt> queryWrapper = new LambdaQueryWrapper<>();
             if (Objects.isNull(type)) {
-                queryWrapper.eq("admin_id", adminId);
+                queryWrapper.eq(AmPrompt::getAdminId, adminId);
                 List<AmPrompt> amPrompt = amPromptService.list(queryWrapper);
-                jsonObject.put("prompts", amPrompt);
+                return ResultVO.success(amPrompt);
             } else {
-                queryWrapper.eq("admin_id", adminId).eq("type", type);
+                queryWrapper.eq(AmPrompt::getAdminId, adminId).eq(AmPrompt::getType, type);
                 List<AmPrompt> amPrompt = amPromptService.list(queryWrapper);
-                jsonObject.put("prompts", amPrompt);
+                return ResultVO.success(amPrompt);
             }
-            return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("获取AI跟进prompt列表异常 type={},adminId={}", type, adminId, e);
         }
         return ResultVO.fail("获取AI跟进prompt列表异常");
     }
 
-    public ResultVO getPromptDetail(Integer id) {
+    public ResultVO<AmPrompt> getPromptDetail(Integer id) {
         try {
             AmPrompt amPrompt = amPromptService.getById(id);
             return ResultVO.success(amPrompt);
@@ -58,35 +56,69 @@ public class PromptManager {
     }
 
 
-    public ResultVO addOrUpdatePrompt(AddOrUpdateAmPromptReq req) {
+    public ResultVO addOrUpdatePrompt(AddOrUpdateAmPromptReq req,Long adminId) {
         try {
             AmPrompt amPrompt = new AmPrompt();
             if (Objects.isNull(req.getId())) {
-                amPrompt.setAdminId(req.getAdminId());
+                amPrompt.setAdminId(adminId);
                 amPrompt.setName(req.getName());
                 amPrompt.setModel(req.getModel());
-                amPrompt.setType(req.getType());
-                amPrompt.setTypeA(req.getTypeA());
-                amPrompt.setPrompt(req.getPrompt());
-                amPrompt.setPrompt2(req.getPrompt2());
-                amPrompt.setResumeId(req.getResumeId());
-                amPrompt.setUrl(req.getUrl());
-                amPrompt.setIsRead(req.getIsRead());
-                amPrompt.setTags(req.getTags());
-                amPrompt.setCreateTime(LocalDateTime.now());
-            } else {
-                amPrompt = amPromptService.getById(req.getId());
-                amPrompt.setName(req.getName());
-                amPrompt.setModel(req.getModel());
-                amPrompt.setType(req.getType());
-                amPrompt.setAdminId(req.getAdminId());
+                if (Objects.nonNull(req.getType())) {
+                    amPrompt.setType(req.getType());
+                }
+                if (Objects.nonNull(req.getTypeA())) {
+                    amPrompt.setTypeA(req.getTypeA());
+                }
                 if (StringUtils.isNotBlank(req.getPrompt())) {
                     amPrompt.setPrompt(req.getPrompt());
                 }
                 if (StringUtils.isNotBlank(req.getPrompt2())) {
                     amPrompt.setPrompt2(req.getPrompt2());
                 }
-                amPromptService.updateById(amPrompt);
+                if (Objects.nonNull(req.getResumeId())) {
+                    amPrompt.setResumeId(req.getResumeId());
+                }
+                if (StringUtils.isNotBlank(req.getUrl())) {
+                    amPrompt.setUrl(req.getUrl());
+                }
+                if (Objects.nonNull(req.getIsRead())) {
+                    amPrompt.setIsRead(req.getIsRead());
+                }
+                if (StringUtils.isNotBlank(req.getTags())) {
+                    amPrompt.setTags(req.getTags());
+                }
+                amPrompt.setCreateTime(LocalDateTime.now());
+                boolean result = amPromptService.save(amPrompt);
+                log.info("prompt新增成功 result={}", result);
+            } else {
+                amPrompt = amPromptService.getById(req.getId());
+                amPrompt.setName(req.getName());
+                amPrompt.setModel(req.getModel());
+                amPrompt.setType(req.getType());
+                amPrompt.setAdminId(adminId);
+                if (StringUtils.isNotBlank(req.getPrompt())) {
+                    amPrompt.setPrompt(req.getPrompt());
+                }
+                if (StringUtils.isNotBlank(req.getPrompt2())) {
+                    amPrompt.setPrompt2(req.getPrompt2());
+                }
+                if (Objects.nonNull(req.getResumeId())) {
+                    amPrompt.setResumeId(req.getResumeId());
+                }
+                if (StringUtils.isNotBlank(req.getUrl())) {
+                    amPrompt.setUrl(req.getUrl());
+                }
+                if (Objects.nonNull(req.getIsRead())) {
+                    amPrompt.setIsRead(req.getIsRead());
+                }
+                if (StringUtils.isNotBlank(req.getTags())) {
+                    amPrompt.setTags(req.getTags());
+                }
+                boolean result = amPromptService.updateById(amPrompt);
+                if (!result) {
+                    return ResultVO.fail("prompt修改失败");
+                }
+                log.info("prompt修改成功 result={}", result);
             }
             return ResultVO.success(amPrompt);
         } catch (Exception e) {

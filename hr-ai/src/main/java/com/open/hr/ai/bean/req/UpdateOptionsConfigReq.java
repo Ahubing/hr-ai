@@ -18,9 +18,4 @@ public class UpdateOptionsConfigReq {
     @ApiModelProperty("is_continue_follow")
     private Integer is_continue_follow;
 
-
-    /**
-     * 用户id
-     */
-    private Long adminId;
 }

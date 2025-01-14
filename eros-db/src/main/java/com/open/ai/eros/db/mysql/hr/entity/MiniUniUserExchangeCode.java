@@ -28,7 +28,7 @@ public class MiniUniUserExchangeCode implements Serializable {
       @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 兑换码
@@ -43,7 +43,7 @@ public class MiniUniUserExchangeCode implements Serializable {
     /**
      * 时长
      */
-    private Integer days;
+    private Integer months;
 
     /**
      * 状态，0未使用，1已使用

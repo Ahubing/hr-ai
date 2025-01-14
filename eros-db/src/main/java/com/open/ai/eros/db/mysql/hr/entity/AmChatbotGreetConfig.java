@@ -37,17 +37,17 @@ public class AmChatbotGreetConfig implements Serializable {
     /**
      * 是否开启打招呼任务
      */
-    private Boolean isGreetOn;
+    private Integer isGreetOn;
 
     /**
      * 是否开启复聊
      */
-    private Boolean isRechatOn;
+    private Integer isRechatOn;
 
     /**
      * 是否开启ai跟进
      */
-    private Boolean isAiOn;
+    private Integer isAiOn;
 
 
 }

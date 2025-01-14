@@ -2,7 +2,12 @@ package com.open.hr.ai.controller;
 
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.hr.ai.bean.req.*;
+import com.open.hr.ai.bean.vo.AmChatbotGreetTaskVo;
+import com.open.hr.ai.bean.vo.AmChatbotPositionOptionVo;
+import com.open.hr.ai.bean.vo.AmZmLocalAccountsListVo;
+import com.open.hr.ai.bean.vo.AmZpLocalAccoutsVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotManager;
 import io.swagger.annotations.Api;
@@ -12,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -28,86 +34,77 @@ public class ChatBotController extends HrAIBaseController {
     @Resource
     private ChatBotManager chatBotManager;
 
-    @ApiOperation("获取本地登录账号列表")
     @VerifyUserToken
     @GetMapping("chatbot/get_local_accounts")
-    public ResultVO getLocalAccounts() {
+    @ApiOperation(value = "获取本地登录账号列表",notes = "获取本地登录账号列表", httpMethod = "GET", response = ResultVO.class)
+    public ResultVO<AmZmLocalAccountsListVo> getLocalAccounts() {
         Long adminId = getUserId();
         return chatBotManager.getLocalAccounts(adminId);
     }
 
 
-    @ApiOperation("获取招聘平台列表(与多账号登录共用)")
     @VerifyUserToken
     @GetMapping("chatbot/platforms")
-    public ResultVO getPlatforms() {
+    @ApiOperation(value = "获取招聘平台列表(与多账号登录共用)",notes = "获取招聘平台列表(与多账号登录共用)", httpMethod = "GET", response = ResultVO.class)
+    public ResultVO<List<AmZpPlatforms>> getPlatforms() {
         return chatBotManager.getPlatforms();
     }
 
 
 
-    @ApiOperation("添加本地招聘账号")
     @VerifyUserToken
     @PostMapping("chatbot/add_account")
+    @ApiOperation(value = "添加本地招聘账号",notes = "添加本地招聘账号", httpMethod = "POST", response = ResultVO.class)
     public ResultVO AddAccount(@RequestBody @Valid AddAccountReq addAccountReq) {
         if (Objects.isNull(addAccountReq)) {
             return ResultVO.fail("参数不能为空");
         }
-        addAccountReq.setAdminId(getUserId());
-        return chatBotManager.AddAccount(addAccountReq);
+        return chatBotManager.AddAccount(addAccountReq,getUserId());
     }
 
 
-    @ApiOperation("删除本地招聘账号")
     @VerifyUserToken
     @GetMapping("/chatbot/delete_account")
+    @ApiOperation(value = "删除本地招聘账号",notes = "删除本地招聘账号", httpMethod = "GET", response = ResultVO.class)
     public ResultVO deleteAccount(@RequestParam(value = "id",required = true) String id) {
         return chatBotManager.deleteAccount(id);
     }
 
 
 
-    @ApiOperation("根据账号id获取打招呼设置")
     @VerifyUserToken
     @GetMapping("/chatbot/get_greet_by_account_id")
-    public ResultVO getGreetByAccountId(@RequestParam(value = "id",required = true) String id) {
+    @ApiOperation(value = "根据账号id获取打招呼设置",notes = "根据账号id获取打招呼设置", httpMethod = "GET", response = ResultVO.class)
+    public ResultVO<AmZpLocalAccoutsVo> getGreetByAccountId(@RequestParam(value = "id",required = true) String id) {
         return chatBotManager.getGreetByAccountId(id);
     }
 
 
-    @ApiOperation("获取方案配置")
     @VerifyUserToken
     @GetMapping("/chatbot/get_options_config")
-    public ResultVO getOptionsConfig() {
-        Long userId = getUserId();
-        return chatBotManager.getOptionsConfig(userId);
-    }
-
-    @ApiOperation("修改方案配置")
-    @VerifyUserToken
-    @GetMapping("/chatbot/modify_options_config")
-    public ResultVO modifyOptionsConfig(@RequestParam(value = "id",required = true) Integer isContinueFollow) {
+    @ApiOperation(value = "获取方案配置",notes = "获取方案配置", httpMethod = "GET", response = ResultVO.class)
+    public ResultVO<AmChatbotOptionsConfig> getOptionsConfig() {
         Long userId = getUserId();
         return chatBotManager.getOptionsConfig(userId);
     }
 
 
 
-    @ApiOperation("修改方案配置")
+
     @VerifyUserToken
     @PostMapping("/chatbot/modify_options_config")
-    public ResultVO modifyOptionsConfig(@RequestBody @Valid UpdateOptionsConfigReq updateOptionsConfigReq) {
+    @ApiOperation(value = "修改方案配置",notes = "修改方案配置", httpMethod = "POST", response = ResultVO.class)
+    public ResultVO<AmChatbotOptionsConfig> modifyOptionsConfig(@RequestBody @Valid UpdateOptionsConfigReq updateOptionsConfigReq) {
         if (Objects.isNull(updateOptionsConfigReq)) {
             return ResultVO.fail("参数不能为空");
         }
-        updateOptionsConfigReq.setAdminId(getUserId());
-        return chatBotManager.modifyOptionsConfig(updateOptionsConfigReq);
+        return chatBotManager.modifyOptionsConfig(updateOptionsConfigReq,getUserId());
     }
 
 
-    @ApiOperation("同步职位")
     @VerifyUserToken
     @PostMapping("/chatbot/sync_positions")
+    @ApiOperation(value = "同步职位",notes = "同步职位", httpMethod = "POST", response = ResultVO.class)
     public ResultVO syncPositions(@RequestBody @Valid SyncPositionsReq req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
@@ -116,9 +113,9 @@ public class ChatBotController extends HrAIBaseController {
     }
 
 
-    @ApiOperation("修改全部的状态")
     @VerifyUserToken
     @PostMapping("/chatbot/modify_all_status")
+    @ApiOperation(value = "修改全部的状态",notes = "修改全部的状态", httpMethod = "POST", response = ResultVO.class)
     public ResultVO modifyAllStatus(@RequestBody @Valid UpdateGreetConfigStatusReq req) {
         if (Objects.isNull(req) || Objects.isNull(req.getIsGreetOn()) || Objects.isNull(req.getIsRechatOn()) || Objects.isNull(req.getIsAiOn())) {
             return ResultVO.fail("参数不能为空");
@@ -126,9 +123,9 @@ public class ChatBotController extends HrAIBaseController {
         return chatBotManager.modifyAllStatus(req);
     }
 
-    @ApiOperation("修改打招呼的状态")
     @VerifyUserToken
     @PostMapping("/chatbot/modify_greet_status")
+    @ApiOperation(value = "修改打招呼的状态",notes = "修改打招呼的状态", httpMethod = "POST", response = ResultVO.class)
     public ResultVO modifyGreetStatus(@RequestBody @Valid UpdateGreetConfigStatusReq req) {
         if (Objects.isNull(req) || Objects.isNull(req.getIsGreetOn())) {
             return ResultVO.fail("参数不能为空");
@@ -180,7 +177,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("添加/编辑任务")
     @VerifyUserToken
     @PostMapping("/chatbot/set_greet_task")
-    public ResultVO setGreetTask (@RequestBody @Valid AddOrUpdateAmChatbotGreetTask req) {
+    public ResultVO<AmChatbotGreetTask> setGreetTask (@RequestBody @Valid AddOrUpdateAmChatbotGreetTask req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
@@ -191,17 +188,17 @@ public class ChatBotController extends HrAIBaseController {
 
 
 
-    @ApiOperation("获取任务列表")
+    @ApiOperation("获取打招呼任务列表")
     @VerifyUserToken
     @PostMapping("/chatbot/get_greet_tasks")
-    public ResultVO getGreetTasks (@RequestBody @Valid SearchAmChatbotGreetTask req) {
+    public ResultVO<List<AmChatbotGreetTaskVo>> getGreetTasks (@RequestBody @Valid SearchAmChatbotGreetTask req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
         return chatBotManager.getGreetTasks(req);
     }
 
-    @ApiOperation("删除任务")
+    @ApiOperation("删除打招呼任务")
     @VerifyUserToken
     @GetMapping("/chatbot/delete_task")
     public ResultVO deleteGreetTask(@RequestParam(value = "id",required = true) Integer id) {
@@ -213,7 +210,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("根据职位id获取筛选条件")
     @VerifyUserToken
     @GetMapping("/chatbot/get_condition_by_position_id")
-    public ResultVO getConditionByPositionId(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO<AmChatbotGreetCondition> getConditionByPositionId(@RequestParam(value = "id",required = true) Integer id) {
         return chatBotManager.getConditionByPositionId(id);
     }
 
@@ -221,7 +218,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("获取职位的方案设置")
     @VerifyUserToken
     @PostMapping("/chatbot/get_position_options")
-    public ResultVO getPositionOptions(@RequestBody @Valid SearchPositionOptions req) {
+    public ResultVO<List<AmChatbotPositionOptionVo>> getPositionOptions(@RequestBody @Valid SearchPositionOptions req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
@@ -233,7 +230,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("设置职位方案")
     @VerifyUserToken
     @PostMapping("/chatbot/set_position_option")
-    public ResultVO setPositionOption(@RequestBody @Valid AddPositionOptions req) {
+    public  ResultVO<AmChatbotPositionOption> setPositionOption(@RequestBody @Valid AddPositionOptions req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }

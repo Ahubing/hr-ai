@@ -100,16 +100,7 @@ public class JedisClientImpl implements RedisClient {
         }
     }
 
-    @Override
-    public Long zrem(String key, String... members) {
-        RedisPoolUtils redisPoolUtils = RedisFactory.getRedisPoolUtils();
-        Jedis jedis = redisPoolUtils.getJedis();
-        try {
-            return jedis.zrem(key,members);
-        }finally {
-            redisPoolUtils.close(jedis);
-        }
-    }
+
 
     @Override
     public Long expire(String key, long time) {
@@ -421,6 +412,59 @@ public class JedisClientImpl implements RedisClient {
         Jedis jedis = redisPoolUtils.getJedis();
         try {
             return  jedis.multi();
+        }finally {
+            redisPoolUtils.close(jedis);
+        }
+    }
+
+
+
+    public Long zadd(String var1, double var2, String var4){
+        RedisPoolUtils redisPoolUtils = RedisFactory.getRedisPoolUtils();
+        Jedis jedis = redisPoolUtils.getJedis();
+        try {
+            return  jedis.zadd(var1,var2,var4);
+        }finally {
+            redisPoolUtils.close(jedis);
+        }
+    }
+
+
+    public Double zscore(String var1, String var2){
+        RedisPoolUtils redisPoolUtils = RedisFactory.getRedisPoolUtils();
+        Jedis jedis = redisPoolUtils.getJedis();
+        try {
+            return  jedis.zscore(var1,var2);
+        }finally {
+            redisPoolUtils.close(jedis);
+        }
+    }
+
+    public Long zrem(String var1, String... members){
+        RedisPoolUtils redisPoolUtils = RedisFactory.getRedisPoolUtils();
+        Jedis jedis = redisPoolUtils.getJedis();
+        try {
+            return  jedis.zrem(var1,members);
+        }finally {
+            redisPoolUtils.close(jedis);
+        }
+    }
+
+    public Set<String> zrange(String var1, long var2, long var4){
+        RedisPoolUtils redisPoolUtils = RedisFactory.getRedisPoolUtils();
+        Jedis jedis = redisPoolUtils.getJedis();
+        try {
+            return  jedis.zrange(var1,var2,var4);
+        }finally {
+            redisPoolUtils.close(jedis);
+        }
+    }
+
+    public Set<String> zrangeByScore(String var1, double var2, double var4){
+        RedisPoolUtils redisPoolUtils = RedisFactory.getRedisPoolUtils();
+        Jedis jedis = redisPoolUtils.getJedis();
+        try {
+            return jedis.zrangeByScore(var1,var2,var4);
         }finally {
             redisPoolUtils.close(jedis);
         }

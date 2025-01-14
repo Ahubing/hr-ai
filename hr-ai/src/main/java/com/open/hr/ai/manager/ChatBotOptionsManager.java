@@ -1,7 +1,7 @@
 package com.open.hr.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptions;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptionsItems;
@@ -10,8 +10,10 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotOptionsItemsServiceImp
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotOptionsServiceImpl;
 import com.open.hr.ai.bean.req.AddOrUpdateAmChatbotOptions;
 import com.open.hr.ai.bean.req.AddOrUpdateAmChatbotOptionsItems;
+import com.open.hr.ai.bean.vo.AmChatbotOptionsItemsVo;
 import com.open.hr.ai.bean.vo.AmChatbotOptionsVo;
 import com.open.hr.ai.convert.AmChatBotOptionConvert;
+import com.open.hr.ai.convert.AmChatBotPositionItemsConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -42,25 +44,26 @@ public class ChatBotOptionsManager {
     @Resource
     private AmChatbotOptionAiRoleServiceImpl amChatbotOptionAiRoleService;
 
-    public ResultVO chatbotOptionsList(Long adminId, Integer type, String keyword) {
+    public ResultVO<List<AmChatbotOptionsVo>> chatbotOptionsList(Long adminId, Integer type, String keyword) {
         try {
-            QueryWrapper<AmChatbotOptions> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("admin_id", adminId);
-            queryWrapper.eq("type", type);
+            LambdaQueryWrapper<AmChatbotOptions> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotOptions::getAdminId, adminId);
+            queryWrapper.eq(AmChatbotOptions::getType, type);
             if (keyword != null && !"".equals(keyword)) {
-                queryWrapper.like("name", keyword);
+                queryWrapper.like(AmChatbotOptions::getName, keyword);
             }
-            queryWrapper.orderByAsc("id");
+            queryWrapper.orderByAsc(AmChatbotOptions::getId);
             List<AmChatbotOptionsVo> amChatbotOptionsList = amChatbotOptionsService.list(queryWrapper).stream().map(AmChatBotOptionConvert.I::convertOptionVo).collect(Collectors.toList());
             for (AmChatbotOptionsVo amChatbotOptionsVo : amChatbotOptionsList) {
                 amChatbotOptionsVo.setRelativePositionNums(StringUtils.isNotBlank(amChatbotOptionsVo.getPositionIds()) ? amChatbotOptionsVo.getPositionIds().split(",").length : 0);
-                QueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new QueryWrapper<>();
-                itemsQueryWrapper.eq("option_id", amChatbotOptionsVo.getId());
+                LambdaQueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new LambdaQueryWrapper<>();
+                itemsQueryWrapper.eq(AmChatbotOptionsItems::getOptionId, amChatbotOptionsVo.getId());
                 List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.list(itemsQueryWrapper);
-                for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
+                List<AmChatbotOptionsItemsVo> amChatbotOptionsItemsVos = amChatbotOptionsItems.stream().map(AmChatBotPositionItemsConvert.I::convertPositionOptionVoItems).collect(Collectors.toList());
+                for (AmChatbotOptionsItemsVo amChatbotOptionsItem : amChatbotOptionsItemsVos) {
                     amChatbotOptionsItem.setRepeatContent(StringUtils.isNotBlank(amChatbotOptionsItem.getContent()) ? amChatbotOptionsItem.getContent().split("\\|").length : new ArrayList<>());
                 }
-                amChatbotOptionsVo.setItems(amChatbotOptionsItemsService.list(itemsQueryWrapper));
+                amChatbotOptionsVo.setItems(amChatbotOptionsItemsVos);
             }
             return ResultVO.success(amChatbotOptionsList);
         } catch (Exception e) {
@@ -70,18 +73,22 @@ public class ChatBotOptionsManager {
     }
 
 
-    public ResultVO chatbotOptionsDetail(Integer id) {
+    public ResultVO<AmChatbotOptionsVo> chatbotOptionsDetail(Integer id) {
         try {
             AmChatbotOptions amChatbotOptions = amChatbotOptionsService.getById(id);
+            if (Objects.isNull(amChatbotOptions)) {
+                return ResultVO.fail("方案不存在");
+            }
             AmChatbotOptionsVo amChatbotOptionsVo = AmChatBotOptionConvert.I.convertOptionVo(amChatbotOptions);
             amChatbotOptionsVo.setRelativePositionNums(StringUtils.isNotBlank(amChatbotOptionsVo.getPositionIds()) ? amChatbotOptionsVo.getPositionIds().split(",").length : 0);
-            QueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new QueryWrapper<>();
-            itemsQueryWrapper.eq("option_id", amChatbotOptionsVo.getId());
+            LambdaQueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new LambdaQueryWrapper<>();
+            itemsQueryWrapper.eq(AmChatbotOptionsItems::getOptionId, amChatbotOptionsVo.getId());
             List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.list(itemsQueryWrapper);
-            for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
+            List<AmChatbotOptionsItemsVo> amChatbotOptionsItemsVos = amChatbotOptionsItems.stream().map(AmChatBotPositionItemsConvert.I::convertPositionOptionVoItems).collect(Collectors.toList());
+            for (AmChatbotOptionsItemsVo amChatbotOptionsItem : amChatbotOptionsItemsVos) {
                 amChatbotOptionsItem.setRepeatContent(StringUtils.isNotBlank(amChatbotOptionsItem.getContent()) ? amChatbotOptionsItem.getContent().split("\\|").length : new ArrayList<>());
             }
-            amChatbotOptionsVo.setItems(amChatbotOptionsItems);
+            amChatbotOptionsVo.setItems(amChatbotOptionsItemsVos);
             return ResultVO.success(amChatbotOptionsVo);
         } catch (Exception e) {
             log.error("获取方案列表详情 id={}", id, e);
@@ -105,8 +112,10 @@ public class ChatBotOptionsManager {
                 amChatbotOptions.setRechatDuration(req.getRechatDuration());
                 amChatbotOptions.setAdminId(req.getAdminId());
                 amChatbotOptions.setUpdateTime(LocalDateTime.now());
-                amChatbotOptionsService.updateById(amChatbotOptions);
-                return ResultVO.success(amChatbotOptions);
+                boolean result = amChatbotOptionsService.updateById(amChatbotOptions);
+                log.info("编辑方案 result={}", result);
+                AmChatbotOptionsVo amChatbotOptionsVo = AmChatBotOptionConvert.I.convertOptionVo(amChatbotOptions);
+                return ResultVO.success(amChatbotOptionsVo);
             } else {
                 AmChatbotOptions amChatbotOptions = new AmChatbotOptions();
                 amChatbotOptions.setName(req.getName());
@@ -118,8 +127,10 @@ public class ChatBotOptionsManager {
                 amChatbotOptions.setAdminId(req.getAdminId());
                 amChatbotOptions.setCreateTime(LocalDateTime.now());
                 amChatbotOptions.setUpdateTime(LocalDateTime.now());
-                amChatbotOptionsService.save(amChatbotOptions);
-                return ResultVO.success(amChatbotOptions);
+                boolean result = amChatbotOptionsService.save(amChatbotOptions);
+                log.info("新增方案 result={}", result);
+                AmChatbotOptionsVo amChatbotOptionsVo = AmChatBotOptionConvert.I.convertOptionVo(amChatbotOptions);
+                return ResultVO.success(amChatbotOptionsVo);
             }
         } catch (Exception e) {
             log.error("编辑或新增方案 req={}", JSONObject.toJSONString(req), e);

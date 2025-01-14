@@ -2,6 +2,7 @@ package com.open.hr.ai.controller;
 
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.entity.AmPrompt;
 import com.open.hr.ai.bean.req.AddOrUpdateAmPromptReq;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.PromptManager;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 /**
  * @Date 2025/1/4 23:19
@@ -29,7 +31,7 @@ public class PromptController extends HrAIBaseController {
     @ApiOperation("获取AI跟进prompt列表")
     @VerifyUserToken
     @GetMapping("prompt/list")
-    public ResultVO getPromptList(@RequestParam(value = "type", required = false) Integer type) {
+    public ResultVO<List<AmPrompt>> getPromptList(@RequestParam(value = "type", required = false) Integer type) {
         Long adminId = getUserId();
         return promptManager.getPromptList(type, adminId);
     }
@@ -37,7 +39,7 @@ public class PromptController extends HrAIBaseController {
     @ApiOperation("获取AI跟进prompt详情")
     @VerifyUserToken
     @GetMapping("prompt/detail")
-    public ResultVO getPromptDetail(@RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO<AmPrompt>  getPromptDetail(@RequestParam(value = "id", required = true) Integer id) {
         return promptManager.getPromptDetail(id);
     }
 
@@ -49,8 +51,7 @@ public class PromptController extends HrAIBaseController {
         if (req == null) {
             return ResultVO.fail("参数不能为空");
         }
-        req.setAdminId(getUserId());
-        return promptManager.addOrUpdatePrompt(req);
+        return promptManager.addOrUpdatePrompt(req,getUserId());
     }
 
     @ApiOperation("删除prompt")

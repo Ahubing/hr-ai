@@ -24,15 +24,15 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class AmChatbotPositionOptionVo implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**
      * 账号id
      */
-    private Integer accountId;
+    private String accountId;
 
     /**
      * 职位id
@@ -55,7 +55,7 @@ public class AmChatbotPositionOptionVo implements Serializable {
     private Integer createTime;
 
 
-    private AmSquareRoles  amSquareRoles;
+    private AmSquareRoles amSquareRoles;
 
     private AmChatbotOptions amChatbotOptions;
 

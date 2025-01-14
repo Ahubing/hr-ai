@@ -50,7 +50,7 @@ public class HrAIKnife4jConfig {
         ParameterBuilder tokenPar = new ParameterBuilder();
         tokenPar.name(CommonConstant.USER_LOGIN_TOKEN)
                 .description("用户token")
-                .defaultValue("test-user@gamil.com")
+                .defaultValue("oE4HTZNB3p+mtlyGqI5CTw==")
                 .modelRef(new ModelRef("string"))
                 .parameterType("header")
                 .required(false)

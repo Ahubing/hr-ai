@@ -105,5 +105,10 @@ public class AmZpLocalAccouts implements Serializable {
      */
     private LocalDateTime updateTime;
 
+    /**
+     * 扩展字段,暂时用来存储登录二维码和过期时间
+     */
+    private String extra;
+
 
 }

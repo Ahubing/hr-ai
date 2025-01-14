@@ -47,7 +47,7 @@ public class AmAdminServiceImpl extends ServiceImpl<AmAdminMapper, AmAdmin> impl
         users.setLastLoginTime(LocalDateTime.now());
         users.setMobile(mobile);
         users.setSalt(generateSalt());// 自动生成的
-        users.setStatus(0);
+        users.setStatus(2);
         users.setSpecialPermission(null);
         users.setLastLoginClientIp(getClientIpAddress());//获取id
         // 新增加的是 普通用户

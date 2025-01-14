@@ -1,8 +1,12 @@
 package com.open.hr.ai.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
+import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
 import com.open.hr.ai.bean.req.*;
+import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotOptionsManager;
 import com.open.hr.ai.manager.ChatBotPositionManager;
@@ -42,7 +46,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("批量关闭职位")
     @VerifyUserToken
     @DeleteMapping("position/batch_close")
-    public ResultVO positionBatchClose(@RequestParam(value = "ids",required = true) List<String> ids) {
+    public ResultVO positionBatchClose(@RequestParam(value = "ids",required = true) List<Integer> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return ResultVO.fail("参数不能为空");
         }
@@ -54,7 +58,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("批量开放职位")
     @VerifyUserToken
     @DeleteMapping("position/batch_open")
-    public ResultVO positionBatchOpen(@RequestParam(value = "ids",required = true) List<String> ids) {
+    public ResultVO positionBatchOpen(@RequestParam(value = "ids",required = true) List<Integer> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return ResultVO.fail("参数不能为空");
         }
@@ -65,7 +69,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取组织架构")
     @VerifyUserToken
     @GetMapping("position/get_structures")
-    public ResultVO getStructures() {
+    public ResultVO<List<AmPositionVo>> getStructures() {
         return chatBotPositionManager.getStructures(getUserId());
     }
 
@@ -118,7 +122,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("查询岗位列表")
     @VerifyUserToken
     @GetMapping("position/get_post_list")
-    public ResultVO getPostList(@RequestParam(value = "sectionId",required = true) Integer sectionId) {
+    public ResultVO<List<AmPositionPost>> getPostList(@RequestParam(value = "sectionId",required = true) Integer sectionId) {
         return chatBotPositionManager.getPostList(sectionId);
     }
 
@@ -126,7 +130,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("查询部门列表")
     @VerifyUserToken
     @GetMapping("position/get_section_list")
-    public ResultVO getSectionList() {
+    public ResultVO<List<AmPositionSection>> getSectionList() {
         Long userId = getUserId();
         return chatBotPositionManager.getSectionList(userId);
     }
@@ -138,14 +142,14 @@ public class ChatBotPositionController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        req.setAdminId(getUserId());
-        return chatBotPositionManager.editSection(req);
+
+        return chatBotPositionManager.editSection(req,getUserId());
     }
 
     @ApiOperation("查询职位详情")
     @VerifyUserToken
     @GetMapping("position/detail")
-    public ResultVO getPositionDetail(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO<AmPositionVo> getPositionDetail(@RequestParam(value = "id",required = true) Integer id) {
         return chatBotPositionManager.getPositionDetail(id);
     }
 
@@ -154,12 +158,11 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取职位列表")
     @VerifyUserToken
     @PostMapping("position/list")
-    public ResultVO getPositionList(@RequestBody @Valid SearchPositionListReq req) {
+    public ResultVO<JSONObject> getPositionList(@RequestBody @Valid SearchPositionListReq req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        req.setAdminId(getUserId());
-        return chatBotPositionManager.getPositionList(req);
+        return chatBotPositionManager.getPositionList(req,getUserId());
     }
 
 

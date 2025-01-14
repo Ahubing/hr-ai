@@ -1,5 +1,7 @@
 package com.open.hr.ai.bean.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.open.ai.eros.common.util.DateUtils;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,12 +24,12 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 public class AmZpLocalAccoutsVo implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * 主键，唯一
      */
-      private String id;
+    private String id;
 
     /**
      * 用来验证，为了避免不同平台id类型可能不同。
@@ -92,15 +94,23 @@ public class AmZpLocalAccoutsVo implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime createTime;
 
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime updateTime;
 
 
     private String platform;
+
+
+    /**
+     * 扩展字段,暂时用来存储登录二维码和过期时间
+     */
+    private String extra;
 
 
 }

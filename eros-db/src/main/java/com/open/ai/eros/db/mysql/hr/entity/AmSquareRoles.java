@@ -42,7 +42,7 @@ public class AmSquareRoles implements Serializable {
     /**
      * 创建者id
      */
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 行业

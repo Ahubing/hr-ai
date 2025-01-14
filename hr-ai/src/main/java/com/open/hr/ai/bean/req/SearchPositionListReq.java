@@ -21,7 +21,7 @@ public class SearchPositionListReq {
     private Integer isOpen;
 
     @ApiModelProperty("选填，账号id，chatbot配置添加的账号")
-    private Integer accountId;
+    private String accountId;
 
     @ApiModelProperty("选填，招聘人员id; -1不限，默认-1；请获取用户列表作为下拉框的选项(招聘人员跟账号检索都一样)")
     private Integer uid;
@@ -40,8 +40,6 @@ public class SearchPositionListReq {
 
     @ApiModelProperty("选填，每页数量。默认10")
     private Integer size = 10;
-
-    private Long adminId;
 
 
 }

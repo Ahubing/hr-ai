@@ -99,7 +99,7 @@ public class AmPositionVo {
     /**
      * 拓展字段，json保存职位数据
      */
-    private String extendParams;
+    private JSONObject extendParams;
 
     /**
      * 岗位

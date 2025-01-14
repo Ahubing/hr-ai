@@ -27,7 +27,6 @@ import javax.validation.Valid;
  */
 @Slf4j
 @RestController
-@RequestMapping("/zp/")
 public class AmZpController extends HrAIBaseController {
 
     @Autowired
@@ -35,7 +34,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "多账号登录列表", notes = "多账号登录列表", httpMethod = "GET", response = ResultVO.class)
     @VerifyUserToken
-    @GetMapping("/list")
+    @GetMapping("/zp/list")
     public ResultVO<AmZpAccoutsResultVo> list() {
         Long id = SessionUser.get().getId();
         return amZpManager.getAccouts(id);
@@ -44,7 +43,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "平台列表", notes = "平台列表", httpMethod = "GET", response = ResultVO.class)
     @VerifyUserToken
-    @GetMapping("/platforms")
+    @GetMapping("/zp/platforms")
     public ResultVO<AmZpPlatformsResultVo> platforms() {
         return amZpManager.getPlatforms();
     }
@@ -52,7 +51,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "添加招聘平台(admin超管设置)", notes = "添加招聘平台(admin超管设置)", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken(role = {RoleEnum.SYSTEM})
-    @PostMapping("/add_platform")
+    @PostMapping("/zp/add_platform")
     public ResultVO addPlatform(@RequestBody @Valid AmZpPlatformAddReq req) {
 
         return amZpManager.addPlatform(req.getName());
@@ -60,7 +59,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "修改招聘平台名称", notes = "修改招聘平台名称", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken
-    @PostMapping("/modify_platform")
+    @PostMapping("/zp/modify_platform")
     public ResultVO modifyPlatformName(@RequestBody @Valid AmZpPlatformModifyReq req) {
 
         Long id = req.getId();
@@ -71,7 +70,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "删除招聘平台", notes = "删除招聘平台", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken
-    @PostMapping("/delete_platform")
+    @PostMapping("/zp/delete_platform")
     public ResultVO deletePlatformName(@RequestBody @Valid AmZpPlatformDelReq req) {
         Long id = req.getId();
         if (id <= 0) {
@@ -83,7 +82,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "添加招聘账号", notes = "添加招聘账号", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken
-    @PostMapping("/add_account")
+    @PostMapping("/zp/add_account")
     public ResultVO addAccount(@RequestBody @Valid AmZpAccountAddReq req) {
 
         Long uid = SessionUser.get().getId();//
@@ -102,7 +101,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "删除招聘账号", notes = "删除招聘账号", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken
-    @PostMapping("/delete_account")
+    @PostMapping("/zp/delete_account")
     public ResultVO delAccount(@RequestBody @Valid AmZpAccountDelReq req) {
         String id = req.getId();
         if (isEmpty(id)) {
@@ -114,7 +113,7 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "更新运行状态", notes = "更新运行状态", httpMethod = "POST", response = ResultVO.class)
     @VerifyUserToken
-    @PostMapping("/modify_running_status")
+    @PostMapping("/zp/modify_running_status")
     public ResultVO modifyRunningStatus(@RequestBody @Valid AmZpAccountModifyStatusReq req) {
         String id = req.getId();
         int status = req.getIs_running() >= 1 ? 1 : 0;
@@ -125,10 +124,9 @@ public class AmZpController extends HrAIBaseController {
     }
 
     @ApiOperation(value = "获取登录二维码", notes = "获取登录二维码", httpMethod = "GET", response = ResultVO.class)
-    @GetMapping("/get_login_qrcode")
+    @GetMapping("/zp/get_login_qrcode")
     public ResultVO getLoginQrcode() {
-        // TODO 需要生成二维码信息--php未实现，不知业务逻辑
-        return ResultVO.fail("客户端未启动");
+        return amZpManager.getLoginQrcode(getUserId());
     }
 
 
