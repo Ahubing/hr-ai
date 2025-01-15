@@ -3,9 +3,8 @@ package com.open.hr.ai.controller;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
-import com.open.hr.ai.bean.req.AddOrUpdateAmPromptReq;
+import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
 import com.open.hr.ai.config.HrAIBaseController;
-import com.open.hr.ai.manager.PromptManager;
 import com.open.hr.ai.manager.ResumeManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -13,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -35,6 +33,13 @@ public class ResumeController extends HrAIBaseController {
     @GetMapping("resume/list")
     public ResultVO<List<AmResume>> promptList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "post_id", required = false) Integer post_id, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "page", required = true) Integer page, @RequestParam(value = "size", required = true) Integer size) {
         return resumeManager.resumeList(type, post_id, name, page, size);
+    }
+
+    @ApiOperation("统计简历数据")
+    @VerifyUserToken
+    @GetMapping("resume/data")
+    public ResultVO<List<AmResumeCountDataVo>> promptData() {
+        return resumeManager.resumeData(getUserId());
     }
 
     @ApiOperation("获取简历详情")

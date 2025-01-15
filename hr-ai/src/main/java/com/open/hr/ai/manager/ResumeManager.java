@@ -1,26 +1,23 @@
 package com.open.hr.ai.manager;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
-import com.open.ai.eros.db.mysql.hr.entity.AmPrompt;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionPostServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionSectionServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmPromptServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
-import com.open.hr.ai.bean.req.AddOrUpdateAmPromptReq;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
+import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -80,6 +77,32 @@ public class ResumeManager {
             queryWrapper.last("limit " + (page - 1) * size + "," + size);
             List<AmResume> amResumes = amResumeService.list(queryWrapper);
             return ResultVO.success(amResumes);
+        }catch (Exception e){
+            log.error("获取简历详情 ",e);
+        }
+        return ResultVO.fail("获取简历详情异常");
+    }
+
+    /**
+     * 获取简历列表
+     * @return
+     */
+    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long  adminId) {
+        try {
+            LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
+            queryWrapper.eq(AmResume::getAdminId, adminId);
+            List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
+            for (int i = 0; i <=5; i++) {
+                if (i != 5) {
+                    queryWrapper.eq(AmResume::getType, i);
+                }
+                int count = amResumeService.count(queryWrapper);
+                AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
+                amResumeCountDataVo.setType(i);
+                amResumeCountDataVo.setTotal(count);
+                amResumeCountDataVos.add(amResumeCountDataVo);
+            }
+            return ResultVO.success(amResumeCountDataVos);
         }catch (Exception e){
             log.error("获取简历详情 ",e);
         }
