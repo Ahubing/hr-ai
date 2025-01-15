@@ -84,12 +84,8 @@ public class ClientManager {
             }
             if ("active".equals(amZpLocalAccouts.getState())){
                 // 规定超过25秒就认定下线
-                if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) > 25  * 1000) {
-                    amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
-                    amZpLocalAccouts.setBrowserId(connectId);
-                    amZpLocalAccouts.setState("inactive");
-                    amZpLocalAccoutsService.updateById(amZpLocalAccouts);
-                    return ResultVO.fail(409,"boss_id 已下线");
+                if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 25  * 1000) {
+                    return ResultVO.fail(409,"boss_id 已在线");
                 }
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
