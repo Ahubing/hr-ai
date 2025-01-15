@@ -63,11 +63,12 @@ public class ResumeManager {
      * @param size
      * @return
      */
-    public ResultVO<PageVO<AmResume>> resumeList(Integer type, Integer post_id, String name, Integer page, Integer size) {
+    public ResultVO<PageVO<AmResume>> resumeList(Long adminId,Integer type, Integer post_id, String name, Integer page, Integer size) {
         try {
             Page<AmResume> pageList = new Page<>(page,size);
 
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
+            queryWrapper.eq(AmResume::getAdminId, adminId);
             if (Objects.nonNull(type)) {
                 queryWrapper.eq(AmResume::getType, type);
             }
