@@ -406,9 +406,14 @@ public class ClientManager {
                 greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, amZpLocalAccouts.getId());
                 AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                 if (Objects.isNull(one) || one.getIsGreetOn() == 0 ) {
+                    log.error("greetHandle isGreetOn is 0,bossId={},resume={}",bossId,resumes.get(i));
                     return;
                 }
                 JSONObject jsonObject = JSONObject.parseObject(tasksServiceOne.getData());
+                if (!jsonObject.containsKey("greetId")) {
+                    log.error("greetHandle greetId is null,bossId={},resume={}",bossId,resumes.get(i));
+                    return;
+                }
                 String greetId = jsonObject.get("greetId").toString();
                 AmChatbotGreetResult amChatbotGreetResult = new AmChatbotGreetResult();
                 amChatbotGreetResult.setRechatItem(0);
