@@ -272,7 +272,7 @@ public class ClientManager {
             }
             boolean result = amClientTasksService.updateById(tasksServiceOne);
             log.info("amClientTasksService update result={},tasksServiceOne={}",result,tasksServiceOne);
-            String taskType = clientFinishTaskReq.getTask_type();
+            String taskType = tasksServiceOne.getTaskType();
             switch (taskType){
                 case "get_all_job": getAllJobHandle(bossId,data); break;
                 case "greet": greetHandle(tasksServiceOne,taskId,bossId,data); break;
