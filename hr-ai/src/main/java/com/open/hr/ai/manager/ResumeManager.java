@@ -2,6 +2,8 @@ package com.open.hr.ai.manager;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
@@ -61,8 +63,10 @@ public class ResumeManager {
      * @param size
      * @return
      */
-    public ResultVO<List<AmResume>> resumeList(Integer type, Integer post_id, String name, Integer page, Integer size) {
+    public ResultVO<PageVO<AmResume>> resumeList(Integer type, Integer post_id, String name, Integer page, Integer size) {
         try {
+            Page<AmResume> pageList = new Page<>(page,size);
+
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
             if (Objects.nonNull(type)) {
                 queryWrapper.eq(AmResume::getType, type);
@@ -75,8 +79,8 @@ public class ResumeManager {
             }
             queryWrapper.orderByDesc(AmResume::getCreateTime);
             queryWrapper.last("limit " + (page - 1) * size + "," + size);
-            List<AmResume> amResumes = amResumeService.list(queryWrapper);
-            return ResultVO.success(amResumes);
+            Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
+            return ResultVO.success(PageVO.build(amResumePage.getTotal(),amResumePage.getRecords()));
         }catch (Exception e){
             log.error("获取简历详情 ",e);
         }

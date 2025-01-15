@@ -1,6 +1,7 @@
 package com.open.hr.ai.controller;
 
 import com.open.ai.eros.common.annotation.VerifyUserToken;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
@@ -31,7 +32,7 @@ public class ResumeController extends HrAIBaseController {
     @ApiOperation("获取简历列表")
     @VerifyUserToken
     @GetMapping("resume/list")
-    public ResultVO<List<AmResume>> promptList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "post_id", required = false) Integer post_id, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "page", required = true) Integer page, @RequestParam(value = "size", required = true) Integer size) {
+    public ResultVO<PageVO<AmResume>> promptList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "post_id", required = false) Integer post_id, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "page", required = true) Integer page, @RequestParam(value = "size", required = true) Integer size) {
         return resumeManager.resumeList(type, post_id, name, page, size);
     }
 
