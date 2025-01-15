@@ -83,7 +83,8 @@ public class ChatBotManager {
             List<AmZpPlatforms> platforms = amZpPlatformsService.list();
 
             for (AmZpLocalAccoutsVo account : amZpLocalAccoutsVos) {
-                if (System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond() > 25) {
+
+                if (Objects.isNull(account.getUpdateTime()) || System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond() > 25) {
                     account.setState("inactive");
                 }
                 for (AmZpPlatforms platform : platforms) {
