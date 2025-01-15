@@ -4,10 +4,7 @@ import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.hr.ai.bean.req.*;
-import com.open.hr.ai.bean.vo.AmChatbotGreetTaskVo;
-import com.open.hr.ai.bean.vo.AmChatbotPositionOptionVo;
-import com.open.hr.ai.bean.vo.AmZmLocalAccountsListVo;
-import com.open.hr.ai.bean.vo.AmZpLocalAccoutsVo;
+import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotManager;
 import io.swagger.annotations.Api;
@@ -77,6 +74,13 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation(value = "根据账号id获取打招呼设置",notes = "根据账号id获取打招呼设置", httpMethod = "GET", response = ResultVO.class)
     public ResultVO<AmZpLocalAccoutsVo> getGreetByAccountId(@RequestParam(value = "id",required = true) String id) {
         return chatBotManager.getGreetByAccountId(id);
+    }
+
+    @VerifyUserToken
+    @PostMapping("/chatbot/get_greet_config")
+    @ApiOperation(value = "获取打招呼配置信息",notes = "获取打招呼配置信息", httpMethod = "POST", response = ResultVO.class)
+    public ResultVO<AmChatBotGreetConfigDataVo> getGreetConfig(@RequestParam(value = "account_id",required = true) String accountId) {
+        return chatBotManager.getGreetConfig(accountId,getUserId());
     }
 
 

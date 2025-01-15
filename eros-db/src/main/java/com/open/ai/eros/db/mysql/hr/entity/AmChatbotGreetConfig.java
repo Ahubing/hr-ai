@@ -27,7 +27,7 @@ public class AmChatbotGreetConfig implements Serializable {
       @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 账号id

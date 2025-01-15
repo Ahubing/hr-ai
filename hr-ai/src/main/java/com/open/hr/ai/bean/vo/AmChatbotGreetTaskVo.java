@@ -88,5 +88,7 @@ public class AmChatbotGreetTaskVo implements Serializable {
 
     private Integer total;
 
+    private AmPositionVo positionVo;
+
 
 }

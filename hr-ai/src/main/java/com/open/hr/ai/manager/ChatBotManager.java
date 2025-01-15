@@ -10,16 +10,14 @@ import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.PositionSyncTaskStatusEnums;
-import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
-import com.open.hr.ai.convert.AmChatBotGreetTaskConvert;
-import com.open.hr.ai.convert.AmChatBotPositionOptionConvert;
-import com.open.hr.ai.convert.AmZpLocalAccoutsConvert;
+import com.open.hr.ai.convert.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,6 +32,12 @@ public class ChatBotManager {
 
     @Resource
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
+
+    @Resource
+    private AmChatbotGreetResultServiceImpl amChatbotGreetResultService;
+
+    @Resource
+    private AmResumeServiceImpl amResumeService;
 
     @Resource
     private AmZpPlatformsServiceImpl amZpPlatformsService;
@@ -63,6 +67,8 @@ public class ChatBotManager {
 
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
+    @Resource
+    private AmPositionServiceImpl amPositionService;
 
 
 
@@ -161,6 +167,72 @@ public class ChatBotManager {
             return ResultVO.success(amZpLocalAccoutsVo);
         } catch (Exception e) {
             log.error("getGreetByAccountId error id=", e);
+        }
+        return ResultVO.fail("获取打招呼设置失败");
+    }
+
+
+    public ResultVO<AmChatBotGreetConfigDataVo> getGreetConfig(String accountId,Long adminId) {
+        try {
+            AmChatBotGreetConfigDataVo amChatBotGreetConfigDataVo = new AmChatBotGreetConfigDataVo();
+            AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(new LambdaQueryWrapper<AmChatbotGreetConfig>().eq(AmChatbotGreetConfig::getAccountId, accountId), false);
+            if (Objects.isNull(amChatbotGreetConfig)) {
+                amChatbotGreetConfig = new AmChatbotGreetConfig();
+                amChatbotGreetConfig.setAccountId(accountId);
+                amChatbotGreetConfig.setAdminId(adminId);
+                amChatbotGreetConfigService.save(amChatbotGreetConfig);
+        }
+            List<AmChatbotGreetTask> amChatbotGreetTasks = amChatbotGreetTaskService.list(new LambdaQueryWrapper<AmChatbotGreetTask>().eq(AmChatbotGreetTask::getAccountId, accountId));
+            List<AmChatbotGreetTaskVo> amChatbotGreetTaskVos = amChatbotGreetTasks.stream().map(AmChatBotGreetTaskConvert.I::convertGreetTaskVo).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(amChatbotGreetTaskVos)) {
+                for (AmChatbotGreetTaskVo amChatbotGreetTaskVo : amChatbotGreetTaskVos) {
+                    AmPosition amPosition = amPositionService.getById(amChatbotGreetTaskVo.getPositionId());
+                    AmPositionVo amPositionVo = AmPositionConvert.I.converAmPositionVo(amPosition);
+                    amChatbotGreetTaskVo.setPositionVo(amPositionVo);
+                    AmChatbotGreetCondition amChatbotGreetCondition = amChatbotGreetConditionService.getOne(new LambdaQueryWrapper<AmChatbotGreetCondition>().eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTaskVo.getPositionId()), false);
+                    if (Objects.nonNull(amChatbotGreetCondition)) {
+                        amChatbotGreetTaskVo.setConditionVo(AmChatBotGreetConditionConvert.I.convertGreetConditionVo(amChatbotGreetCondition));
+                    }
+                }
+            }
+            amChatBotGreetConfigDataVo.setConfig(amChatbotGreetConfig);
+            amChatBotGreetConfigDataVo.setTasks(amChatbotGreetTaskVos);
+
+            int count = amChatbotGreetResultService.count(new LambdaQueryWrapper<AmChatbotGreetResult>().eq(AmChatbotGreetResult::getAccountId, accountId).ge(AmChatbotGreetResult::getCreateTime, LocalDate.now().atStartOfDay()));
+            amChatBotGreetConfigDataVo.setToday_searched(count);
+
+            int monthCount = amChatbotGreetResultService.count(new LambdaQueryWrapper<AmChatbotGreetResult>().eq(AmChatbotGreetResult::getAccountId, accountId).ge(AmChatbotGreetResult::getCreateTime, LocalDate.now().withDayOfMonth(1).atStartOfDay()));
+            amChatBotGreetConfigDataVo.setThis_month_searched(monthCount);
+
+            amChatBotGreetConfigDataVo.setToday_tmp_task("0/0");
+            amChatBotGreetConfigDataVo.setToday_scheduled_task("0/0");
+            amChatBotGreetConfigDataVo.setCurrent_time_task("0/0");
+            amChatBotGreetConfigDataVo.setRechat_no_reply_amount("0/0");
+            amChatBotGreetConfigDataVo.setRechat_ask_resume_amount("0/0");
+
+            AccountDataVo accountDataVo = new AccountDataVo();
+            int amResumeCount = amResumeService.count(new LambdaQueryWrapper<AmResume>().eq(AmResume::getAccountId, accountId).ge(AmResume::getCreateTime,  LocalDate.now().atStartOfDay()));
+            accountDataVo.setToday_resume(amResumeCount);
+
+            int today_communication = amChatbotGreetResultService.count(new LambdaQueryWrapper<AmChatbotGreetResult>().eq(AmChatbotGreetResult::getAccountId, accountId).ge(AmChatbotGreetResult::getCreateTime, LocalDate.now().atStartOfDay()).eq(AmChatbotGreetResult::getSuccess, 1));
+            accountDataVo.setToday_communication(today_communication);
+
+            accountDataVo.setToday_active(0);
+            accountDataVo.setToday_rechat(0);
+
+            int t_month_resume = amResumeService.count(new LambdaQueryWrapper<AmResume>().eq(AmResume::getAccountId, accountId).ge(AmResume::getCreateTime, LocalDate.now().withDayOfMonth(1).atStartOfDay()));
+            accountDataVo.setT_month_resume(t_month_resume);
+
+            int t_month_communication = amChatbotGreetResultService.count(new LambdaQueryWrapper<AmChatbotGreetResult>().eq(AmChatbotGreetResult::getAccountId, accountId).ge(AmChatbotGreetResult::getCreateTime, LocalDate.now().withDayOfMonth(1).atStartOfDay()).eq(AmChatbotGreetResult::getSuccess, 1));
+            accountDataVo.setT_month_communication(t_month_communication);
+
+            accountDataVo.setT_month_active(0);
+            accountDataVo.setT_month_rechat(0);
+
+            amChatBotGreetConfigDataVo.setAccountData(accountDataVo);
+            return ResultVO.success(amChatBotGreetConfigDataVo);
+        } catch (Exception e) {
+            log.error("getGreetConfig error id=", e);
         }
         return ResultVO.fail("获取打招呼设置失败");
     }
