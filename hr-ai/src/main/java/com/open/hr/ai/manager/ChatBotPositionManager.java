@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -389,7 +390,7 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO<JSONObject> getPositionList(SearchPositionListReq req,Long adminId) {
+    public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req,Long adminId) {
         try {
             JSONObject jsonObject = new JSONObject();
 
@@ -435,9 +436,9 @@ public class ChatBotPositionManager {
                 }
             }
 
-            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
-            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
-            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
+//            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
+//            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
+//            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
 
 
             LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
@@ -454,13 +455,13 @@ public class ChatBotPositionManager {
             sectionQueryWrapper.eq(AmPositionSection::getAdminId, adminId);
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(sectionQueryWrapper);
 
-            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
-            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
-            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
-
-            LambdaQueryWrapper<AmSquareRoles> rolesQueryWrapper = new LambdaQueryWrapper<>();
-            rolesQueryWrapper.eq(AmSquareRoles::getAdminId, adminId);
-            List<AmSquareRoles> amSquareRoles = amSquareRolesService.list(rolesQueryWrapper);
+//            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+//            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
+//            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
+//
+//            LambdaQueryWrapper<AmSquareRoles> rolesQueryWrapper = new LambdaQueryWrapper<>();
+//            rolesQueryWrapper.eq(AmSquareRoles::getAdminId, adminId);
+//            List<AmSquareRoles> amSquareRoles = amSquareRolesService.list(rolesQueryWrapper);
 
             Page<AmPosition> page = new Page<>(req.getPage(), req.getSize());
             Page<AmPosition> amPositionPage = amPositionService.page(page, amPositionQueryWrapper);
@@ -495,16 +496,17 @@ public class ChatBotPositionManager {
             }
 
 //            int total = amPositionService.list(amPositionQueryWrapper).size();
-            jsonObject.put("total", amPositionPage.getTotal());
-            jsonObject.put("current_page", amPositionVos);
-            jsonObject.put("size", req.getSize());
-            jsonObject.put("recruiters", miniUniUsers);
-            jsonObject.put("accouts", localAccouts);
-            jsonObject.put("platforms", amZpPlatforms);
-            jsonObject.put("sections", amPositionSections);
-            jsonObject.put("positions", amPositions);
-            jsonObject.put("ais", amSquareRoles);
-            return ResultVO.success(jsonObject);
+//            jsonObject.put("total", amPositionPage.getTotal());
+//            jsonObject.put("current_page", req.getPage());
+//            jsonObject.put("size", req.getSize());
+//            jsonObject.put("recruiters", miniUniUsers);
+//            jsonObject.put("accouts", localAccouts);
+//            jsonObject.put("platforms", amZpPlatforms);
+//            jsonObject.put("sections", amPositionSections);
+//            jsonObject.put("positions", amPositionVos);
+//            jsonObject.put("ais", amSquareRoles);
+            return ResultVO.success(PageVO.build(amPositionPage.getTotal(),amPositionVos));
+
         } catch (Exception e) {
             log.error("查询职位详情异常 req={}", JSONObject.toJSONString(req), e);
             return ResultVO.fail("系统异常, 获取成功失败");

@@ -2,6 +2,7 @@ package com.open.hr.ai.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
@@ -158,7 +159,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取职位列表")
     @VerifyUserToken
     @PostMapping("position/list")
-    public ResultVO<JSONObject> getPositionList(@RequestBody @Valid SearchPositionListReq req) {
+    public ResultVO<PageVO<AmPositionVo>> getPositionList(@RequestBody @Valid SearchPositionListReq req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
