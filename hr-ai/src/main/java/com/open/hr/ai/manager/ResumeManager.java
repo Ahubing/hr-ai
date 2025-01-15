@@ -78,7 +78,6 @@ public class ResumeManager {
                 queryWrapper.like(AmResume::getName, name);
             }
             queryWrapper.orderByDesc(AmResume::getCreateTime);
-            queryWrapper.last("limit " + (page - 1) * size + "," + size);
             Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
             return ResultVO.success(PageVO.build(amResumePage.getTotal(),amResumePage.getRecords()));
         }catch (Exception e){
