@@ -182,7 +182,7 @@ public class ClientManager {
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmClientTasks::getBossId, bossId);
             queryWrapper.le(AmClientTasks::getStatus, 1);
-            queryWrapper.lt(AmClientTasks::getRetryTimes, 3);
+            queryWrapper.le(AmClientTasks::getRetryTimes, 3);
             queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
             AmClientTasks amClientTasks = amClientTasksService.getOne(queryWrapper, false);
             if (Objects.nonNull(amClientTasks)){
@@ -255,7 +255,7 @@ public class ClientManager {
                 tasksServiceOne.setStatus(2);
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             }else {
-                if (tasksServiceOne.getRetryTimes() < 3){
+                if (tasksServiceOne.getRetryTimes() <= 3){
                     tasksServiceOne.setRetryTimes(tasksServiceOne.getRetryTimes() + 1);
                     boolean result = amClientTasksService.updateById(tasksServiceOne);
                     log.info("amClientTasksService update result={},tasksServiceOne={}",result,tasksServiceOne);
