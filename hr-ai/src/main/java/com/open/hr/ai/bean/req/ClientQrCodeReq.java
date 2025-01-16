@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * @Author liuzilin
@@ -24,7 +25,7 @@ public class ClientQrCodeReq {
      * 与python定义的字段一致
      * expires
      */
-    @NotEmpty(message = "expires不能为空")
+    @NotNull(message = "expires不能为空")
     @ApiModelProperty(value = "expires")
-    private String expires;
+    private Long expires;
 }

@@ -423,6 +423,13 @@ public class ClientManager {
                     return;
                 }
                 Integer positionId = amChatbotGreetTask.getPositionId();
+                AmPosition amPosition = amPositionService.getById(positionId);
+                log.info("amPositionService getById amPosition={}",amPosition);
+                if (Objects.nonNull(amPosition)){
+                   amResume.setPosition(amPosition.getName());
+                    boolean result = amResumeService.updateById(amResume);
+                    log.info("amResumeService update result={},amResume={}",result,amResume);
+                }
                 log.info("amChatbotGreetResultService save result={},amChatbotGreetResult={}",saveResult,amChatbotGreetResult);
                 /**
                  * 1、更新打招呼任务结果状态
@@ -430,8 +437,8 @@ public class ClientManager {
                  * 3、生成复聊任务, 如果存在复聊方案
                  */
 
-                AmClientTasks amClientTasks = createRequestAllInfo(amZpLocalAccouts, amResume);
-                log.info("greetHandle request_all_info,amClientTasks={}",amClientTasks);
+//                AmClientTasks amClientTasks = createRequestAllInfo(amZpLocalAccouts, amResume);
+//                log.info("greetHandle request_all_info,amClientTasks={}",amClientTasks);
 
                 AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId()).eq(AmChatbotPositionOption::getPositionId,positionId), false);
                 if (Objects.isNull(amChatbotPositionOption)) {
@@ -483,12 +490,11 @@ public class ClientManager {
     private void dealUserAllInfoData(String taskId, AmZpLocalAccouts amZpLocalAccouts, JSONObject jsonObject) {
         // 开始提取保存用户简历信息
         // 提取拼接用户简历数据
-        JSONObject dataJSONObject = (JSONObject) jsonObject.get("data");
-        JSONObject resumeJSONObject = (JSONObject) dataJSONObject.get("resume");
-        JSONObject chatInfoJSONObject = (JSONObject) dataJSONObject.get("chat_info");
-        JSONObject geekDetailInfoJSONObject = (JSONObject) resumeJSONObject.get("geekDetailInfo");
-        JSONObject geekBaseInfo = (JSONObject) geekDetailInfoJSONObject.get("geekBaseInfo");
-        JSONObject chatData = (JSONObject) chatInfoJSONObject.get("data");
+        JSONObject resumeJSONObject =  jsonObject.getJSONObject("resume");
+        JSONObject chatInfoJSONObject =  jsonObject.getJSONObject("chat_info");
+        JSONObject geekDetailInfoJSONObject =  resumeJSONObject.getJSONObject("geekDetailInfo");
+        JSONObject geekBaseInfo =  geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
+        JSONObject chatData =  chatInfoJSONObject.getJSONObject("data");
         String userId = chatData.get("uid").toString();
         if (StringUtils.isNotBlank(userId)){
             QueryWrapper<AmResume>  queryWrapper = new QueryWrapper<>();
@@ -550,7 +556,8 @@ public class ClientManager {
                 amResume.setPhone(Objects.nonNull(chatData.get("phone")) ? chatData.get("phone").toString() : "");
                 amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");
                 amResume.setEmail(Objects.nonNull(geekBaseInfo.get("email")) ? geekBaseInfo.get("email").toString() : "");
-                amResumeService.updateById(amResume);
+                boolean result = amResumeService.updateById(amResume);
+                log.info("dealUserAllInfoData update result={},amResume={}",result,JSONObject.toJSONString(amResume));
             }
         }
     }
