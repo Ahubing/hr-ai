@@ -256,9 +256,6 @@ public class ClientManager {
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             }else {
                 if (tasksServiceOne.getRetryTimes() <= 3){
-                    tasksServiceOne.setRetryTimes(tasksServiceOne.getRetryTimes() + 1);
-                    boolean result = amClientTasksService.updateById(tasksServiceOne);
-                    log.info("amClientTasksService update result={},tasksServiceOne={}",result,tasksServiceOne);
                     return ResultVO.success("任务要重试");
                 }
                 tasksServiceOne.setStatus(3);
