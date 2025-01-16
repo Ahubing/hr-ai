@@ -182,7 +182,7 @@ public class ClientManager {
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmClientTasks::getBossId, bossId);
             queryWrapper.le(AmClientTasks::getStatus, 1);
-            queryWrapper.le(AmClientTasks::getRetryTimes, 3);
+            queryWrapper.le(AmClientTasks::getRetryTimes, 2);
             queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
             AmClientTasks amClientTasks = amClientTasksService.getOne(queryWrapper, false);
             if (Objects.nonNull(amClientTasks)){
