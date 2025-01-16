@@ -79,8 +79,11 @@ public class ChatBotController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/chatbot/get_greet_config")
     @ApiOperation(value = "获取打招呼配置信息",notes = "获取打招呼配置信息", httpMethod = "POST", response = ResultVO.class)
-    public ResultVO<AmChatBotGreetConfigDataVo> getGreetConfig(@RequestParam(value = "account_id",required = true) String accountId) {
-        return chatBotManager.getGreetConfig(accountId,getUserId());
+    public ResultVO<AmChatBotGreetConfigDataVo> getGreetConfig(@RequestBody @Valid SearchGreetConfig searchGreetConfig) {
+        if (Objects.isNull(searchGreetConfig)) {
+            return ResultVO.fail("参数不能为空");
+        }
+        return chatBotManager.getGreetConfig(searchGreetConfig.getAccount_id(),getUserId());
     }
 
 
