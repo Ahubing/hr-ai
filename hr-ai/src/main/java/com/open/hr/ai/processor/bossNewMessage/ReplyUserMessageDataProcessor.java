@@ -63,6 +63,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, localAccount={} req={}",amResume,amZpLocalAccouts, req);
         if (Objects.isNull(amResume)) {
             return ResultVO.fail(404, "用户信息异常");
         }

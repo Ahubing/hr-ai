@@ -433,12 +433,9 @@ public class ClientManager {
                 log.info("amChatbotGreetResultService save result={},amChatbotGreetResult={}",saveResult,amChatbotGreetResult);
                 /**
                  * 1、更新打招呼任务结果状态
-                 * 2、生成request_all_info 数据
                  * 3、生成复聊任务, 如果存在复聊方案
                  */
 
-//                AmClientTasks amClientTasks = createRequestAllInfo(amZpLocalAccouts, amResume);
-//                log.info("greetHandle request_all_info,amClientTasks={}",amClientTasks);
 
                 AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId()).eq(AmChatbotPositionOption::getPositionId,positionId), false);
                 if (Objects.isNull(amChatbotPositionOption)) {
