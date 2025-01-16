@@ -13,6 +13,7 @@ import com.open.hr.ai.processor.BossNewMessageProcessor;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -63,8 +64,8 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, localAccount={} req={}",amResume,amZpLocalAccouts, req);
-        if (Objects.isNull(amResume)) {
+        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, bossId={} req={}",amResume,amZpLocalAccouts.getId(), req);
+        if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
 
@@ -73,6 +74,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         queryWrapper.eq(AmChatbotGreetConfig::getIsAiOn,1);
         AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper, false);
         if (Objects.isNull(amChatbotGreetConfig)) {
+            log.error("未找到ai跟进对应的配置,bossId={}",amZpLocalAccouts.getId());
             return ResultVO.fail(404, "未找到对应的配置");
         }
         Integer postId = amResume.getPostId();

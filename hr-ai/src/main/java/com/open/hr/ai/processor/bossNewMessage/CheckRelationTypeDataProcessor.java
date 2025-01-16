@@ -13,6 +13,7 @@ import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +38,8 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
-         log.info("用户:{} 主动打招呼,请求用户信息 amResume={},localAccount={}", req.getUser_id(),amResume,amZpLocalAccouts);
-        if (Objects.isNull(amResume)){
+         log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(),amResume,amZpLocalAccouts.getId());
+        if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             log.error("用户信息异常 amResume is null");
             return ResultVO.fail(404,"用户信息异常");
         }

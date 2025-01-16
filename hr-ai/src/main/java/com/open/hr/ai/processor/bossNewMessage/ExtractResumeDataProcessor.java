@@ -9,6 +9,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -71,12 +72,13 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");
                 amResumeService.save(amResume);
             }else {
-                amResume = innerAmResume;
-                amResume.setPhone(chatData.get("phone").toString());
-                amResume.setWechat(chatData.get("weixin").toString());
-                amResumeService.updateById(amResume);
-            }
-            return ResultVO.success();
+            BeanUtils.copyProperties(innerAmResume,amResume);
+            amResume.setPhone(chatData.get("phone").toString());
+            amResume.setWechat(chatData.get("weixin").toString());
+            amResumeService.updateById(amResume);
+        }
+
+        return ResultVO.success();
         }
 
 

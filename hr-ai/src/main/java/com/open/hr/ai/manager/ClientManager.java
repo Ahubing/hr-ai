@@ -45,7 +45,7 @@ public class ClientManager {
     private AmPositionServiceImpl amPositionService;
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
-    ;
+
     @Resource
     private AmPositionSyncTaskServiceImpl amPositionSyncTaskService;
     @Resource
@@ -54,21 +54,16 @@ public class ClientManager {
     @Resource
     private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
 
-
     @Resource
     private AmChatbotGreetResultServiceImpl amChatbotGreetResultService;
 
     @Resource
     private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
 
-
     @Resource
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
-
-
     @Resource
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
-
 
     @Resource
     private JedisClientImpl jedisClient;
