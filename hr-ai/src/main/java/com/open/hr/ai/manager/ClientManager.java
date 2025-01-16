@@ -255,7 +255,7 @@ public class ClientManager {
                 tasksServiceOne.setStatus(2);
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             }else {
-                if (tasksServiceOne.getRetryTimes() <= 3){
+                if (tasksServiceOne.getRetryTimes() < 3){
                     return ResultVO.success("任务要重试");
                 }
                 tasksServiceOne.setStatus(3);
