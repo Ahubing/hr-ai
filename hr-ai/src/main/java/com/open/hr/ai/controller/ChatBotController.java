@@ -169,7 +169,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("设置打招呼筛选条件")
     @VerifyUserToken
     @PostMapping("/chatbot/set_greet_condition")
-    public ResultVO setGreetCondition (@RequestBody @Valid AddOrUpdateChatbotGreetCondition req) {
+    public ResultVO<AmChatbotGreetCondition> setGreetCondition (@RequestBody @Valid AddOrUpdateChatbotGreetCondition req) {
 
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");

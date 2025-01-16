@@ -411,7 +411,7 @@ public class ChatBotManager {
 
 
     @Transactional
-    public ResultVO setGreetCondition(AddOrUpdateChatbotGreetCondition req) {
+    public ResultVO<AmChatbotGreetCondition> setGreetCondition(AddOrUpdateChatbotGreetCondition req) {
         try {
 
             AmChatbotGreetCondition amChatbotGreetCondition = AmChatBotGreetConditionConvert.I.convertAddOrUpdateGreetCondition(req);
@@ -419,11 +419,11 @@ public class ChatBotManager {
                 AmChatbotGreetCondition amChatbotGreetConfig = amChatbotGreetConditionService.getById(req.getId());
                 if (Objects.isNull(amChatbotGreetConfig)) {
                     boolean updateResult = amChatbotGreetConditionService.save(amChatbotGreetCondition);
-                    return updateResult ? ResultVO.success() : ResultVO.fail("添加打招呼筛选条件失败");
+                    return updateResult ? ResultVO.success(amChatbotGreetConfig) : ResultVO.fail("添加打招呼筛选条件失败");
                 }
             }
             boolean addResult = amChatbotGreetConditionService.save(amChatbotGreetCondition);
-            return addResult ? ResultVO.success() : ResultVO.fail("修改打招呼筛选条件失败");
+            return addResult ? ResultVO.success(amChatbotGreetCondition) : ResultVO.fail("修改打招呼筛选条件失败");
         } catch (Exception e) {
             log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(req), e);
         }
