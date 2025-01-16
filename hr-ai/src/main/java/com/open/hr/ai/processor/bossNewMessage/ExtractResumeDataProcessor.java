@@ -31,6 +31,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+       log.info("ExtractResumeDataProcessor dealBossNewMessage amResume={},amZpLocalAccouts={},req={}",amResume,amZpLocalAccouts,req);
         JSONObject chatInfo = req.getChat_info();
         JSONObject chatData = chatInfo.getJSONObject("data");
             if (Objects.isNull(chatData) || chatData.isEmpty()){
@@ -43,6 +44,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             queryWrapper.eq(AmResume::getUid, userId);
 
          AmResume innerAmResume = amResumeService.getOne(queryWrapper, false);
+         log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}",innerAmResume);
         if (Objects.isNull(innerAmResume)){
                 amResume.setAdminId(amZpLocalAccouts.getAdminId());
                 amResume.setAccountId(amZpLocalAccouts.getId());

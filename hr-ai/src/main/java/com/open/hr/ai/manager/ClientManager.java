@@ -13,6 +13,8 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
+import com.open.hr.ai.constant.AmClientTaskStatusEnums;
+import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
@@ -424,8 +426,13 @@ public class ClientManager {
                 log.info("amChatbotGreetResultService save result={},amChatbotGreetResult={}",saveResult,amChatbotGreetResult);
                 /**
                  * 1、更新打招呼任务结果状态
-                 * 2、生成复聊任务, 如果存在复聊方案
+                 * 2、生成request_all_info 数据
+                 * 3、生成复聊任务, 如果存在复聊方案
                  */
+
+                AmClientTasks amClientTasks = createRequestAllInfo(amZpLocalAccouts, amResume);
+                log.info("greetHandle request_all_info,amClientTasks={}",amClientTasks);
+
                 AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId()).eq(AmChatbotPositionOption::getPositionId,positionId), false);
                 if (Objects.isNull(amChatbotPositionOption)) {
                     log.info("复聊任务处理开始, 账号:{}, 未找到对应的职位", amZpLocalAccouts.getId());
@@ -581,6 +588,30 @@ public class ClientManager {
         boolean result = amResumeService.save(amResume);
         log.info("amResumeService save result={},amResume={}",result,amResume);
         return amResume;
+    }
+
+    private AmClientTasks createRequestAllInfo(AmZpLocalAccouts amZpLocalAccouts,AmResume amResume){
+
+        try {
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setBossId(amZpLocalAccouts.getId());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            HashMap<String, Object> hashMap = new HashMap<>();
+            HashMap<String, Object> searchDataMap = new HashMap<>();
+            hashMap.put("user_id", amResume.getUid());
+            searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
+            searchDataMap.put("name", amResume.getName());
+            hashMap.put("search_data", searchDataMap);
+            amClientTasks.setData(JSONObject.toJSONString(hashMap));
+            boolean save = amClientTasksService.save(amClientTasks);
+            log.info("createRequestAllInfo save result={},amClientTasks={}",save,amClientTasks);
+            return amClientTasks;
+        }catch (Exception e){
+            log.error("createRequestAllInfo error,amZpLocalAccouts={},amResume={}",amZpLocalAccouts,amResume,e);
+        }
+        return null;
     }
 
     public static void main(String[] args) {

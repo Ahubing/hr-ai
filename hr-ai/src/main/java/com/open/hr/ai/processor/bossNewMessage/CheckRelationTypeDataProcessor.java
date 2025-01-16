@@ -38,6 +38,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
 
         if (Objects.isNull(amResume)){
+            log.error("用户信息异常 amResume is null");
             return ResultVO.fail(404,"用户信息异常");
         }
 
@@ -65,6 +66,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
                 amClientTasks.setCreateTime(LocalDateTime.now());
                 amClientTasks.setUpdateTime(LocalDateTime.now());
                 amClientTasksService.save(amClientTasks);
+                log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
             }
         }
         return ResultVO.success();
