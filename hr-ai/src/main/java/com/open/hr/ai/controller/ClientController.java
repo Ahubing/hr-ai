@@ -93,7 +93,8 @@ public class ClientController extends HrAIBaseController {
     @ApiOperation("客户端发送消息")
     @PostMapping("/listen/boss_new_message/{boss_id}/{connect_id}")
     public ResultVO bossNewMessage(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId ,@RequestBody @Valid ClientBossNewMessageReq clientBossNewMessageReq){
-        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) ) {
+        log.info("bossNewMessage bossId={},connectId={},clientBossNewMessageReq={}",bossId,connectId,clientBossNewMessageReq);
+         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) ) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
         return clientManager.bossNewMessage(bossId, connectId,clientBossNewMessageReq);
