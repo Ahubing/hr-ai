@@ -181,23 +181,12 @@ public class ClientManager {
             }
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmClientTasks::getBossId, bossId);
-            queryWrapper.eq(AmClientTasks::getStatus, 0);
+            queryWrapper.le(AmClientTasks::getStatus, 1);
+            queryWrapper.lt(AmClientTasks::getRetryTimes, 3);
+            queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
             AmClientTasks amClientTasks = amClientTasksService.getOne(queryWrapper, false);
             if (Objects.nonNull(amClientTasks)){
-                if (amClientTasks.getRetryTimes() < 3){
-                    amClientTasks.setRetryTimes(amClientTasks.getRetryTimes() + 1);
-                    amClientTasksService.updateById(amClientTasks);
-                }else {
-                    queryWrapper.eq(AmClientTasks::getStatus, 0);
-                    queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
-                    amClientTasks = amClientTasksService.getOne(queryWrapper, false);
-                }
-            }else {
-                queryWrapper.eq(AmClientTasks::getStatus, 0);
-                queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
-                amClientTasks = amClientTasksService.getOne(queryWrapper, false);
-            }
-            if (Objects.nonNull(amClientTasks)){
+                amClientTasks.setRetryTimes(amClientTasks.getRetryTimes() + 1);
                 jsonObject.put("boss_id",bossId);
                 jsonObject.put("task_type",amClientTasks.getTaskType());
                 jsonObject.put("task_id",amClientTasks.getId());
