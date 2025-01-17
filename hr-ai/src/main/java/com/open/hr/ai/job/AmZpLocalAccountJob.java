@@ -48,9 +48,9 @@ public class AmZpLocalAccountJob {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list();
                 for (AmZpLocalAccouts localAccout : localAccouts) {
-                    if ("active".equals(localAccout.getState())){
+                    if ("active".equals(localAccout.getState())) {
                         // 规定超过25秒就认定下线
-                        if (Objects.nonNull(localAccout.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime()) > 25  * 1000) {
+                        if (Objects.nonNull(localAccout.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime()) > 25 * 1000) {
                             localAccout.setState("inactive");
                             amZpLocalAccoutsService.updateById(localAccout);
                             log.info("账号:{} 下线", localAccout.getId());

@@ -1,13 +1,13 @@
 package com.open.hr.ai.constant;
 
 /**
- * @Author 
+ * @Author
  * @Date 2025/1/12 20:12
  */
 public enum PositionSyncTaskStatusEnums {
-    NOT_START(0,"未开始"),
-    START(1,"同步中"),
-    FINISH(2,"同步完成"),
+    NOT_START(0, "未开始"),
+    START(1, "同步中"),
+    FINISH(2, "同步完成"),
     ;
 
     private Integer status;

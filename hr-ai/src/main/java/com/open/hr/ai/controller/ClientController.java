@@ -25,36 +25,35 @@ import java.util.Objects;
 @Slf4j
 public class ClientController extends HrAIBaseController {
 
-     @Resource
-     private ClientManager clientManager;
+    @Resource
+    private ClientManager clientManager;
 
-     @ApiOperation("客户端请求连接")
-     @PostMapping("/connect/{boss_id}/{connect_id}")
-     public ResultVO connectClient( @PathVariable("boss_id") String bossId,
-                                 @PathVariable("connect_id") String connectId) {
-         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
-             return ResultVO.fail("boss_id或connect_id不能为空");
-         }
-         return clientManager.connectClient(bossId,connectId);
-     }
+    @ApiOperation("客户端请求连接")
+    @PostMapping("/connect/{boss_id}/{connect_id}")
+    public ResultVO connectClient(@PathVariable("boss_id") String bossId,
+                                  @PathVariable("connect_id") String connectId) {
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
+            return ResultVO.fail("boss_id或connect_id不能为空");
+        }
+        return clientManager.connectClient(bossId, connectId);
+    }
 
     @ApiOperation("客户端请求更新二维码")
     @PostMapping("/login_qrcode/{boss_id}/{connect_id}")
-    public ResultVO updateQrCode(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientQrCodeReq qrCodeRequest){
-         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
-             return ResultVO.fail("boss_id或connect_id不能为空");
-         }
-         if (Objects.isNull(qrCodeRequest)) {
-             return ResultVO.fail("qrCodeRequest不能为空");
-         }
-         return clientManager.loginQrCodeSave(bossId, connectId, qrCodeRequest);
+    public ResultVO updateQrCode(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientQrCodeReq qrCodeRequest) {
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
+            return ResultVO.fail("boss_id或connect_id不能为空");
+        }
+        if (Objects.isNull(qrCodeRequest)) {
+            return ResultVO.fail("qrCodeRequest不能为空");
+        }
+        return clientManager.loginQrCodeSave(bossId, connectId, qrCodeRequest);
     }
-
 
 
     @ApiOperation("客户端请求更新状态")
     @PostMapping("/status/{boss_id}/{connect_id}/{status}")
-    public ResultVO updateClientStatus(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @PathVariable("status") String status){
+    public ResultVO updateClientStatus(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @PathVariable("status") String status) {
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) || StringUtils.isBlank(status)) {
             return ResultVO.fail("boss_id,status或connect_id不能为空");
         }
@@ -63,7 +62,7 @@ public class ClientController extends HrAIBaseController {
 
     @ApiOperation("客户端请求登录")
     @PostMapping("/login/{boss_id}/{connect_id}/{ext_boss_id}")
-    public ResultVO loginClient(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @PathVariable("ext_boss_id") String extBossId){
+    public ResultVO loginClient(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @PathVariable("ext_boss_id") String extBossId) {
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) || StringUtils.isBlank(extBossId)) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
@@ -72,8 +71,8 @@ public class ClientController extends HrAIBaseController {
 
     @ApiOperation("客户端获取任务")
     @PostMapping("/get_task/{boss_id}/{connect_id}")
-    public ResultVO getClientTask(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId){
-        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) ) {
+    public ResultVO getClientTask(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId) {
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
         return clientManager.getClientTask(bossId, connectId);
@@ -81,23 +80,23 @@ public class ClientController extends HrAIBaseController {
 
     @ApiOperation("客户端结束任务")
     @PostMapping("/finish_task/{boss_id}/{connect_id}")
-    public ResultVO finishClientTask(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId ,@RequestBody @Valid ClientFinishTaskReq clientFinishTaskReq){
-       log.info("finishClientTask bossId={},connectId={},clientFinishTaskReq={}",bossId,connectId,clientFinishTaskReq);
-        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) ) {
+    public ResultVO finishClientTask(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientFinishTaskReq clientFinishTaskReq) {
+        log.info("finishClientTask bossId={},connectId={},clientFinishTaskReq={}", bossId, connectId, clientFinishTaskReq);
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
-        return clientManager.finishClientTask(bossId, connectId,clientFinishTaskReq);
+        return clientManager.finishClientTask(bossId, connectId, clientFinishTaskReq);
     }
 
 
     @ApiOperation("客户端发送消息")
     @PostMapping("/listen/boss_new_message/{boss_id}/{connect_id}")
-    public ResultVO bossNewMessage(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId ,@RequestBody @Valid ClientBossNewMessageReq clientBossNewMessageReq){
-        log.info("bossNewMessage bossId={},connectId={},clientBossNewMessageReq={}",bossId,connectId,clientBossNewMessageReq);
-         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId) ) {
+    public ResultVO bossNewMessage(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientBossNewMessageReq clientBossNewMessageReq) {
+        log.info("bossNewMessage bossId={},connectId={},clientBossNewMessageReq={}", bossId, connectId, clientBossNewMessageReq);
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
-        return clientManager.bossNewMessage(bossId, connectId,clientBossNewMessageReq);
+        return clientManager.bossNewMessage(bossId, connectId, clientBossNewMessageReq);
     }
 
 }

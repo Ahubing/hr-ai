@@ -67,7 +67,7 @@ public class SquareAiManager {
     }
 
 
-    public ResultVO addOrUpdateSquare(AddOrUpdateSquareReq req,Long adminId) {
+    public ResultVO addOrUpdateSquare(AddOrUpdateSquareReq req, Long adminId) {
         try {
             AmSquareRoles amSquareRoles = new AmSquareRoles();
             if (Objects.isNull(req.getId())) {

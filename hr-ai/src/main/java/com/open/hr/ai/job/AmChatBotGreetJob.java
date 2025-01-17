@@ -314,7 +314,6 @@ public class AmChatBotGreetJob {
     }
 
 
-
     /**
      * 处理复聊任务
      */
@@ -349,7 +348,7 @@ public class AmChatBotGreetJob {
 
                 buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, accountId);
                 jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
-            }catch (Exception e) {
+            } catch (Exception e) {
                 log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", reChatTask);
             }
         }

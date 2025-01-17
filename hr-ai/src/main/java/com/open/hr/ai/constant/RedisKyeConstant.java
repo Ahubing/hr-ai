@@ -1,7 +1,7 @@
 package com.open.hr.ai.constant;
 
 /**
- * @Author 
+ * @Author
  * @Date 2025/1/11 17:30
  */
 public class RedisKyeConstant {

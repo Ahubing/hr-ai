@@ -14,9 +14,4 @@ import lombok.Data;
 public class AmZpLocalAccountVo {
 
 
-
-
-
-
-
 }

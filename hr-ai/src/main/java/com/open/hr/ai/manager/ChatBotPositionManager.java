@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * 逻辑按照php处理的, 暂时未调试
+ *
  * @Date 2025/1/4 23:28
  */
 @Component
@@ -94,7 +95,7 @@ public class ChatBotPositionManager {
             queryWrapper.eq(AmPosition::getAdminId, adminId);
             queryWrapper.in(AmPosition::getId, ids);
             List<AmPosition> amPositions = amPositionService.list(queryWrapper);
-            AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(new LambdaQueryWrapper<AmZpLocalAccouts>().eq(AmZpLocalAccouts::getAdminId, adminId),false);
+            AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(new LambdaQueryWrapper<AmZpLocalAccouts>().eq(AmZpLocalAccouts::getAdminId, adminId), false);
             if (Objects.isNull(zpLocalAccouts)) {
                 log.info("boss账号不存在");
                 return ResultVO.fail("boss账号不存在");
@@ -102,7 +103,7 @@ public class ChatBotPositionManager {
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
             updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_CLOSE.getStatus());
             boolean result = amPositionService.update(updateWrapper);
-            if (result){
+            if (result) {
                 Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
                 log.info("batchResult={}", batchResult);
             }
@@ -138,7 +139,7 @@ public class ChatBotPositionManager {
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
             updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_OPEN.getStatus());
             boolean result = amPositionService.update(updateWrapper);
-            if (result){
+            if (result) {
                 Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
                 log.info("batchResult={}", batchResult);
             }
@@ -330,7 +331,7 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO editSection(AddOrUpdateSectionReq req,Long adminId) {
+    public ResultVO editSection(AddOrUpdateSectionReq req, Long adminId) {
         try {
             if (Objects.nonNull(req.getId())) {
                 AmPositionSection section = amPositionSectionService.getById(req.getId());
@@ -393,7 +394,7 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req,Long adminId) {
+    public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req, Long adminId) {
         try {
             JSONObject jsonObject = new JSONObject();
 
@@ -475,7 +476,7 @@ public class ChatBotPositionManager {
                 if (Objects.isNull(miniUniUser)) {
                     continue;
                 }
-                String name =miniUniUser.getName();
+                String name = miniUniUser.getName();
                 amPositionVo.setUserName(StringUtils.isNotBlank(name) ? name : "");
                 amPositionVo.setChannelName("");
                 amPositionVo.setBossAccount("");
@@ -508,7 +509,7 @@ public class ChatBotPositionManager {
 //            jsonObject.put("sections", amPositionSections);
 //            jsonObject.put("positions", amPositionVos);
 //            jsonObject.put("ais", amSquareRoles);
-            return ResultVO.success(PageVO.build(amPositionPage.getTotal(),amPositionVos));
+            return ResultVO.success(PageVO.build(amPositionPage.getTotal(), amPositionVos));
 
         } catch (Exception e) {
             log.error("查询职位详情异常 req={}", JSONObject.toJSONString(req), e);

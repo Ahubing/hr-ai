@@ -23,27 +23,27 @@ import java.util.Objects;
 @Slf4j
 public class MeController extends HrAIBaseController {
 
-     @Resource
-     private MeManager meManager;
+    @Resource
+    private MeManager meManager;
 
-     @ApiOperation("获取用户列表")
-     @VerifyUserToken
-     @PostMapping("/user/list")
-     public ResultVO<PageVO<MiniUniUserVo>> getUserList(@RequestBody @Valid SearchUserReq req) {
-         return  meManager.getUserList(req,getUserId());
-     }
+    @ApiOperation("获取用户列表")
+    @VerifyUserToken
+    @PostMapping("/user/list")
+    public ResultVO<PageVO<MiniUniUserVo>> getUserList(@RequestBody @Valid SearchUserReq req) {
+        return meManager.getUserList(req, getUserId());
+    }
 
     @ApiOperation("获取角色详情")
     @VerifyUserToken
     @GetMapping("/user/getInfo")
-    public ResultVO<MiniUniUserVo> getUserDetail( @RequestParam(value = "id", required = true) Integer id) {
-       return meManager.getUserDetail(id);
+    public ResultVO<MiniUniUserVo> getUserDetail(@RequestParam(value = "id", required = true) Integer id) {
+        return meManager.getUserDetail(id);
     }
 
     @ApiOperation("删除用户")
     @VerifyUserToken
     @GetMapping("/user/delete")
-    public ResultVO deleteUser( @RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO deleteUser(@RequestParam(value = "id", required = true) Integer id) {
         return meManager.deleteUserById(id);
     }
 
@@ -55,10 +55,8 @@ public class MeController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return meManager.addMiniUser(req,getUserId());
+        return meManager.addMiniUser(req, getUserId());
     }
-
-
 
 
     @ApiOperation("修改用户")
@@ -68,7 +66,7 @@ public class MeController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return meManager.updateMiniUser(req,getUserId());
+        return meManager.updateMiniUser(req, getUserId());
     }
 
 
@@ -79,7 +77,7 @@ public class MeController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return meManager.createExchangeCode(req,getUserId());
+        return meManager.createExchangeCode(req, getUserId());
     }
 
     @ApiOperation("兑换码列表")
@@ -93,9 +91,8 @@ public class MeController extends HrAIBaseController {
         if (Objects.isNull(size)) {
             size = 10;
         }
-        return meManager.getExchangeCodeList(code,status,page,size,getUserId());
+        return meManager.getExchangeCodeList(code, status, page, size, getUserId());
     }
-
 
 
 }

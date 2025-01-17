@@ -35,7 +35,6 @@ public class LoginController extends HrAIBaseController {
     LoginManager loginManager;
 
 
-
     @ApiOperation(value = "用户登录", notes = "用户登录", httpMethod = "POST", response = ResultVO.class)
     @PostMapping("/login")
     public ResultVO login(@Valid @RequestBody HrLoginReq loginReq) {
@@ -64,20 +63,19 @@ public class LoginController extends HrAIBaseController {
      * @return
      */
     @PostMapping("/register")
-    @ApiOperation(value = "用户注册",notes = "用户注册", httpMethod = "POST", response = ResultVO.class)
-    public ResultVO register(@RequestBody @Valid HrAddUserReq req){
+    @ApiOperation(value = "用户注册", notes = "用户注册", httpMethod = "POST", response = ResultVO.class)
+    public ResultVO register(@RequestBody @Valid HrAddUserReq req) {
         try {
 
             String password = req.getPassword();
             req.setPassword(Base64.getEncoder().encodeToString(CryptoUtil.encryptMD5(password.getBytes("UTF-8"))));
 
             return loginManager.register(req);
-        }catch (Exception e){
-            log.error("register error  req={}",req,e);
+        } catch (Exception e) {
+            log.error("register error  req={}", req, e);
         }
         return ResultVO.fail("注册失败!");
     }
-
 
 
 }

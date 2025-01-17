@@ -1,12 +1,12 @@
 package com.open.hr.ai.constant;
 
 /**
- * @Author 
+ * @Author
  * @Date 2025/1/12 20:12
  */
 public enum PositionStatusEnums {
-    POSITION_OPEN(1,"职位开放"),
-    POSITION_CLOSE(0,"职位关闭");
+    POSITION_OPEN(1, "职位开放"),
+    POSITION_CLOSE(0, "职位关闭");
 
     private Integer status;
     private String desc;

@@ -56,7 +56,7 @@ public class PromptManager {
     }
 
 
-    public ResultVO addOrUpdatePrompt(AddOrUpdateAmPromptReq req,Long adminId) {
+    public ResultVO addOrUpdatePrompt(AddOrUpdateAmPromptReq req, Long adminId) {
         try {
             AmPrompt amPrompt = new AmPrompt();
             if (Objects.isNull(req.getId())) {

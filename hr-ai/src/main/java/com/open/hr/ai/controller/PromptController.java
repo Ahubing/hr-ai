@@ -39,7 +39,7 @@ public class PromptController extends HrAIBaseController {
     @ApiOperation("获取AI跟进prompt详情")
     @VerifyUserToken
     @GetMapping("prompt/detail")
-    public ResultVO<AmPrompt>  getPromptDetail(@RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO<AmPrompt> getPromptDetail(@RequestParam(value = "id", required = true) Integer id) {
         return promptManager.getPromptDetail(id);
     }
 
@@ -51,7 +51,7 @@ public class PromptController extends HrAIBaseController {
         if (req == null) {
             return ResultVO.fail("参数不能为空");
         }
-        return promptManager.addOrUpdatePrompt(req,getUserId());
+        return promptManager.addOrUpdatePrompt(req, getUserId());
     }
 
     @ApiOperation("删除prompt")

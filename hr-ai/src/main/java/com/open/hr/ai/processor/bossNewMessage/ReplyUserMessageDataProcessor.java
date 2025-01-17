@@ -53,7 +53,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     @Resource
     private CommonAIManager commonAIManager;
 
-    private static final  String prompt =  "你是一名杰出的招聘专员助理，负责为求职者提供清晰、专业和友好的回复。当你准备回复求职者的申请或问题时，请使用以下模板：\n" +
+    private static final String prompt = "你是一名杰出的招聘专员助理，负责为求职者提供清晰、专业和友好的回复。当你准备回复求职者的申请或问题时，请使用以下模板：\n" +
             "1. 别人说你好的时候，你也回复，你好\n" +
             "2. 阐明职位的基本信息。\n" +
             "3. 提供位置信息。\n" +
@@ -70,21 +70,21 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, bossId={} req={}",amResume,amZpLocalAccouts.getId(), req);
+        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, bossId={} req={}", amResume, amZpLocalAccouts.getId(), req);
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
 
         LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmChatbotGreetConfig::getAccountId, amZpLocalAccouts.getId());
-        queryWrapper.eq(AmChatbotGreetConfig::getIsAiOn,1);
+        queryWrapper.eq(AmChatbotGreetConfig::getIsAiOn, 1);
         AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper, false);
         if (Objects.isNull(amChatbotGreetConfig)) {
-            log.error("未找到ai跟进对应的配置,bossId={}",amZpLocalAccouts.getId());
+            log.error("未找到ai跟进对应的配置,bossId={}", amZpLocalAccouts.getId());
             return ResultVO.fail(404, "未找到对应的配置");
         }
         Integer postId = amResume.getPostId();
-        String  content = "你好";
+        String content = "你好";
         if (Objects.isNull(postId)) {
 //            // todo 测试用
 //            List<ChatMessage> messages = new ArrayList<>();
@@ -98,26 +98,26 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 //            }
 //            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);
 //            content = chatMessage.getContent().toString();
-           log.info("postId is null,amResume={}",amResume);
-        }else {
+            log.info("postId is null,amResume={}", amResume);
+        } else {
             LambdaQueryWrapper<AmChatbotPositionOption> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-            lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId,postId);
-            lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId,amZpLocalAccouts.getId());
+            lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
+            lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
             AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(lambdaQueryWrapper, false);
-            if (Objects.nonNull(amChatbotPositionOption.getSquareRoleId())){
+            if (Objects.nonNull(amChatbotPositionOption.getSquareRoleId())) {
                 // 如果有绑定ai角色,则获取ai角色进行回复
                 AmSquareRoles amSquareRoles = amSquareRolesService.getById(amChatbotPositionOption.getSquareRoleId());
-                if (Objects.nonNull(amSquareRoles)){
+                if (Objects.nonNull(amSquareRoles)) {
                     // todo 目前找不到这个ai角色的用处, 先不处理, 先拿一个prompt
                 }
             }
             List<ChatMessage> messages = new ArrayList<>();
-            messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(),prompt));
+            messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), prompt));
             for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
                 if (message.getRole().equals("recruiter")) {
-                    messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(),message.getContent().toString()));
-                }else {
-                    messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(),message.getContent().toString()));
+                    messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), message.getContent().toString()));
+                } else {
+                    messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), message.getContent().toString()));
                 }
             }
             ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);

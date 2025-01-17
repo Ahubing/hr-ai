@@ -18,6 +18,7 @@ import java.util.UUID;
 
 /**
  * 处理临时打招呼数据任务添加
+ *
  * @Date 2025/1/18 00:17
  */
 @Slf4j
@@ -38,7 +39,6 @@ public class AmGreetTaskUtil {
 
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
-
 
 
     private static final String GREET_MESSAGE = "你好";
@@ -91,25 +91,25 @@ public class AmGreetTaskUtil {
             conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
             conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
 
-                // 创建任务
-                AmClientTasks amClientTasks = new AmClientTasks();
-                amClientTasks.setId(UUID.randomUUID().toString());
-                amClientTasks.setBossId(amChatbotGreetTask.getAccountId());
-                amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
-                amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            // 创建任务
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setId(UUID.randomUUID().toString());
+            amClientTasks.setBossId(amChatbotGreetTask.getAccountId());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
 
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("conditions", conditions);
-                jsonObject.put("times", amChatbotGreetTask.getTaskNum());
-                jsonObject.put("greetId", amChatbotGreetTask.getId());
-                JSONObject messageObject = new JSONObject();
-                messageObject.put("content", GREET_MESSAGE);
-                jsonObject.put("message", messageObject);
-                amClientTasks.setData(jsonObject.toJSONString());
-                amClientTasks.setCreateTime(LocalDateTime.now());
-                amClientTasks.setUpdateTime(LocalDateTime.now());
-                boolean result = amClientTasksService.save(amClientTasks);
-                log.info("处理临时任务结果={}", result);
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("conditions", conditions);
+            jsonObject.put("times", amChatbotGreetTask.getTaskNum());
+            jsonObject.put("greetId", amChatbotGreetTask.getId());
+            JSONObject messageObject = new JSONObject();
+            messageObject.put("content", GREET_MESSAGE);
+            jsonObject.put("message", messageObject);
+            amClientTasks.setData(jsonObject.toJSONString());
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setUpdateTime(LocalDateTime.now());
+            boolean result = amClientTasksService.save(amClientTasks);
+            log.info("处理临时任务结果={}", result);
         } catch (Exception e) {
             log.error("处理临时任务异常", e);
         }

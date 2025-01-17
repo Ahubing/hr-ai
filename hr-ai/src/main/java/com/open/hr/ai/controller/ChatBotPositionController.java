@@ -37,22 +37,22 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("批量删除职位")
     @VerifyUserToken
     @DeleteMapping("position/batch_delete")
-    public ResultVO positionBatchDelete(@RequestParam(value = "ids",required = true) List<String> ids) {
-            if (Objects.isNull(ids) || ids.isEmpty()) {
-                return ResultVO.fail("参数不能为空");
-            }
-            return chatBotPositionManager.batchDeletePosition(ids,getUserId());
+    public ResultVO positionBatchDelete(@RequestParam(value = "ids", required = true) List<String> ids) {
+        if (Objects.isNull(ids) || ids.isEmpty()) {
+            return ResultVO.fail("参数不能为空");
+        }
+        return chatBotPositionManager.batchDeletePosition(ids, getUserId());
     }
 
 
     @ApiOperation("批量关闭职位")
     @VerifyUserToken
     @DeleteMapping("position/batch_close")
-    public ResultVO positionBatchClose(@RequestParam(value = "ids",required = true) List<Integer> ids) {
+    public ResultVO positionBatchClose(@RequestParam(value = "ids", required = true) List<Integer> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotPositionManager.batchClosePosition(ids,getUserId());
+        return chatBotPositionManager.batchClosePosition(ids, getUserId());
 
     }
 
@@ -60,11 +60,11 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("批量开放职位")
     @VerifyUserToken
     @DeleteMapping("position/batch_open")
-    public ResultVO positionBatchOpen(@RequestParam(value = "ids",required = true) List<Integer> ids) {
+    public ResultVO positionBatchOpen(@RequestParam(value = "ids", required = true) List<Integer> ids) {
         if (Objects.isNull(ids) || ids.isEmpty()) {
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotPositionManager.batchOpenPosition(ids,getUserId());
+        return chatBotPositionManager.batchOpenPosition(ids, getUserId());
 
     }
 
@@ -80,9 +80,9 @@ public class ChatBotPositionController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("position/bind_uid")
     public ResultVO positionBindUid(@RequestBody @Valid BindPositionUidReq req) {
-       if (Objects.isNull(req)) {
-           return ResultVO.fail("参数不能为空");
-       }
+        if (Objects.isNull(req)) {
+            return ResultVO.fail("参数不能为空");
+        }
         return chatBotPositionManager.positionBindUid(req);
     }
 
@@ -96,7 +96,6 @@ public class ChatBotPositionController extends HrAIBaseController {
         }
         return chatBotPositionManager.bindAiAssistant(req);
     }
-
 
 
     @ApiOperation("职位关联岗位")
@@ -124,7 +123,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("查询岗位列表")
     @VerifyUserToken
     @GetMapping("position/get_post_list")
-    public ResultVO<List<AmPositionPost>> getPostList(@RequestParam(value = "sectionId",required = true) Integer sectionId) {
+    public ResultVO<List<AmPositionPost>> getPostList(@RequestParam(value = "sectionId", required = true) Integer sectionId) {
         return chatBotPositionManager.getPostList(sectionId);
     }
 
@@ -145,16 +144,15 @@ public class ChatBotPositionController extends HrAIBaseController {
             return ResultVO.fail("参数不能为空");
         }
 
-        return chatBotPositionManager.editSection(req,getUserId());
+        return chatBotPositionManager.editSection(req, getUserId());
     }
 
     @ApiOperation("查询职位详情")
     @VerifyUserToken
     @GetMapping("position/detail")
-    public ResultVO<AmPositionVo> getPositionDetail(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO<AmPositionVo> getPositionDetail(@RequestParam(value = "id", required = true) Integer id) {
         return chatBotPositionManager.getPositionDetail(id);
     }
-
 
 
     @ApiOperation("获取职位列表")
@@ -164,7 +162,7 @@ public class ChatBotPositionController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotPositionManager.getPositionList(req,getUserId());
+        return chatBotPositionManager.getPositionList(req, getUserId());
     }
 
 

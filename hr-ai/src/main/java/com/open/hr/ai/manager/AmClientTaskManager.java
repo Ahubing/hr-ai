@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * @Author 
+ * @Author
  * @Date 2025/1/12 18:22
  */
 @Slf4j
@@ -24,6 +24,7 @@ public class AmClientTaskManager {
 
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
+
     /**
      * 批量关闭打开岗位
      */
@@ -39,10 +40,10 @@ public class AmClientTaskManager {
                 jsonObject.put("encrypt_id", amPosition.getEncryptId());
                 amClientTasks.setData(jsonObject.toJSONString());
                 boolean result = amClientTasksService.save(amClientTasks);
-                log.info("batchCloseOrOpenPosition amClientTasks={} result={}",amClientTasks, result);
+                log.info("batchCloseOrOpenPosition amClientTasks={} result={}", amClientTasks, result);
             }
-        }catch (Exception e){
-            log.error("batchCloseOrOpenPosition error",e);
+        } catch (Exception e) {
+            log.error("batchCloseOrOpenPosition error", e);
             return false;
         }
         return true;

@@ -33,16 +33,16 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("获取方案列表")
     @VerifyUserToken
     @GetMapping("chatbotoptions/list")
-    public ResultVO<List<AmChatbotOptionsVo>> chatBotOptionsList(@RequestParam(value = "type",required = true) Integer type,@RequestParam(value = "keyword",required = false) String keyword) {
+    public ResultVO<List<AmChatbotOptionsVo>> chatBotOptionsList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "keyword", required = false) String keyword) {
         Long adminId = getUserId();
-        return chatBotOptionsManager.chatbotOptionsList(adminId,type,keyword);
+        return chatBotOptionsManager.chatbotOptionsList(adminId, type, keyword);
     }
 
 
     @ApiOperation("获取方案详情")
     @VerifyUserToken
     @GetMapping("chatbotoptions/detail")
-    public ResultVO<AmChatbotOptionsVo> chatBotOptionsDetail(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO<AmChatbotOptionsVo> chatBotOptionsDetail(@RequestParam(value = "id", required = true) Integer id) {
         return chatBotOptionsManager.chatbotOptionsDetail(id);
     }
 
@@ -51,18 +51,18 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("chatbotoptions/edit")
     public ResultVO chatBotOptionsEdit(@RequestBody @Valid AddOrUpdateAmChatbotOptions req) {
-        if (Objects.isNull(req)){
+        if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
         Long userId = getUserId();
-        return chatBotOptionsManager.addOrUpdateChatbotOptions(req,userId);
+        return chatBotOptionsManager.addOrUpdateChatbotOptions(req, userId);
     }
 
     @ApiOperation("新增/编辑方案执行话术项目")
     @VerifyUserToken
     @PostMapping("chatbotoptions/edit_item")
     public ResultVO chatBotOptionsEditItems(@RequestBody @Valid AddOrUpdateAmChatbotOptionsItems req) {
-        if (Objects.isNull(req)){
+        if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
         return chatBotOptionsManager.editItems(req);
@@ -80,7 +80,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("删除方案")
     @VerifyUserToken
     @GetMapping("chatbotoptions/delete")
-    public ResultVO delete(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO delete(@RequestParam(value = "id", required = true) Integer id) {
         return chatBotOptionsManager.deleteOptions(id);
     }
 
@@ -88,7 +88,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("删除话术项目")
     @VerifyUserToken
     @GetMapping("chatbotoptions/delete_item")
-    public ResultVO deleteItem(@RequestParam(value = "id",required = true) Integer id) {
+    public ResultVO deleteItem(@RequestParam(value = "id", required = true) Integer id) {
         return chatBotOptionsManager.deleteOptionsItem(id);
     }
 

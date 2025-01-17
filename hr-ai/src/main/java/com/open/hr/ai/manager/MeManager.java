@@ -40,22 +40,22 @@ public class MeManager {
     private MiniUniUserExchangeCodeServiceImpl miniUniUserExchangeCodeService;
 
 
-    public ResultVO<PageVO<MiniUniUserVo>> getUserList(SearchUserReq req,Long adminId) {
+    public ResultVO<PageVO<MiniUniUserVo>> getUserList(SearchUserReq req, Long adminId) {
 
         try {
-        Page<MiniUniUser> page = new Page<>(req.getPage(), req.getSize());
-        LambdaQueryWrapper<MiniUniUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(MiniUniUser::getAdminId, adminId);
-        if (StringUtils.isNotBlank(req.getKeyword())) {
-            queryWrapper.and(i -> i.like(MiniUniUser::getUsername, req.getKeyword())
-                    .or().like(MiniUniUser::getName, req.getKeyword())
-                    .or().like(MiniUniUser::getMobile, req.getKeyword())
-                    .or().like(MiniUniUser::getWechat, req.getKeyword()));
-        }
+            Page<MiniUniUser> page = new Page<>(req.getPage(), req.getSize());
+            LambdaQueryWrapper<MiniUniUser> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(MiniUniUser::getAdminId, adminId);
+            if (StringUtils.isNotBlank(req.getKeyword())) {
+                queryWrapper.and(i -> i.like(MiniUniUser::getUsername, req.getKeyword())
+                        .or().like(MiniUniUser::getName, req.getKeyword())
+                        .or().like(MiniUniUser::getMobile, req.getKeyword())
+                        .or().like(MiniUniUser::getWechat, req.getKeyword()));
+            }
 
-        Page<MiniUniUser> miniUniUserPage = miniUniUserService.page(page, queryWrapper);
+            Page<MiniUniUser> miniUniUserPage = miniUniUserService.page(page, queryWrapper);
             List<MiniUniUserVo> miniUniUserVos = miniUniUserPage.getRecords().stream().map(MiniUniUserConvert.I::converAmMiniUniUserVo).collect(Collectors.toList());
-            return ResultVO.success(PageVO.build(miniUniUserPage.getTotal(),miniUniUserVos));
+            return ResultVO.success(PageVO.build(miniUniUserPage.getTotal(), miniUniUserVos));
         } catch (Exception e) {
             log.error("获取用户列表失败 req={}", JSONObject.toJSONString(req), e);
         }
@@ -64,6 +64,7 @@ public class MeManager {
 
     /**
      * 用户数据详情
+     *
      * @param id
      * @return
      */
@@ -85,6 +86,7 @@ public class MeManager {
 
     /**
      * 添加用户
+     *
      * @param req
      * @param adminId
      * @return
@@ -112,9 +114,9 @@ public class MeManager {
     }
 
 
-
     /**
      * 添加用户
+     *
      * @param req
      * @param adminId
      * @return
@@ -166,15 +168,15 @@ public class MeManager {
     }
 
 
-    public ResultVO createExchangeCode(AddExchangeCodeReq req,Long adminId) {
+    public ResultVO createExchangeCode(AddExchangeCodeReq req, Long adminId) {
         try {
-            if (req.getCnt() < 1 ){
+            if (req.getCnt() < 1) {
                 return ResultVO.fail("兑换码数量不能小于0");
             }
-            if (req.getMonths() < 1 ){
+            if (req.getMonths() < 1) {
                 return ResultVO.fail("兑换码有效期不能小于0");
             }
-            if (req.getEnd_date().isBefore(LocalDateTime.now())){
+            if (req.getEnd_date().isBefore(LocalDateTime.now())) {
                 return ResultVO.fail("兑换码有效期不能小于当前时间");
             }
 
@@ -187,7 +189,7 @@ public class MeManager {
                 String code = UUID.randomUUID().toString().replace("-", "");
                 miniUniUserExchangeCode.setCode(code);
                 boolean result = miniUniUserExchangeCodeService.save(miniUniUserExchangeCode);
-                log.info("新增兑换码结果 id={} result={}",miniUniUserExchangeCode.getId(), result);
+                log.info("新增兑换码结果 id={} result={}", miniUniUserExchangeCode.getId(), result);
             }
             return ResultVO.success();
         } catch (Exception e) {
@@ -197,7 +199,7 @@ public class MeManager {
     }
 
 
-    public ResultVO<PageVO<MiniUniUserExchangeCodeVo>> getExchangeCodeList(String code,Integer status,Integer pageSize,Integer size,Long adminId) {
+    public ResultVO<PageVO<MiniUniUserExchangeCodeVo>> getExchangeCodeList(String code, Integer status, Integer pageSize, Integer size, Long adminId) {
         try {
             Page<MiniUniUserExchangeCode> page = new Page<>(pageSize, size);
             LambdaQueryWrapper<MiniUniUserExchangeCode> queryWrapper = new LambdaQueryWrapper<>();
@@ -206,11 +208,11 @@ public class MeManager {
                 queryWrapper.like(MiniUniUserExchangeCode::getCode, code);
             }
             if (Objects.nonNull(status)) {
-                queryWrapper.eq(MiniUniUserExchangeCode::getStatus,status);
+                queryWrapper.eq(MiniUniUserExchangeCode::getStatus, status);
             }
             Page<MiniUniUserExchangeCode> miniUniUserExchangeCodePage = miniUniUserExchangeCodeService.page(page, queryWrapper);
             List<MiniUniUserExchangeCodeVo> uniUserExchangeCodeVos = miniUniUserExchangeCodePage.getRecords().stream().map(MiniUniUserExChangeCodeConvert.I::convertExchangeCodeVo).collect(Collectors.toList());
-            return ResultVO.success(PageVO.build(miniUniUserExchangeCodePage.getTotal(),uniUserExchangeCodeVos));
+            return ResultVO.success(PageVO.build(miniUniUserExchangeCodePage.getTotal(), uniUserExchangeCodeVos));
         } catch (Exception e) {
             log.error("获取兑换码列表失败 ", e);
         }

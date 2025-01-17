@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 /**
  * 逻辑按照php处理的, 暂时未调试
+ *
  * @Date 2025/1/6 20:00
  */
 @Slf4j
@@ -36,19 +37,18 @@ public class ResumeManager {
     private AmResumeServiceImpl amResumeService;
 
     @Resource
-    private AmPositionSectionServiceImpl   amPositionSectionService;
+    private AmPositionSectionServiceImpl amPositionSectionService;
 
     @Resource
     private AmPositionPostServiceImpl amPositionPostService;
-
 
 
     public ResultVO<AmResume> resumeDetail(Integer id) {
         try {
             AmResume amResume = amResumeService.getById(id);
             return ResultVO.success(amResume);
-        }catch (Exception e){
-            log.error("获取简历详情 id={}",id,e);
+        } catch (Exception e) {
+            log.error("获取简历详情 id={}", id, e);
         }
         return ResultVO.fail("获取简历详情异常");
     }
@@ -56,6 +56,7 @@ public class ResumeManager {
 
     /**
      * 获取简历列表
+     *
      * @param type
      * @param post_id
      * @param name
@@ -63,9 +64,9 @@ public class ResumeManager {
      * @param size
      * @return
      */
-    public ResultVO<PageVO<AmResume>> resumeList(Long adminId,Integer type, Integer post_id, String name, Integer page, Integer size) {
+    public ResultVO<PageVO<AmResume>> resumeList(Long adminId, Integer type, Integer post_id, String name, Integer page, Integer size) {
         try {
-            Page<AmResume> pageList = new Page<>(page,size);
+            Page<AmResume> pageList = new Page<>(page, size);
 
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
             queryWrapper.eq(AmResume::getAdminId, adminId);
@@ -84,18 +85,19 @@ public class ResumeManager {
             }
             queryWrapper.orderByDesc(AmResume::getCreateTime);
             Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
-            return ResultVO.success(PageVO.build(amResumePage.getTotal(),amResumePage.getRecords()));
-        }catch (Exception e){
-            log.error("获取简历详情 ",e);
+            return ResultVO.success(PageVO.build(amResumePage.getTotal(), amResumePage.getRecords()));
+        } catch (Exception e) {
+            log.error("获取简历详情 ", e);
         }
         return ResultVO.fail("获取简历详情异常");
     }
 
     /**
      * 获取简历列表
+     *
      * @return
      */
-    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long  adminId) {
+    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long adminId) {
         try {
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
             queryWrapper.eq(AmResume::getAdminId, adminId);
@@ -105,7 +107,7 @@ public class ResumeManager {
             amResumeCountDataVo.setType(5);
             amResumeCountDataVo.setTotal(amResumeService.count(queryWrapper));
             amResumeCountDataVos.add(amResumeCountDataVo);
-            for (int i = 0; i <5; i++) {
+            for (int i = 0; i < 5; i++) {
                 queryWrapper.eq(AmResume::getType, i);
                 int count = amResumeService.count(queryWrapper);
                 AmResumeCountDataVo amResumeCountDataVo1 = new AmResumeCountDataVo();
@@ -115,27 +117,26 @@ public class ResumeManager {
             }
 
             return ResultVO.success(amResumeCountDataVos);
-        }catch (Exception e){
-            log.error("获取简历详情 ",e);
+        } catch (Exception e) {
+            log.error("获取简历详情 ", e);
         }
         return ResultVO.fail("获取简历详情异常");
     }
 
 
     public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId) {
-            LambdaQueryWrapper<AmPositionSection> queryWrapper = new QueryWrapper<AmPositionSection>().lambda();
-            queryWrapper.eq(AmPositionSection::getAdminId, adminId);
-            List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
-            List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
-            for (AmPositionSectionVo amPositionSection : amPositionSectionVos) {
-                LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
-                lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSection.getId());
-                List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
-                amPositionSection.setPost_list(amPositionPosts);
-            }
-            return ResultVO.success(amPositionSectionVos);
+        LambdaQueryWrapper<AmPositionSection> queryWrapper = new QueryWrapper<AmPositionSection>().lambda();
+        queryWrapper.eq(AmPositionSection::getAdminId, adminId);
+        List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
+        List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
+        for (AmPositionSectionVo amPositionSection : amPositionSectionVos) {
+            LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
+            lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSection.getId());
+            List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
+            amPositionSection.setPost_list(amPositionPosts);
+        }
+        return ResultVO.success(amPositionSectionVos);
     }
-
 
 
 }

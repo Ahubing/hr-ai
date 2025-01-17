@@ -1,14 +1,14 @@
 package com.open.hr.ai.constant;
 
 /**
- * @Author 
+ * @Author
  * @Date 2025/1/12 20:12
  */
 public enum AmClientTaskStatusEnums {
-    NOT_START(0,"未开始"),
-    START(1,"开始"),
-    FINISH(2,"已完成"),
-    FAILURE(3,"失败");
+    NOT_START(0, "未开始"),
+    START(1, "开始"),
+    FINISH(2, "已完成"),
+    FAILURE(3, "失败");
 
     private Integer status;
     private String desc;

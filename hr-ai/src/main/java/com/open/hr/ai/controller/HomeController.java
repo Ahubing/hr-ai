@@ -32,7 +32,7 @@ public class HomeController extends HrAIBaseController {
     @ApiOperation("招聘首页")
     @VerifyUserToken
     @GetMapping("home/index")
-    public ResultVO<AmHomeDataVo>  getHomeDetail() {
+    public ResultVO<AmHomeDataVo> getHomeDetail() {
         return homeManager.getHomeDetail(getUserId());
     }
 

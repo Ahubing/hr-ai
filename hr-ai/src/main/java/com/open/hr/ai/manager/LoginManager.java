@@ -84,7 +84,7 @@ public class LoginManager {
         if (amAdmin != null) {
             return ResultVO.fail("当前账号已存在");
         }
-        int addUserResult = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(),req.getMobile());
+        int addUserResult = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(), req.getMobile());
         return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
 
     }

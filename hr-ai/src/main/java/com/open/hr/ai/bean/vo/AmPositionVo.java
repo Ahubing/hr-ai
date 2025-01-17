@@ -30,7 +30,7 @@ public class AmPositionVo {
     private Integer id;
 
     /**
-     * 所属大账户id
+     * 所属boss adminid
      */
     private Integer adminId;
 

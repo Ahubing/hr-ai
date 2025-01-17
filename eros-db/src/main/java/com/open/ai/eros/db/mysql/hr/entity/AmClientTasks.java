@@ -1,8 +1,10 @@
 package com.open.ai.eros.db.mysql.hr.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -21,12 +23,12 @@ import lombok.experimental.Accessors;
 @TableName("am_client_tasks")
 public class AmClientTasks implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * 主键
      */
-      private String id;
+    private String id;
 
     /**
      * boss账号id

@@ -27,15 +27,15 @@ import java.util.Objects;
 @Slf4j
 public class SquareAiController extends HrAIBaseController {
 
-     @Resource
-     private SquareAiManager squareAiManager;
+    @Resource
+    private SquareAiManager squareAiManager;
 
-     @ApiOperation("模型训练广场获取数据")
-     @VerifyUserToken
-     @GetMapping("/square/list")
-     public ResultVO<AmSquareListVo> getSquareList(@RequestParam(value = "name", required = false) String name) {
-         return squareAiManager.getSquareList(name,getUserId());
-     }
+    @ApiOperation("模型训练广场获取数据")
+    @VerifyUserToken
+    @GetMapping("/square/list")
+    public ResultVO<AmSquareListVo> getSquareList(@RequestParam(value = "name", required = false) String name) {
+        return squareAiManager.getSquareList(name, getUserId());
+    }
 
     @ApiOperation("获取角色详情")
     @VerifyUserToken
@@ -47,7 +47,7 @@ public class SquareAiController extends HrAIBaseController {
     @ApiOperation("删除角色详情")
     @VerifyUserToken
     @GetMapping("/square/delete")
-    public ResultVO deleteSquare( @RequestParam(value = "id", required = false) Integer id) {
+    public ResultVO deleteSquare(@RequestParam(value = "id", required = false) Integer id) {
         return squareAiManager.deleteSquareRolesById(id);
     }
 
@@ -59,11 +59,8 @@ public class SquareAiController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return squareAiManager.addOrUpdateSquare(req,getUserId());
+        return squareAiManager.addOrUpdateSquare(req, getUserId());
     }
-
-
-
 
 
 }

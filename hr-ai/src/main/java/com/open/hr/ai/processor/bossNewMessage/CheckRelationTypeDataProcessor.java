@@ -38,10 +38,10 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
-         log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(),amResume,amZpLocalAccouts.getId());
+        log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(), amResume, amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             log.error("用户信息异常 amResume is null");
-            return ResultVO.fail(404,"用户信息异常");
+            return ResultVO.fail(404, "用户信息异常");
         }
 
         JSONObject chatInfo = req.getChat_info();

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * @Author 
+ * @Author
  * @Date 2025/1/15 22:21
  */
 @Data
@@ -31,7 +31,6 @@ public class AmChatBotGreetConfigDataVo {
     private String rechat_ask_resume_amount;
 
     private AccountDataVo accountData;
-
 
 
 }
