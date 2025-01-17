@@ -100,18 +100,20 @@ public class ResumeManager {
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
             queryWrapper.eq(AmResume::getAdminId, adminId);
             List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
-            for (int i = 0; i <=5; i++) {
+            AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
+            // 全部简历
+            amResumeCountDataVo.setType(5);
+            amResumeCountDataVo.setTotal(amResumeService.count(queryWrapper));
+            amResumeCountDataVos.add(amResumeCountDataVo);
+            for (int i = 0; i <5; i++) {
                 queryWrapper.eq(AmResume::getType, i);
-                if (i == 5) {
-                    // 获取全部简历
-                    queryWrapper.eq(AmResume::getType, null);
-                }
                 int count = amResumeService.count(queryWrapper);
-                AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
-                amResumeCountDataVo.setType(i);
-                amResumeCountDataVo.setTotal(count);
-                amResumeCountDataVos.add(amResumeCountDataVo);
+                AmResumeCountDataVo amResumeCountDataVo1 = new AmResumeCountDataVo();
+                amResumeCountDataVo1.setType(i);
+                amResumeCountDataVo1.setTotal(count);
+                amResumeCountDataVos.add(amResumeCountDataVo1);
             }
+
             return ResultVO.success(amResumeCountDataVos);
         }catch (Exception e){
             log.error("获取简历详情 ",e);
