@@ -2,6 +2,7 @@ package com.open.hr.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.common.vo.PageVO;
@@ -9,9 +10,11 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.*;
+import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.constant.PositionStatusEnums;
 import com.open.hr.ai.convert.AmPositionConvert;
+import com.open.hr.ai.convert.AmPositionSetionConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -153,19 +156,19 @@ public class ChatBotPositionManager {
      * @param adminId
      * @return
      */
-    public ResultVO<List<AmPositionVo>> getStructures(Long adminId) {
+    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId) {
         try {
-            LambdaQueryWrapper<AmPosition> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmPosition::getAdminId, adminId);
-            List<AmPosition> amPositions = amPositionService.list(queryWrapper);
-            List<AmPositionVo> amPositionVos = amPositions.stream().map(AmPositionConvert.I::converAmPositionVo).collect(Collectors.toList());
-            for (AmPositionVo amPosition : amPositionVos) {
-                LambdaQueryWrapper<AmPositionPost> amPositionPostQueryWrapper = new LambdaQueryWrapper<>();
-                amPositionPostQueryWrapper.in(AmPositionPost::getSectionId, amPosition.getId());
-                List<AmPositionPost> amPositionPosts = amPositionPostService.list(amPositionPostQueryWrapper);
-                amPosition.setAmPositionPost(amPositionPosts);
+            LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmPositionSection::getAdminId, adminId);
+            List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
+            List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
+            for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos) {
+                LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
+                lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSectionVo.getId());
+                List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
+                amPositionSectionVo.setPost_list(amPositionPosts);
             }
-            return ResultVO.success(amPositionVos);
+            return ResultVO.success(amPositionSectionVos);
         } catch (Exception e) {
             log.error("获取失败 adminId={}", adminId, e);
             return ResultVO.fail("系统异常,更新失败");

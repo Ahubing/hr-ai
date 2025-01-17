@@ -123,7 +123,7 @@ public class ResumeManager {
                 LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
                 lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSection.getId());
                 List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
-                amPositionSection.setAmPositionPosts(amPositionPosts);
+                amPositionSection.setPost_list(amPositionPosts);
             }
             return ResultVO.success(amPositionSectionVos);
     }

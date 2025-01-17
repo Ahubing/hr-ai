@@ -7,6 +7,7 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
 import com.open.hr.ai.bean.req.*;
+import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotOptionsManager;
@@ -70,7 +71,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取组织架构")
     @VerifyUserToken
     @GetMapping("position/get_structures")
-    public ResultVO<List<AmPositionVo>> getStructures() {
+    public ResultVO<List<AmPositionSectionVo>> getStructures() {
         return chatBotPositionManager.getStructures(getUserId());
     }
 

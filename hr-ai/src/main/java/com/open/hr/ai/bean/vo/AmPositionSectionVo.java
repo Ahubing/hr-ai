@@ -2,13 +2,11 @@ package com.open.hr.ai.bean.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -38,6 +36,6 @@ public class AmPositionSectionVo {
      */
     private String name;
 
-    private List<AmPositionPost> amPositionPosts;
+    private List<AmPositionPost> post_list;
 
 }
