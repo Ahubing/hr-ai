@@ -3,7 +3,7 @@ package com.open.hr.ai.bean.vo;
 import lombok.Data;
 
 /**
- * @Author liuzilin
+ * @Author 
  * @Date 2025/1/15 22:25
  */
 @Data

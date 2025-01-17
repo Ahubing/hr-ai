@@ -3,7 +3,7 @@ package com.open.ai.eros.ai.bean.vo;
 import lombok.Data;
 
 /**
- * @Author liuzilin
+ * @Author 
  * @Date 2023/11/5 14:03
  */
 @Data

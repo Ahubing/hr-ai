@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -34,7 +33,7 @@ public class AddExchangeCodeReq {
     /**
      * 周期
      */
-    @NotNull(message = "周期")
+    @NotNull(message = "月份")
     @ApiModelProperty(value = "月份", required = true)
     private Integer months;
 
@@ -43,7 +42,7 @@ public class AddExchangeCodeReq {
      */
     @NotNull(message = "失效时间")
     @ApiModelProperty(value = "失效时间", required = true)
-    private LocalDateTime endDate;
+    private LocalDateTime end_date;
 
 
 }

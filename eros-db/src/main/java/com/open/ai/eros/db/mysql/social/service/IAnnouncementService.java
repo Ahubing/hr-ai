@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.open.ai.eros.db.mysql.social.entity.Announcement;
 
 /**
- * @Author liuzilin
+ * @Author 
  * @Date 2024/2/9 01:01
  */
 public interface IAnnouncementService extends IService<Announcement> {

@@ -1,7 +1,7 @@
 package com.open.hr.ai.constant;
 
 /**
- * @Author liuzilin
+ * @Author 
  * @Date 2025/1/12 20:12
  */
 public enum PositionStatusEnums {

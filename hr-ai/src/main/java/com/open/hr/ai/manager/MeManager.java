@@ -174,14 +174,14 @@ public class MeManager {
             if (req.getMonths() < 1 ){
                 return ResultVO.fail("兑换码有效期不能小于0");
             }
-            if (req.getEndDate().isBefore(LocalDateTime.now())){
+            if (req.getEnd_date().isBefore(LocalDateTime.now())){
                 return ResultVO.fail("兑换码有效期不能小于当前时间");
             }
 
             MiniUniUserExchangeCode miniUniUserExchangeCode = new MiniUniUserExchangeCode();
             miniUniUserExchangeCode.setAdminId(adminId);
             miniUniUserExchangeCode.setMonths(req.getMonths());
-            miniUniUserExchangeCode.setEndDate(req.getEndDate());
+            miniUniUserExchangeCode.setEndDate(req.getEnd_date());
             miniUniUserExchangeCode.setCreateTime(LocalDateTime.now());
             for (Integer i = 0; i < req.getCnt(); i++) {
                 String code = UUID.randomUUID().toString().replace("-", "");
@@ -197,22 +197,22 @@ public class MeManager {
     }
 
 
-    public ResultVO<PageVO<MiniUniUserExchangeCodeVo>> getExchangeCodeList(SearchExchangeListReq req,Long adminId) {
+    public ResultVO<PageVO<MiniUniUserExchangeCodeVo>> getExchangeCodeList(String code,Integer status,Integer pageSize,Integer size,Long adminId) {
         try {
-            Page<MiniUniUserExchangeCode> page = new Page<>(req.getPage(), req.getSize());
+            Page<MiniUniUserExchangeCode> page = new Page<>(pageSize, size);
             LambdaQueryWrapper<MiniUniUserExchangeCode> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(MiniUniUserExchangeCode::getAdminId, adminId);
-            if (StringUtils.isNotBlank(req.getCode())) {
-                queryWrapper.like(MiniUniUserExchangeCode::getCode, req.getCode());
+            if (StringUtils.isNotBlank(code)) {
+                queryWrapper.like(MiniUniUserExchangeCode::getCode, code);
             }
-            if (Objects.nonNull(req.getStatus())) {
-                queryWrapper.eq(MiniUniUserExchangeCode::getStatus, req.getStatus());
+            if (Objects.nonNull(status)) {
+                queryWrapper.eq(MiniUniUserExchangeCode::getStatus,status);
             }
             Page<MiniUniUserExchangeCode> miniUniUserExchangeCodePage = miniUniUserExchangeCodeService.page(page, queryWrapper);
             List<MiniUniUserExchangeCodeVo> uniUserExchangeCodeVos = miniUniUserExchangeCodePage.getRecords().stream().map(MiniUniUserExChangeCodeConvert.I::convertExchangeCodeVo).collect(Collectors.toList());
             return ResultVO.success(PageVO.build(miniUniUserExchangeCodePage.getTotal(),uniUserExchangeCodeVos));
         } catch (Exception e) {
-            log.error("获取兑换码列表失败 req={}", JSONObject.toJSONString(req), e);
+            log.error("获取兑换码列表失败 ", e);
         }
         return ResultVO.fail("获取兑换码列表异常");
     }

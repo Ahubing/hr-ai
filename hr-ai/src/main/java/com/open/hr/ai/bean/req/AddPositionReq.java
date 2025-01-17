@@ -21,7 +21,7 @@ public class AddPositionReq {
      */
     @NotNull(message = "部门id不能为空")
     @ApiModelProperty(value = "必填，部门id 加载部门列表获取", required = true, notes = "部门id 加载部门列表获取")
-    private Integer sectionId;
+    private Integer section_id;
 
 
     /**

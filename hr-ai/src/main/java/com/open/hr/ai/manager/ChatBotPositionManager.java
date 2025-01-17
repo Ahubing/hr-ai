@@ -2,7 +2,6 @@ package com.open.hr.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.common.vo.PageVO;
@@ -10,10 +9,8 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.*;
-import com.open.hr.ai.bean.vo.AmChatbotOptionsVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.constant.PositionStatusEnums;
-import com.open.hr.ai.convert.AmChatBotOptionConvert;
 import com.open.hr.ai.convert.AmPositionConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -21,8 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -265,13 +260,13 @@ public class ChatBotPositionManager {
                 if (Objects.isNull(amPositionPost)) {
                     return ResultVO.fail("岗位不存在");
                 }
-                amPositionPost.setSectionId(req.getSectionId());
+                amPositionPost.setSectionId(req.getSection_id());
                 amPositionPost.setName(req.getName());
                 boolean result = amPositionPostService.updateById(amPositionPost);
                 return result ? ResultVO.success("编辑-岗位成功") : ResultVO.fail("编辑-岗位失败");
             }
             LambdaQueryWrapper<AmPositionPost> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmPositionPost::getSectionId, req.getSectionId());
+            queryWrapper.eq(AmPositionPost::getSectionId, req.getSection_id());
             queryWrapper.eq(AmPositionPost::getName, req.getName());
             AmPositionPost amPositionPost = amPositionPostService.getOne(queryWrapper, false);
             if (Objects.nonNull(amPositionPost)) {
@@ -279,7 +274,7 @@ public class ChatBotPositionManager {
             }
             AmPositionPost newAmPosition = new AmPositionPost();
             newAmPosition.setName(req.getName());
-            newAmPosition.setSectionId(req.getSectionId());
+            newAmPosition.setSectionId(req.getSection_id());
             boolean result = amPositionPostService.save(newAmPosition);
             return result ? ResultVO.success("新增-岗位成功") : ResultVO.fail("新增-岗位失败");
         } catch (Exception e) {
@@ -440,9 +435,9 @@ public class ChatBotPositionManager {
                 }
             }
 
-//            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
-//            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
-//            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
+            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
+            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
+            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
 
 
             LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
@@ -459,13 +454,13 @@ public class ChatBotPositionManager {
             sectionQueryWrapper.eq(AmPositionSection::getAdminId, adminId);
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(sectionQueryWrapper);
 
-//            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
-//            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
-//            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
+            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
+            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
 //
-//            LambdaQueryWrapper<AmSquareRoles> rolesQueryWrapper = new LambdaQueryWrapper<>();
-//            rolesQueryWrapper.eq(AmSquareRoles::getAdminId, adminId);
-//            List<AmSquareRoles> amSquareRoles = amSquareRolesService.list(rolesQueryWrapper);
+            LambdaQueryWrapper<AmSquareRoles> rolesQueryWrapper = new LambdaQueryWrapper<>();
+            rolesQueryWrapper.eq(AmSquareRoles::getAdminId, adminId);
+            List<AmSquareRoles> amSquareRoles = amSquareRolesService.list(rolesQueryWrapper);
 
             Page<AmPosition> page = new Page<>(req.getPage(), req.getSize());
             Page<AmPosition> amPositionPage = amPositionService.page(page, amPositionQueryWrapper);

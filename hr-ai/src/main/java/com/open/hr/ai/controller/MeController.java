@@ -84,12 +84,16 @@ public class MeController extends HrAIBaseController {
 
     @ApiOperation("兑换码列表")
     @VerifyUserToken
-    @PostMapping("/user/exchange_list")
-    public ResultVO<PageVO<MiniUniUserExchangeCodeVo>> exchangeList(@RequestBody @Valid SearchExchangeListReq req) {
-        if (Objects.isNull(req)) {
-            return ResultVO.fail("参数不能为空");
+    @GetMapping("/user/exchange_list")
+    public ResultVO<PageVO<MiniUniUserExchangeCodeVo>> exchangeList(@RequestParam(value = "code", required = false) String code, @RequestParam(value = "page", required = false) Integer page,
+                                                                    @RequestParam(value = "size", required = false) Integer size, @RequestParam(value = "status", required = false) Integer status) {
+        if (Objects.isNull(page)) {
+            page = 1;
         }
-        return meManager.getExchangeCodeList(req,getUserId());
+        if (Objects.isNull(size)) {
+            size = 10;
+        }
+        return meManager.getExchangeCodeList(code,status,page,size,getUserId());
     }
 
 
