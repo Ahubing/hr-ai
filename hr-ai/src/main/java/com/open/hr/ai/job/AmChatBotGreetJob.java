@@ -55,7 +55,6 @@ public class AmChatBotGreetJob {
     @Resource
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
 
-
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
     @Resource
@@ -162,119 +161,6 @@ public class AmChatBotGreetJob {
                                 JSONObject jsonObject = new JSONObject();
                                 jsonObject.put("conditions", conditions);
                                 jsonObject.put("times", amChatbotGreetTask.getTaskNum());
-                                JSONObject messageObject = new JSONObject();
-                                messageObject.put("content", GREET_MESSAGE);
-                                jsonObject.put("message", messageObject);
-                                amClientTasks.setData(jsonObject.toJSONString());
-                                amClientTasks.setCreateTime(LocalDateTime.now());
-                                amClientTasks.setUpdateTime(LocalDateTime.now());
-                                amClientTasksService.save(amClientTasks);
-                            }
-                        }
-                    }
-                }
-            } finally {
-                lock.unlock();
-            }
-        }
-    }
-
-
-    /**
-     * 处理临时任务
-     * 处理定时任务, 每小时处理一次
-     * 下面跟着php逻辑实现, 后续改造
-     */
-    @Scheduled(cron = "0 0 * * * ?")
-    public void run_tmp_timer() {
-        Lock lock = DistributedLockUtils.getLock("run_tmp_timer", 30);
-        if (lock.tryLock()) {
-            try {
-                List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(new LambdaQueryWrapper<AmZpLocalAccouts>().eq(AmZpLocalAccouts::getState, "active"));
-                for (AmZpLocalAccouts localAccout : localAccouts) {
-                    //查看账号是否开启打招呼
-                    LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
-                    greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, localAccout.getId());
-                    AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
-                    if (Objects.isNull(one) || one.getIsGreetOn() == 0) {
-                        continue;
-                    }
-                    LambdaQueryWrapper<AmChatbotGreetTask> greetTaskQueryWrapper = new LambdaQueryWrapper<>();
-                    greetTaskQueryWrapper.eq(AmChatbotGreetTask::getAccountId, localAccout.getId());
-                    greetTaskQueryWrapper.eq(AmChatbotGreetTask::getTaskType, 1);
-                    greetTaskQueryWrapper.eq(AmChatbotGreetTask::getStatus, 0);
-                    List<AmChatbotGreetTask> amChatbotGreetTasks = amChatbotGreetTaskService.list(greetTaskQueryWrapper);
-                    if (CollectionUtils.isEmpty(amChatbotGreetTasks)) {
-                        continue;
-                    }
-                    LocalDateTime now = LocalDateTime.now();
-                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-                    String curTime = now.format(timeFormatter);
-
-                    // 计算前一个小时的时间
-                    LocalDateTime preHourTime = now.minusHours(1);
-                    String preTime = preHourTime.format(timeFormatter);
-                    for (AmChatbotGreetTask amChatbotGreetTask : amChatbotGreetTasks) {
-                        Integer taskNum = amChatbotGreetTask.getTaskNum();
-                        if (Objects.isNull(taskNum) || taskNum <= 0) {
-                            continue;
-                        }
-                        String execTime = amChatbotGreetTask.getExecTime();
-                        if (execTime.compareTo(preTime) > 0 && preTime.compareTo(curTime) <= 0) {
-                            // 检查是否已执行
-                            boolean isExecuted = checkIfTaskExecuted(amChatbotGreetTask.getId());
-                            if (!isExecuted) {
-                                // 执行任务
-                                AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
-                                amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
-                                amChatbotGreetMessages.setTaskType(1);
-                                amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
-                                amChatbotGreetMessages.setIsSystemSend(1);
-                                amChatbotGreetMessages.setContent(GREET_MESSAGE);
-                                amChatbotGreetMessages.setCreateTime(DateUtils.formatDate(new Date(), "Y-m-d"));
-                                amChatbotGreetMessages.setCreateTimestamp(LocalDateTime.now().getSecond());
-                                amChatbotGreetMessagesService.save(amChatbotGreetMessages);
-                                //更新task临时status的状态
-                                amChatbotGreetTask.setStatus(1);
-                                amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
-                                amChatbotGreetTaskService.updateById(amChatbotGreetTask);
-
-                                AmChatbotGreetCondition condition = amChatbotGreetConditionService.lambdaQuery()
-                                        .eq(AmChatbotGreetCondition::getAccountId, amChatbotGreetTask.getAccountId())
-                                        .eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTask.getPositionId())
-                                        .last("LIMIT 1") // 限制查询结果为一条
-                                        .one(); // 禁止抛出异常
-
-                                if (Objects.isNull(condition)) {
-                                    condition = amChatbotGreetConditionService.getById(1);
-                                    AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
-                                    if (Objects.isNull(amPosition)) {
-                                        condition.setRecruitPosition("不限");
-                                    } else {
-                                        condition.setRecruitPosition(amPosition.getName());
-                                    }
-                                }
-                                // 创建 JSON 对象并根据逻辑填充数据
-                                JSONObject conditions = new JSONObject();
-                                conditions.put("曾就职单位", condition.getPreviousCompany() != null ? condition.getPreviousCompany() : "");
-                                conditions.put("招聘职位", condition.getRecruitPosition() != null ? condition.getRecruitPosition() : "不限");
-                                conditions.put("年龄", condition.getAge() != null ? condition.getAge() : "不限");
-                                conditions.put("性别", condition.getGender() != null ? condition.getGender() : "不限");
-                                conditions.put("经验要求", condition.getExperience() != null ? condition.getExperience() : "不限");
-                                conditions.put("学历要求", condition.getEducation() != null ? condition.getEducation() : "不限");
-                                conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
-                                conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
-
-                                // 创建任务
-                                AmClientTasks amClientTasks = new AmClientTasks();
-                                amClientTasks.setId(UUID.randomUUID().toString());
-                                amClientTasks.setBossId(localAccout.getId());
-                                amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
-                                amClientTasks.setStatus(0);
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("conditions", conditions);
-                                jsonObject.put("times", amChatbotGreetTask.getTaskNum());
-                                jsonObject.put("greetId", amChatbotGreetTask.getId());
                                 JSONObject messageObject = new JSONObject();
                                 messageObject.put("content", GREET_MESSAGE);
                                 jsonObject.put("message", messageObject);

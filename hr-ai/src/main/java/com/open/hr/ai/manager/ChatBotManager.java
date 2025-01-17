@@ -11,6 +11,7 @@ import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.PositionSyncTaskStatusEnums;
 import com.open.hr.ai.convert.*;
+import com.open.hr.ai.util.AmGreetTaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
@@ -69,6 +70,9 @@ public class ChatBotManager {
     private AmClientTasksServiceImpl amClientTasksService;
     @Resource
     private AmPositionServiceImpl amPositionService;
+
+    @Resource
+    private AmGreetTaskUtil amGreetTaskUtil;
 
 
 
@@ -437,6 +441,7 @@ public class ChatBotManager {
     @Transactional
     public ResultVO<AmChatbotGreetTask> setGreetTask(AddOrUpdateAmChatbotGreetTask req) {
         try {
+            //查询打招呼条件
             if (Objects.nonNull(req.getConditionsId())) {
                 LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
                 queryWrapper.eq(AmChatbotGreetTask::getConditionsId, req.getConditionsId());
@@ -472,8 +477,9 @@ public class ChatBotManager {
                 boolean result = amChatbotGreetTaskService.save(amChatbotGreetTask);
                 log.info("setGreetTask save amChatbotGreetTask result={}",result);
                 req.setId(amChatbotGreetTask.getId());
+                // 处理临时打招呼任务
+                amGreetTaskUtil.dealGreetTask(amChatbotGreetTask);
                 return ResultVO.success(amChatbotGreetTask);
-
             }
         } catch (Exception e) {
             log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(req), e);

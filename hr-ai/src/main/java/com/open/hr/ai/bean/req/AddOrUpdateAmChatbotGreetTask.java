@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -69,6 +70,7 @@ public class AddOrUpdateAmChatbotGreetTask implements Serializable {
      * 计划任务数量
      */
     @ApiModelProperty(value = " 计划任务数量", required = false, notes = "计划任务数量")
+    @Min(value = 1, message = "任务数量不能小于1")
     private Integer taskNum;
 
     /**
