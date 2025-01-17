@@ -61,7 +61,7 @@ public class AmChatbotOptions implements Serializable {
     /**
      * 创建人的id
      */
-    private Integer adminId;
+    private Long adminId;
 
     /**
      * 创建时间

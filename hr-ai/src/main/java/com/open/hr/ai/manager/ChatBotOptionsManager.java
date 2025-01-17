@@ -97,7 +97,7 @@ public class ChatBotOptionsManager {
     }
 
 
-    public ResultVO addOrUpdateChatbotOptions(AddOrUpdateAmChatbotOptions req) {
+    public ResultVO addOrUpdateChatbotOptions(AddOrUpdateAmChatbotOptions req,Long adminId) {
         try {
             if (Objects.nonNull(req.getId())) {
                 AmChatbotOptions amChatbotOptions = amChatbotOptionsService.getById(req.getId());
@@ -110,7 +110,7 @@ public class ChatBotOptionsManager {
                 amChatbotOptions.setManAlias(req.getManAlias());
                 amChatbotOptions.setWomanAlias(req.getWomanAlias());
                 amChatbotOptions.setRechatDuration(req.getRechatDuration());
-                amChatbotOptions.setAdminId(req.getAdminId());
+                amChatbotOptions.setAdminId(adminId);
                 amChatbotOptions.setUpdateTime(LocalDateTime.now());
                 boolean result = amChatbotOptionsService.updateById(amChatbotOptions);
                 log.info("编辑方案 result={}", result);
@@ -124,7 +124,7 @@ public class ChatBotOptionsManager {
                 amChatbotOptions.setManAlias(req.getManAlias());
                 amChatbotOptions.setWomanAlias(req.getWomanAlias());
                 amChatbotOptions.setRechatDuration(req.getRechatDuration());
-                amChatbotOptions.setAdminId(req.getAdminId());
+                amChatbotOptions.setAdminId(adminId);
                 amChatbotOptions.setCreateTime(LocalDateTime.now());
                 amChatbotOptions.setUpdateTime(LocalDateTime.now());
                 boolean result = amChatbotOptionsService.save(amChatbotOptions);

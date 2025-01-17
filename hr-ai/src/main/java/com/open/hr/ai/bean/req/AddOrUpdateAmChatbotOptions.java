@@ -63,12 +63,5 @@ public class AddOrUpdateAmChatbotOptions{
     @ApiModelProperty(value = " 复聊持续天数", required = false, notes = "复聊持续天数，单位：天")
     private Integer rechatDuration;
 
-    /**
-     * 创建人的id
-     */
-    @ApiModelProperty("创建人的id")
-    private Integer adminId;
-
-
 
 }

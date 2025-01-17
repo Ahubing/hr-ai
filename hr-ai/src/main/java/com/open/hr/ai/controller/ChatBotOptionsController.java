@@ -54,7 +54,8 @@ public class ChatBotOptionsController extends HrAIBaseController {
         if (Objects.isNull(req)){
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotOptionsManager.addOrUpdateChatbotOptions(req);
+        Long userId = getUserId();
+        return chatBotOptionsManager.addOrUpdateChatbotOptions(req,userId);
     }
 
     @ApiOperation("新增/编辑方案执行话术项目")
