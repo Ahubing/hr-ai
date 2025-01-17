@@ -70,7 +70,11 @@ public class ResumeManager {
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
             queryWrapper.eq(AmResume::getAdminId, adminId);
             if (Objects.nonNull(type)) {
-                queryWrapper.eq(AmResume::getType, type);
+                if (type == 5) {
+                    queryWrapper.isNull(AmResume::getType);
+                } else {
+                    queryWrapper.eq(AmResume::getType, type);
+                }
             }
             if (Objects.nonNull(post_id)) {
                 queryWrapper.eq(AmResume::getPostId, post_id);
@@ -97,8 +101,10 @@ public class ResumeManager {
             queryWrapper.eq(AmResume::getAdminId, adminId);
             List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
             for (int i = 0; i <=5; i++) {
-                if (i != 5) {
-                    queryWrapper.eq(AmResume::getType, i);
+                queryWrapper.eq(AmResume::getType, i);
+                if (i == 5) {
+                    // 获取全部简历
+                    queryWrapper.eq(AmResume::getType, null);
                 }
                 int count = amResumeService.count(queryWrapper);
                 AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
