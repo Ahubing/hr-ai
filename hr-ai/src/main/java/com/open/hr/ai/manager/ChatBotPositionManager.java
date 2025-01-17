@@ -101,11 +101,13 @@ public class ChatBotPositionManager {
                 log.info("boss账号不存在");
                 return ResultVO.fail("boss账号不存在");
             }
-            Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_CLOSE.getStatus());
-            log.info("batchResult={}", batchResult);
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
             updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_CLOSE.getStatus());
             boolean result = amPositionService.update(updateWrapper);
+            if (result){
+                Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
+                log.info("batchResult={}", batchResult);
+            }
             return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
         } catch (Exception e) {
             log.error("更新失败 ids={}", JSONObject.toJSONString(ids), e);
@@ -135,11 +137,13 @@ public class ChatBotPositionManager {
                 log.info("boss账号不存在");
                 return ResultVO.fail("boss账号不存在");
             }
-            Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
-            log.info("batchResult={}", batchResult);
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
             updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_OPEN.getStatus());
             boolean result = amPositionService.update(updateWrapper);
+            if (result){
+                Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
+                log.info("batchResult={}", batchResult);
+            }
             return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
         } catch (Exception e) {
             log.error("更新失败 ids={}", JSONObject.toJSONString(ids), e);

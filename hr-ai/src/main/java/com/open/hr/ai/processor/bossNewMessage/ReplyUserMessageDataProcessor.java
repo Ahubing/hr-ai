@@ -11,6 +11,7 @@ import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -80,6 +81,16 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         Integer postId = amResume.getPostId();
         String  content = "你好";
         if (Objects.isNull(postId)) {
+            List<ChatMessage> messages = new ArrayList<>();
+            messages.add(new SystemMessage(prompt));
+            for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
+                if (message.getRole().equals("recruiter")) {
+                    messages.add(new SystemMessage(message.getContent().toString()));
+                }else {
+                    messages.add(new UserMessage(message.getContent().toString()));
+                }
+            }
+            content = aiManager.aiChatMessFunction(messages);
            log.info("postId is null,amResume={}",amResume);
         }else {
             LambdaQueryWrapper<AmChatbotPositionOption> lambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -96,6 +107,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             List<ChatMessage> messages = new ArrayList<>();
             messages.add(new UserMessage("system", prompt));
             for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
+                if (message.getRole().equals("recruiter")) {
+                    message.getRole().replace("recruiter", "system");
+                }
                 messages.add(new UserMessage(message.getRole(), message.getContent().toString()));
             }
 
