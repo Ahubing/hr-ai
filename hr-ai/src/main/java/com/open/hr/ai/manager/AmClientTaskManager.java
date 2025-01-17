@@ -5,6 +5,7 @@ import com.open.ai.eros.db.mysql.hr.entity.AmClientTasks;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
+import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +33,7 @@ public class AmClientTaskManager {
                 AmClientTasks amClientTasks = new AmClientTasks();
                 amClientTasks.setBossId(zpLocalAccouts.getId());
                 amClientTasks.setCreateTime(LocalDateTime.now());
-                amClientTasks.setTaskType("switch_job_state");
+                amClientTasks.setTaskType(ClientTaskTypeEnums.SWITCH_JOB_STATE.getType());
                 amClientTasks.setStatus(1);
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("encrypt_id", amPosition.getEncryptId());

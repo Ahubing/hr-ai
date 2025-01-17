@@ -3,14 +3,16 @@ package com.open.hr.ai.processor.bossNewMessage;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.AIManager;
+import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
-import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     @Resource
     private AIManager aiManager;
 
+    @Resource
+    private CommonAIManager commonAIManager;
+
     private static final  String prompt =  "你是一名杰出的招聘专员助理，负责为求职者提供清晰、专业和友好的回复。当你准备回复求职者的申请或问题时，请使用以下模板：\n" +
             "1. 别人说你好的时候，你也回复，你好\n" +
             "2. 阐明职位的基本信息。\n" +
@@ -81,16 +86,18 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         Integer postId = amResume.getPostId();
         String  content = "你好";
         if (Objects.isNull(postId)) {
-            List<ChatMessage> messages = new ArrayList<>();
-            messages.add(new SystemMessage(prompt));
-            for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
-                if (message.getRole().equals("recruiter")) {
-                    messages.add(new SystemMessage(message.getContent().toString()));
-                }else {
-                    messages.add(new UserMessage(message.getContent().toString()));
-                }
-            }
-            content = aiManager.aiChatMessFunction(messages);
+//            // todo 测试用
+//            List<ChatMessage> messages = new ArrayList<>();
+//            messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(),prompt));
+//            for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
+//                if (message.getRole().equals("recruiter")) {
+//                    messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(),message.getContent().toString()));
+//                }else {
+//                    messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(),message.getContent().toString()));
+//                }
+//            }
+//            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);
+//            content = chatMessage.getContent().toString();
            log.info("postId is null,amResume={}",amResume);
         }else {
             LambdaQueryWrapper<AmChatbotPositionOption> lambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -105,15 +112,16 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 }
             }
             List<ChatMessage> messages = new ArrayList<>();
-            messages.add(new UserMessage("system", prompt));
+            messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(),prompt));
             for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
                 if (message.getRole().equals("recruiter")) {
-                    message.getRole().replace("recruiter", "system");
+                    messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(),message.getContent().toString()));
+                }else {
+                    messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(),message.getContent().toString()));
                 }
-                messages.add(new UserMessage(message.getRole(), message.getContent().toString()));
             }
-
-           content = aiManager.aiChatMessFunction(messages);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);
+            content = chatMessage.getContent().toString();
 
         }
         AmClientTasks amClientTasks = new AmClientTasks();

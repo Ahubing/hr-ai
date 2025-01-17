@@ -347,6 +347,7 @@ public class ClientManager {
                     for (int i1 = 0; i1 < innerDatas.size(); i1++) {
                         JSONObject jobData = innerDatas.getJSONObject(i1);
                         String positionName = jobData.get("positionName").toString();
+                        String encryptId = jobData.get("encryptId").toString();
                         Boolean useUpdate = false;
                         Integer useUpdateId = 0;
                         for (AmPosition amPosition : amPositionList) {
@@ -368,6 +369,7 @@ public class ClientManager {
                         if (useUpdate) {
                             AmPosition amPosition = amPositionService.getById(useUpdateId);
                             int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
+                            amPosition.setEncryptId(encryptId);
                             amPosition.setIsOpen(jobStatus);
                             amPosition.setExtendParams(jobData.toJSONString());
                             amPositionService.updateById(amPosition);
@@ -380,6 +382,7 @@ public class ClientManager {
                             amPosition.setUid(0);
                             amPosition.setChannel(platFormId);
                             int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
+                            amPosition.setEncryptId(encryptId);
                             amPosition.setIsOpen(jobStatus);
                             amPosition.setCreateTime(LocalDateTime.now());
                             amPosition.setExtendParams(jobData.toJSONString());
