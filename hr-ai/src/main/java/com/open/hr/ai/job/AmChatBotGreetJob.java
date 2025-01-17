@@ -139,7 +139,13 @@ public class AmChatBotGreetJob {
                                         .one(); // 禁止抛出异常
 
                                 if (Objects.isNull(condition)) {
-                                    continue;
+                                    condition = amChatbotGreetConditionService.getById(1);
+                                    AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
+                                    if (Objects.isNull(amPosition)) {
+                                        condition.setRecruitPosition("不限");
+                                    } else {
+                                        condition.setRecruitPosition(amPosition.getName());
+                                    }
                                 }
                                 // 创建 JSON 对象并根据逻辑填充数据
                                 JSONObject conditions = new JSONObject();

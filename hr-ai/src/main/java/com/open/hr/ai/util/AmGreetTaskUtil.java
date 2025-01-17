@@ -71,7 +71,6 @@ public class AmGreetTaskUtil {
 
 
             if (Objects.isNull(condition)) {
-                //
                 condition = amChatbotGreetConditionService.getById(1);
                 AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
                 if (Objects.isNull(amPosition)) {
