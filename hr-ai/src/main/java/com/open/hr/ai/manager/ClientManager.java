@@ -296,13 +296,13 @@ public class ClientManager {
             LambdaUpdateWrapper<AmPositionSyncTask> queryWrapper = new LambdaUpdateWrapper<>();
             queryWrapper.eq(AmPositionSyncTask::getAccountId, bossId).set(AmPositionSyncTask::getStatus, 2);
             amPositionSyncTaskService.update(queryWrapper);
-            savePosition(bossId, 1, finishTaskReqData);
+            savePosition(bossId, 1L, finishTaskReqData);
         } catch (Exception e) {
             log.error("syncPositionResultData异常 bossId={},finishTaskReqData={}", bossId, finishTaskReqData, e);
         }
     }
 
-    private void savePosition(String bossId, Integer platFormId, JSONObject jsonObject) {
+    private void savePosition(String bossId, Long platFormId, JSONObject jsonObject) {
         try {
 
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);

@@ -74,7 +74,7 @@ public class AmPosition implements Serializable {
     /**
      * 渠道，platform的id
      */
-    private Integer channel;
+    private Long channel;
 
     /**
      * 招聘状态 1运行中，0暂停

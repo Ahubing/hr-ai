@@ -377,6 +377,7 @@ public class ChatBotPositionManager {
                 return ResultVO.fail("boss账号不存在");
             }
             amPositionVo.setSection(section.getName());
+            amPositionVo.setDetail(JSONObject.parseObject(amPosition.getExtendParams()));
             amPositionVo.setUserName(miniUniUser.getName());
             amPositionVo.setChannelName("BOSS直聘");
             amPositionVo.setBossAccount(amZpLocalAccouts.getAccount());
