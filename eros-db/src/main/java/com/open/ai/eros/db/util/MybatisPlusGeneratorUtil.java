@@ -20,55 +20,16 @@ public class MybatisPlusGeneratorUtil {
     public static void main(String[] args) {
         String author = "Eros-AI";
         String database = "hr-ai";
-        List<String> tableNames = Arrays.asList(
-                "mini_uni_user_wallet_log",
-                "mini_uni_user_wallet",
-                "mini_uni_user_info",
-                "mini_uni_user_exchange_code",
-                "mini_uni_user",
-                "am_zp_platforms",
-                "am_zp_local_accouts",
-                "am_version",
-                "am_square_roles",
-                "am_sms_code",
-                "am_resume",
-                "am_prompt_tags",
-                "am_prompt",
-                "am_position_sync_task",
-                "am_position_section",
-                "am_position_post",
-                "am_position",
-                "am_pay_type",
-                "am_log",
-                "am_feedback",
-                "am_config",
-                "am_client_tasks",
-                "am_chatbot_position_option",
-                "am_chatbot_options_items",
-                "am_chatbot_options_config",
-                "am_chatbot_options",
-                "am_chatbot_option_ai_role",
-                "am_chatbot_greet_task",
-                "am_chatbot_greet_result",
-                "am_chatbot_greet_online_monitor",
-                "am_chatbot_greet_messages",
-                "am_chatbot_greet_config",
-                "am_chatbot_greet_condition",
-                "am_chatbot_chat_job",
-                "am_admin"
-        );
         // 生成的数据库表 属于 哪一个模块就填写哪个
         // ai   user   pay  admin    bot  creator  social permission knowledge
         String model = "hr";
         System.out.println(System.getProperty("user.dir"));
-        for (String tableName : tableNames) {
-            generateByTables(author, database,model,tableName);
-        }
+        generateByTables(author, database,model,"am_mask");
     }
 
     private static void generateByTables(String author, String database,String model, String... tableNames) {
         GlobalConfig config = new GlobalConfig();
-        String dbUrl = "jdbc:mysql://43.153.41.128:3377/" + database + "?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
+        String dbUrl = "jdbc:mysql://43.153.41.128:7777/" + database + "?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
         config.setActiveRecord(false)
                 .setAuthor(author)
                 .setOutputDir(System.getProperty("user.dir")+"/eros-db" +"/src/main/java/")

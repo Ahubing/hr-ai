@@ -40,7 +40,7 @@ public class AmChatbotPositionOption implements Serializable {
     /**
      * 广场AI角色
      */
-    private Integer squareRoleId;
+    private Long amMaskId;
 
     /**
      * 复聊方案id

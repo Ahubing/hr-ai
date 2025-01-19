@@ -2,7 +2,6 @@ package com.open.hr.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -626,7 +625,7 @@ public class ChatBotManager {
             }
             List<AmChatbotPositionOptionVo> amChatbotPositionOptionVos = amChatbotPositionOptions.stream().map(AmChatBotPositionOptionConvert.I::convertPositionOptionVo).collect(Collectors.toList());
             for (AmChatbotPositionOptionVo amChatbotPositionOption : amChatbotPositionOptionVos) {
-                amChatbotPositionOption.setAmSquareRoles(amSquareRolesService.getById(amChatbotPositionOption.getSquareRoleId()));
+                amChatbotPositionOption.setAmSquareRoles(amSquareRolesService.getById(amChatbotPositionOption.getAmMaskId()));
                 amChatbotPositionOption.setAmChatbotOptions(amChatbotOptionsService.getById(amChatbotPositionOption.getRechatOptionId()));
                 LambdaQueryWrapper<AmChatbotGreetCondition> optionQueryWrapper = new LambdaQueryWrapper<>();
                 amChatbotPositionOption.setAmChatbotGreetCondition(amChatbotGreetConditionService.getOne(optionQueryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId()).eq(AmChatbotGreetCondition::getPositionId, amChatbotPositionOption.getPositionId()), false));
@@ -649,7 +648,7 @@ public class ChatBotManager {
             AmChatbotPositionOption chatbotPositionOption = new AmChatbotPositionOption();
             chatbotPositionOption.setAccountId(req.getAccountId());
             chatbotPositionOption.setPositionId(req.getPositionId());
-            chatbotPositionOption.setSquareRoleId(req.getSquareRoleId());
+            chatbotPositionOption.setAmMaskId(req.getAmMaskId());
             chatbotPositionOption.setRechatOptionId(req.getRechatOptionId());
 
             LambdaQueryWrapper<AmChatbotPositionOption> queryWrapper = new LambdaQueryWrapper<>();
@@ -657,7 +656,7 @@ public class ChatBotManager {
             queryWrapper.eq(AmChatbotPositionOption::getPositionId, req.getPositionId());
             AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(queryWrapper, false);
             if (Objects.nonNull(amChatbotPositionOption)) {
-                amChatbotPositionOption.setSquareRoleId(req.getSquareRoleId());
+                amChatbotPositionOption.setAmMaskId(req.getAmMaskId());
                 amChatbotPositionOption.setRechatOptionId(req.getRechatOptionId());
                 amChatbotPositionOptionService.updateById(amChatbotPositionOption);
             } else {

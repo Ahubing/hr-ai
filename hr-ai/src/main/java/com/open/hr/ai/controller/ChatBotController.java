@@ -228,7 +228,7 @@ public class ChatBotController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        if (Objects.isNull(req.getSquareRoleId()) && Objects.isNull(req.getRechatOptionId())) {
+        if (Objects.isNull(req.getAmMaskId()) && Objects.isNull(req.getRechatOptionId())) {
             return ResultVO.fail("打招呼方案跟复聊方案不能同时为空");
         }
         return chatBotManager.setPositionOption(req);

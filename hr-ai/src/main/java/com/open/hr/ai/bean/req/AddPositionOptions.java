@@ -22,7 +22,7 @@ public class AddPositionOptions {
     private String accountId;
 
     @ApiModelProperty(value = "AI方案", required = false, notes = "在广场角色里选。与rechat_option_id至少选一个")
-    private Integer squareRoleId;
+    private Long amMaskId;
 
     @ApiModelProperty(value = "复聊方案id", required = false, notes = "复聊方案id,在方案列表选取。与square_role_id至少选一个")
     private Integer rechatOptionId;

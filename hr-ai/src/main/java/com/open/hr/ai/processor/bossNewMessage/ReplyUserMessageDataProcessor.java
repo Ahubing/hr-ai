@@ -13,8 +13,6 @@ import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
@@ -104,9 +102,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
             AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(lambdaQueryWrapper, false);
-            if (Objects.nonNull(amChatbotPositionOption.getSquareRoleId())) {
+            if (Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
                 // 如果有绑定ai角色,则获取ai角色进行回复
-                AmSquareRoles amSquareRoles = amSquareRolesService.getById(amChatbotPositionOption.getSquareRoleId());
+                AmSquareRoles amSquareRoles = amSquareRolesService.getById(amChatbotPositionOption.getAmMaskId());
                 if (Objects.nonNull(amSquareRoles)) {
                     // todo 目前找不到这个ai角色的用处, 先不处理, 先拿一个prompt
                 }
