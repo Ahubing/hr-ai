@@ -10,8 +10,10 @@ import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
+import com.open.hr.ai.bean.vo.AmMaskVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.hr.ai.convert.AmMaskConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,10 +22,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 用于分析当前用户的prompt
@@ -42,11 +41,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     @Resource
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
 
-    @Resource
-    private AmSquareRolesServiceImpl amSquareRolesService;
 
     @Resource
-    private AIManager aiManager;
+    private AmMaskServiceImpl amMaskService;
+
 
     @Resource
     private CommonAIManager commonAIManager;
@@ -102,14 +100,16 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
             AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(lambdaQueryWrapper, false);
+            List<ChatMessage> messages = new ArrayList<>();
             if (Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
                 // 如果有绑定ai角色,则获取ai角色进行回复
-                AmSquareRoles amSquareRoles = amSquareRolesService.getById(amChatbotPositionOption.getAmMaskId());
-                if (Objects.nonNull(amSquareRoles)) {
-                    // todo 目前找不到这个ai角色的用处, 先不处理, 先拿一个prompt
+                AmMask amMask = amMaskService.getById(amChatbotPositionOption.getAmMaskId());
+                AmMaskVo amMaskVo = AmMaskConvert.I.convertAmMaskVo(amMask);
+                if (Objects.nonNull(amMaskVo)) {
+                    LinkedList<ChatMessage> chatMessages = amMaskVo.getAiParam().getMessages();
+                    messages.addAll(chatMessages);
                 }
             }
-            List<ChatMessage> messages = new ArrayList<>();
             messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), prompt));
             for (com.open.ai.eros.common.vo.ChatMessage message : req.getMessages()) {
                 if (message.getRole().equals("recruiter")) {
@@ -138,7 +138,6 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         hashMap.put("message", messageMap);
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         amClientTasksService.save(amClientTasks);
-
         return ResultVO.success();
     }
 

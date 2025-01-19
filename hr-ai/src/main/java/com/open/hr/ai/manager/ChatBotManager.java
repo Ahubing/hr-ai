@@ -57,8 +57,11 @@ public class ChatBotManager {
 
     @Resource
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
+
+
     @Resource
-    private AmSquareRolesServiceImpl amSquareRolesService;
+    private AmMaskServiceImpl amMaskService;
+
 
     @Resource
     private AmChatbotOptionsServiceImpl amChatbotOptionsService;
@@ -625,7 +628,11 @@ public class ChatBotManager {
             }
             List<AmChatbotPositionOptionVo> amChatbotPositionOptionVos = amChatbotPositionOptions.stream().map(AmChatBotPositionOptionConvert.I::convertPositionOptionVo).collect(Collectors.toList());
             for (AmChatbotPositionOptionVo amChatbotPositionOption : amChatbotPositionOptionVos) {
-                amChatbotPositionOption.setAmSquareRoles(amSquareRolesService.getById(amChatbotPositionOption.getAmMaskId()));
+                AmMask amMask = amMaskService.getById(amChatbotPositionOption.getAmMaskId());
+                if (Objects.nonNull(amMask)){
+                    AmMaskVo amMaskVo = AmMaskConvert.I.convertAmMaskVo(amMask);
+                    amChatbotPositionOption.setAmMaskVo(amMaskVo);
+                }
                 amChatbotPositionOption.setAmChatbotOptions(amChatbotOptionsService.getById(amChatbotPositionOption.getRechatOptionId()));
                 LambdaQueryWrapper<AmChatbotGreetCondition> optionQueryWrapper = new LambdaQueryWrapper<>();
                 amChatbotPositionOption.setAmChatbotGreetCondition(amChatbotGreetConditionService.getOne(optionQueryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId()).eq(AmChatbotGreetCondition::getPositionId, amChatbotPositionOption.getPositionId()), false));

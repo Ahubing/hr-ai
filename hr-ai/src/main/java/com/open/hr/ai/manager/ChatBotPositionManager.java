@@ -10,6 +10,7 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.*;
+import com.open.hr.ai.bean.vo.AmMaskVo;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.constant.PositionStatusEnums;
@@ -46,8 +47,9 @@ public class ChatBotPositionManager {
 
     @Resource
     private MiniUniUserServiceImpl miniUniUserService;
+
     @Resource
-    private AmSquareRolesServiceImpl amSquareRolesService;
+    private AmMaskServiceImpl amMaskService;
 
     @Resource
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
@@ -213,11 +215,11 @@ public class ChatBotPositionManager {
                 return ResultVO.fail("职位不存在");
             }
 
-            AmSquareRoles amSquareRoles = amSquareRolesService.getById(req.getAiAssistantId());
-            if (Objects.isNull(amSquareRoles)) {
+            AmMask amMask = amMaskService.getById(req.getAiAssistantId());
+            if (Objects.isNull(amMask)) {
                 return ResultVO.fail("ai助手不存在");
             }
-            amPosition.setAiAssitantId(req.getAiAssistantId());
+            amPosition.setAiAssitantId(amMask.getId());
             boolean result = amPositionService.updateById(amPosition);
             return result ? ResultVO.success("职位绑定AI助手成功") : ResultVO.fail("职位绑定AI助手失败");
         } catch (Exception e) {
@@ -463,9 +465,9 @@ public class ChatBotPositionManager {
             positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
             List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
 //
-            LambdaQueryWrapper<AmSquareRoles> rolesQueryWrapper = new LambdaQueryWrapper<>();
-            rolesQueryWrapper.eq(AmSquareRoles::getAdminId, adminId);
-            List<AmSquareRoles> amSquareRoles = amSquareRolesService.list(rolesQueryWrapper);
+            LambdaQueryWrapper<AmMask> rolesQueryWrapper = new LambdaQueryWrapper<>();
+            rolesQueryWrapper.eq(AmMask::getAdminId, adminId);
+            List<AmMask> amMasks = amMaskService.list(rolesQueryWrapper);
 
             Page<AmPosition> page = new Page<>(req.getPage(), req.getSize());
             Page<AmPosition> amPositionPage = amPositionService.page(page, amPositionQueryWrapper);

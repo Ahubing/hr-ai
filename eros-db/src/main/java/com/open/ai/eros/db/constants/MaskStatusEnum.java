@@ -8,7 +8,7 @@ public enum MaskStatusEnum {
 
     OK(1, "发布"),
     WAIT(2, "待发布"),
-    DELETE(3, "删除");
+    DELETE(-1, "删除");
 
 //     1 发布 2 待发布 3：删除
 

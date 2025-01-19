@@ -55,7 +55,7 @@ public class AmChatbotPositionOptionVo implements Serializable {
     private Integer createTime;
 
 
-    private AmSquareRoles amSquareRoles;
+    private AmMaskVo amMaskVo;
 
     private AmChatbotOptions amChatbotOptions;
 

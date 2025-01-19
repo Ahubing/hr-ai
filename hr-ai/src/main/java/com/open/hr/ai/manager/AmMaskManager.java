@@ -28,7 +28,9 @@ import com.open.ai.eros.db.mysql.user.service.impl.UserServiceImpl;
 import com.open.hr.ai.bean.req.AmMaskAddReq;
 import com.open.hr.ai.bean.req.AmMaskUpdateReq;
 import com.open.hr.ai.bean.vo.AmMaskSearchReq;
+import com.open.hr.ai.bean.vo.AmMaskTypeVo;
 import com.open.hr.ai.bean.vo.AmMaskVo;
+import com.open.hr.ai.constant.AmMaskTypeEnum;
 import com.open.hr.ai.convert.AmMaskConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -37,10 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -101,6 +100,7 @@ public class AmMaskManager {
         AmMask amMask = AmMaskConvert.I.convertAddAmMaskReq(req);
         amMask.setCreateTime(LocalDateTime.now());
         amMask.setAdminId(adminId);
+        amMask.setStatus(MaskStatusEnum.OK.getStatus());
         boolean save = amMaskService.save(amMask);
         if (!save) {
             log.info("addMask error mask={}", JSONObject.toJSONString(amMask));
@@ -139,13 +139,12 @@ public class AmMaskManager {
 
 
     /**
-     * b端 搜索
+     * 搜索
      *
      * @param req
      * @return
      */
     public ResultVO<PageVO<AmMaskVo>> searchAmMask(AmMaskSearchReq req,Long adminId) {
-
         LambdaQueryWrapper<AmMask> queryWrapper = new LambdaQueryWrapper<>();
         String keywords = req.getKeywords();
         Integer status = req.getStatus();
@@ -167,6 +166,39 @@ public class AmMaskManager {
         List<AmMaskVo> amMaskVos = amMaskPage.getRecords().stream().map(AmMaskConvert.I::convertAmMaskVo).collect(Collectors.toList());
         return ResultVO.success(PageVO.build(amMaskPage.getTotal(), amMaskVos));
     }
+
+
+
+    /**
+     * 搜索
+     * @return
+     */
+    public ResultVO<AmMaskVo> searchAmMaskById(Long id,Long adminId) {
+        LambdaQueryWrapper<AmMask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmMask::getAdminId, adminId);
+        queryWrapper.eq(AmMask::getId, id);
+        AmMask amMaskVo = amMaskService.getOne(queryWrapper, false);
+        if (Objects.isNull(amMaskVo)) {
+            return ResultVO.fail("没有该面具");
+        }
+        return ResultVO.success(AmMaskConvert.I.convertAmMaskVo(amMaskVo));
+    }
+
+    /**
+     * 搜索
+     * @return
+     */
+    public ResultVO<List<AmMaskTypeVo>> getAmMaskType() {
+        List<AmMaskTypeVo> maskTypeVos = Arrays.stream(AmMaskTypeEnum.values()).map(e -> {
+            AmMaskTypeVo maskTypeVo = new AmMaskTypeVo();
+            maskTypeVo.setType(e.getType());
+            maskTypeVo.setDesc(e.getDesc());
+            return maskTypeVo;
+        }).collect(Collectors.toList());
+        return ResultVO.success(maskTypeVos);
+    }
+
+
 
 
 

@@ -84,7 +84,7 @@ public class AmPositionVo {
     /**
      * ai助手id
      */
-    private Integer aiAssitantId;
+    private Long aiAssitantId;
 
     /**
      * 是否开放职位

@@ -73,7 +73,7 @@ public class AmMaskVo {
     /**
      * 状态  1 发布 2 待发布
      */
-    @ApiModelProperty("状态")
+    @ApiModelProperty("状态 1 发布 -1 删除")
     private Integer status;
 
     /**
