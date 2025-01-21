@@ -70,4 +70,10 @@ public class AmMaskAddReq {
     private AmMaskAIParamVo aiParam;
 
 
+    /**
+     * 背景图
+     */
+    private String avatar;
+
+
 }

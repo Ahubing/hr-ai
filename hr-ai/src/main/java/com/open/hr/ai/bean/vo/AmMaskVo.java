@@ -96,5 +96,11 @@ public class AmMaskVo {
     @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime updateTime;
 
+    /**
+     * 背景图
+     */
+    @ApiModelProperty("背景图")
+    private String avatar;
+
 
 }

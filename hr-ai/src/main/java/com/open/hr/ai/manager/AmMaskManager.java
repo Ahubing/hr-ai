@@ -128,7 +128,7 @@ public class AmMaskManager {
 
         amMask = AmMaskConvert.I.convertUpdateAmMaskReq(req);
         amMask.setStatus(req.getStatus());
-        amMask.setCreateTime(LocalDateTime.now());
+        amMask.setUpdateTime(LocalDateTime.now());
         amMask.setAdminId(adminId);
         boolean updated = amMaskService.updateById(amMask);
         if (!updated) {

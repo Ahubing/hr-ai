@@ -81,4 +81,11 @@ public class AmMask implements Serializable {
     private LocalDateTime updateTime;
 
 
+
+    /**
+     * 背景图
+     */
+    private String avatar;
+
+
 }

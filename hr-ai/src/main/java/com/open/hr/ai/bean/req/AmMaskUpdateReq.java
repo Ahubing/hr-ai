@@ -81,4 +81,9 @@ public class AmMaskUpdateReq implements Serializable {
      */
     private AmMaskAIParamVo aiParam;
 
+    /**
+     * 背景图
+     */
+    private String avatar;
+
 }
