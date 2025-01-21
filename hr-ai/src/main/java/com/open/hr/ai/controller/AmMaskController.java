@@ -1,5 +1,6 @@
 package com.open.hr.ai.controller;
 
+import com.open.ai.eros.ai.constatns.ModelTemplateEnum;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -8,15 +9,18 @@ import com.open.hr.ai.bean.req.AmMaskUpdateReq;
 import com.open.hr.ai.bean.vo.AmMaskSearchReq;
 import com.open.hr.ai.bean.vo.AmMaskTypeVo;
 import com.open.hr.ai.bean.vo.AmMaskVo;
+import com.open.hr.ai.bean.vo.AmModelVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.AmMaskManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -79,5 +83,26 @@ public class AmMaskController extends HrAIBaseController {
         return amMaskManager.getAmMaskType();
     }
 
+
+    @ApiOperation("获取支持的模型模版列表")
+    @VerifyUserToken
+    @GetMapping("/model/list")
+    public ResultVO<List<AmModelVo>> model(@RequestParam(value = "template", required = false) String template) {
+        List<AmModelVo> modelVos = new ArrayList<>();
+        for (ModelTemplateEnum value : ModelTemplateEnum.values()) {
+            if (StringUtils.isNoneEmpty(template) && !value.getTemplate().equals(template)) {
+                continue;
+            }
+            String modelTemplate = value.getTemplate();
+            String desc = value.getDesc();
+            for (String model : value.getModels()) {
+                AmModelVo modelVo = new AmModelVo();
+                modelVo.setName(String.format("%s:%s", desc, model));
+                modelVo.setValue(String.format("%s:%s", modelTemplate, model));
+                modelVos.add(modelVo);
+            }
+        }
+        return ResultVO.success(modelVos);
+    }
 
 }
