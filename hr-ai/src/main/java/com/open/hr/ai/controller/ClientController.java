@@ -29,8 +29,9 @@ public class ClientController extends HrAIBaseController {
     private ClientManager clientManager;
 
     @ApiOperation("客户端请求连接")
-    @PostMapping("/connect/{boss_id}/{connect_id}")
-    public ResultVO connectClient(@PathVariable("boss_id") String bossId,
+    @PostMapping("/connect/{platform}/{boss_id}/{connect_id}")
+    public ResultVO connectClient(@PathVariable("platform") String platform,
+                                  @PathVariable("boss_id") String bossId,
                                   @PathVariable("connect_id") String connectId) {
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id或connect_id不能为空");
@@ -39,8 +40,8 @@ public class ClientController extends HrAIBaseController {
     }
 
     @ApiOperation("客户端请求更新二维码")
-    @PostMapping("/login_qrcode/{boss_id}/{connect_id}")
-    public ResultVO updateQrCode(@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientQrCodeReq qrCodeRequest) {
+    @PostMapping("/login_qrcode/{platform}/{boss_id}/{connect_id}")
+    public ResultVO updateQrCode(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientQrCodeReq qrCodeRequest) {
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id或connect_id不能为空");
         }

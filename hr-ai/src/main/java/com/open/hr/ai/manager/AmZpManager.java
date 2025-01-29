@@ -3,6 +3,7 @@ package com.open.hr.ai.manager;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.open.ai.eros.common.util.HttpUtil;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
@@ -13,6 +14,9 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmZpPlatformsServiceImpl;
 import com.open.hr.ai.bean.AmZpAccoutsResultVo;
 import com.open.hr.ai.bean.AmZpPlatformsResultVo;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +36,7 @@ public class AmZpManager {
 
     @Resource
     private AmAdminServiceImpl amAdminService;
+
 
     public ResultVO<AmZpAccoutsResultVo> getAccouts(Long id) {
         AmZpAccoutsResultVo resultVo = new AmZpAccoutsResultVo();
@@ -143,6 +148,26 @@ public class AmZpManager {
         if (StringUtils.isNotBlank(extra)) {
             JSONObject jsonObject = JSONObject.parseObject(extra);
             return ResultVO.success(jsonObject);
+        }
+        return ResultVO.fail("获取失败");
+    }
+
+    public ResultVO getJson(){
+        try {
+
+
+            OkHttpClient client = new OkHttpClient().newBuilder()
+                    .build();
+            Request request = new Request.Builder()
+                    .url("https://gitee.com/yuehonghao/release/raw/master/jpy_client.json")
+                    .get()
+                    .build();
+            Response execute = client.newCall(request).execute();
+            String responseBody = execute.body().string();
+            JSONObject jsonObject = JSONObject.parseObject(responseBody);
+            return ResultVO.success(jsonObject);
+        }catch (Exception e){
+            log.error("getJson error",e);
         }
         return ResultVO.fail("获取失败");
     }

@@ -142,4 +142,12 @@ public class AmZpController extends HrAIBaseController {
         return ResultVO.success();
     }
 
+
+    @ApiOperation(value = "获取登录json文件", notes = "获取json文件", httpMethod = "GET", response = ResultVO.class)
+    @VerifyUserToken
+    @GetMapping("/zp/get/jsonFile")
+    public ResultVO getJsonFile() {
+        return amZpManager.getJson();
+    }
+
 }
