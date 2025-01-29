@@ -18,7 +18,7 @@ import java.util.List;
  */
 public interface AmZpLocalAccoutsMapper extends BaseMapper<AmZpLocalAccouts> {
 
-    @Select(" select * from am_zp_local_accouts where  admin_id = #{userId} and type = 1 order by id asc")
+    @Select(" select * from am_zp_local_accouts where  admin_id = #{userId}  order by id asc")
     List<AmZpLocalAccouts>  getList(@Param("userId")Long userId);
 
 }

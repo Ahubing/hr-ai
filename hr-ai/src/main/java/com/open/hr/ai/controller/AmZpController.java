@@ -36,8 +36,8 @@ public class AmZpController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("/zp/list")
     public ResultVO<AmZpAccoutsResultVo> list() {
-        Long id = SessionUser.get().getId();
-        return amZpManager.getAccouts(id);
+        Long userId = getUserId();
+        return amZpManager.getAccouts(userId);
     }
 
 
