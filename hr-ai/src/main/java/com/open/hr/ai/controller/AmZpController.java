@@ -125,8 +125,8 @@ public class AmZpController extends HrAIBaseController {
 
     @ApiOperation(value = "获取登录二维码", notes = "获取登录二维码", httpMethod = "GET", response = ResultVO.class)
     @GetMapping("/zp/get_login_qrcode")
-    public ResultVO getLoginQrcode() {
-        return amZpManager.getLoginQrcode(getUserId());
+    public ResultVO getLoginQrcode(@RequestParam(value = "id", required = true) String bossId) {
+        return amZpManager.getLoginQrcode(bossId);
     }
 
 

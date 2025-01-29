@@ -137,9 +137,9 @@ public class AmZpManager {
     }
 
 
-    public ResultVO getLoginQrcode(Long adminId) {
+    public ResultVO getLoginQrcode(String bossId) {
         LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
+        queryWrapper.eq(AmZpLocalAccouts::getId, bossId);
         AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
         if (zpLocalAccouts == null) {
             return ResultVO.fail("账户不存在");
