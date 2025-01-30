@@ -40,6 +40,12 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             log.error("extractData chatData is null,bossId={}", amZpLocalAccouts.getId());
             return ResultVO.fail("chatData is null");
         }
+        String phone = chatData.get("phone").toString();
+        String weixin = chatData.get("weixin").toString();
+        if (Objects.isNull(phone) || Objects.isNull(weixin)) {
+            log.error("extractData phone or weixin is null,bossId={}", amZpLocalAccouts.getId());
+            return ResultVO.fail("phone or weixin is null");
+        }
         String userId = req.getUser_id();
         // 保存用户信息
         LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();

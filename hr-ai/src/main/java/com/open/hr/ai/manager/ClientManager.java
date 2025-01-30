@@ -72,14 +72,14 @@ public class ClientManager {
     private List<BossNewMessageProcessor> bossNewMessageProcessors;
 
 
-    public ResultVO connectClient(String bossId, String connectId) {
+    public ResultVO connectClient(String platform,String bossId, String connectId) {
         try {
 
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail(404, "boss_id不存在");
             }
-            if ("active".equals(amZpLocalAccouts.getState())) {
+            if ("free".equals(amZpLocalAccouts.getState())) {
                 // 规定超过25秒就认定下线
                 if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 25 * 1000) {
                     return ResultVO.fail(409, "boss_id 已在线");
@@ -87,7 +87,7 @@ public class ClientManager {
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
-            amZpLocalAccouts.setState("active");
+            amZpLocalAccouts.setState("wait_login");
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success();
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class ClientManager {
         return ResultVO.fail(409, "客户端连接异常");
     }
 
-    public ResultVO loginClient(String bossId, String connectId, String extBossId) {
+    public ResultVO loginClient(String platform,String bossId, String connectId, String extBossId) {
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
             if (Objects.isNull(amZpLocalAccouts)) {
@@ -111,7 +111,7 @@ public class ClientManager {
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
-            amZpLocalAccouts.setState("active");
+            amZpLocalAccouts.setState("free");
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success();
         } catch (Exception e) {
@@ -121,9 +121,8 @@ public class ClientManager {
     }
 
 
-    public ResultVO updateClientStatus(String bossId, String connectId, String inputStatus) {
+    public ResultVO updateClientStatus(String platform,String bossId, String connectId, String inputStatus) {
         try {
-            String status = inputStatus.equals("busy") ? "active" : "inactive";
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail(404, "boss_id不存在");
@@ -133,7 +132,7 @@ public class ClientManager {
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
-            amZpLocalAccouts.setState(status);
+            amZpLocalAccouts.setState(inputStatus);
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success("状态更新成功");
         } catch (Exception e) {
@@ -143,7 +142,7 @@ public class ClientManager {
     }
 
 
-    public ResultVO loginQrCodeSave(String bossId, String connectId, ClientQrCodeReq req) {
+    public ResultVO loginQrCodeSave(String platform,String bossId, String connectId, ClientQrCodeReq req) {
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
             if (Objects.isNull(amZpLocalAccouts)) {
@@ -166,7 +165,7 @@ public class ClientManager {
         return ResultVO.fail(409, "客户端二维码更新异常");
     }
 
-    public ResultVO getClientTask(String bossId, String connectId) {
+    public ResultVO getClientTask(String platform,String bossId, String connectId) {
         JSONObject jsonObject = new JSONObject();
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
@@ -199,7 +198,7 @@ public class ClientManager {
         return ResultVO.success(jsonObject);
     }
 
-    public ResultVO bossNewMessage(String bossId, String connectId, ClientBossNewMessageReq req) {
+    public ResultVO bossNewMessage(String platform,String bossId, String connectId, ClientBossNewMessageReq req) {
 
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
@@ -229,7 +228,7 @@ public class ClientManager {
     }
 
 
-    public ResultVO finishClientTask(String bossId, String connectId, ClientFinishTaskReq clientFinishTaskReq) {
+    public ResultVO finishClientTask(String platform,String bossId, String connectId, ClientFinishTaskReq clientFinishTaskReq) {
         JSONObject jsonObject = new JSONObject();
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);

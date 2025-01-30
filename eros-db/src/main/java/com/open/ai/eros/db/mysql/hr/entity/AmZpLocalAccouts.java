@@ -81,7 +81,7 @@ public class AmZpLocalAccouts implements Serializable {
     private Long userId;
 
     /**
-     * 状态，active运行中，inactive已关闭
+     * 状态，offline下线, wait_login 等待登录 ,free 已经登录成功,没有在执行任务, busy 正在执行任务
      */
     private String state;
 

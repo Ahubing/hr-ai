@@ -97,7 +97,7 @@ public class ChatBotManager {
             for (AmZpLocalAccoutsVo account : amZpLocalAccoutsVos) {
 
                 if (Objects.isNull(account.getUpdateTime()) || System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond() > 25) {
-                    account.setState("inactive");
+                    account.setState("offline");
                 }
                 for (AmZpPlatforms platform : platforms) {
                     if (platform.getId().equals(account.getPlatformId())) {
@@ -295,7 +295,7 @@ public class ChatBotManager {
         try {
             LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmZpLocalAccouts::getId, req.getAccountId());
-            queryWrapper.eq(AmZpLocalAccouts::getState, "active");
+            queryWrapper.ne(AmZpLocalAccouts::getState, "offline");
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
             if (Objects.isNull(zpLocalAccouts)) {
                 return ResultVO.fail("boss账号非在线运行状态，请检查后重试！");

@@ -81,7 +81,7 @@ public class AmChatBotGreetJob {
         if (lock.tryLock()) {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.lambdaQuery()
-                        .eq(AmZpLocalAccouts::getState, "active")
+                        .ne(AmZpLocalAccouts::getState, "offline")
                         .list();
                 for (AmZpLocalAccouts localAccout : localAccouts) {
                     //查看账号是否开启打招呼
@@ -211,7 +211,8 @@ public class AmChatBotGreetJob {
 
                 // 查询所有活跃账号
                 List<AmZpLocalAccouts> localAccounts = amZpLocalAccoutsService.lambdaQuery()
-                        .eq(AmZpLocalAccouts::getState, "active").list();
+                        .ne(AmZpLocalAccouts::getState, "offline")
+                        .list();
 
                 Map<String, AmChatbotGreetConfig> greetConfigMap = amChatbotGreetConfigService.lambdaQuery()
                         .in(AmChatbotGreetConfig::getAccountId, localAccounts.stream().map(AmZpLocalAccouts::getId).collect(Collectors.toList()))

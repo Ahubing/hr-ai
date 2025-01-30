@@ -47,7 +47,7 @@ public class AmZpManager {
         List<AmZpLocalAccouts> list = amZpLocalAccoutsService.getList(id);
         List<AmZpPlatforms> platforms = amZpPlatformsService.list();
         for (AmZpLocalAccouts accouts : list) {
-            if ("active".equals(accouts.getState())) {
+            if (!"offline".equals(accouts.getState())) {
                 account_online_num++;
             }
             if (accouts.getIsRunning() == 1) {
