@@ -150,7 +150,7 @@ public class AmZpManager {
             Object expires = jsonObject.get("expires");
             // 判断与当前时间戳,如果过期则返回为空
             if (System.currentTimeMillis() / 1000 > Long.parseLong(expires.toString())) {
-                return ResultVO.fail("二维码已过期");
+                return ResultVO.success("二维码已过期");
             }
             return ResultVO.success(jsonObject);
         }
