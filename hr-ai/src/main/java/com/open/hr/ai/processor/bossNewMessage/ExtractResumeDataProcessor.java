@@ -32,7 +32,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
      * 根据聊天内容,用来提取用户手机和微信号
      */
     @Override
-    public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+    public ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
         log.info("ExtractResumeDataProcessor dealBossNewMessage amResume={},amZpLocalAccouts={},req={}", amResume, amZpLocalAccouts, req);
         JSONObject chatInfo = req.getChat_info();
         JSONObject chatData = chatInfo.getJSONObject("data");
@@ -42,10 +42,6 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         }
         String phone = chatData.get("phone").toString();
         String weixin = chatData.get("weixin").toString();
-        if (Objects.isNull(phone) || Objects.isNull(weixin)) {
-            log.error("extractData phone or weixin is null,bossId={}", amZpLocalAccouts.getId());
-            return ResultVO.fail("phone or weixin is null");
-        }
         String userId = req.getUser_id();
         // 保存用户信息
         LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
@@ -68,7 +64,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             amResume.setExperiences(Objects.nonNull(chatData.get("workExpList")) ? chatData.get("workExpList").toString() : "");
             amResume.setJobSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
             amResume.setGender(Objects.nonNull(chatData.get("gender")) ? Integer.parseInt(chatData.get("gender").toString()) : 0);
-            amResume.setPlatform("BOSS直聘");
+            amResume.setPlatform(platform);
             amResume.setJobSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
             amResume.setType(0);
             amResume.setSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
@@ -79,6 +75,10 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");
             amResumeService.save(amResume);
         } else {
+            if (Objects.isNull(phone) || Objects.isNull(weixin)) {
+                log.error("extractData phone or weixin is null,bossId={}", amZpLocalAccouts.getId());
+                return ResultVO.fail("phone or weixin is null");
+            }
             BeanUtils.copyProperties(innerAmResume, amResume);
             amResume.setPhone(chatData.get("phone").toString());
             amResume.setWechat(chatData.get("weixin").toString());

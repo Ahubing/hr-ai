@@ -34,7 +34,7 @@ public class ClientController extends HrAIBaseController {
                                   @PathVariable("boss_id") String bossId,
                                   @PathVariable("connect_id") String connectId) {
         log.info("connectClient platform={},bossId={},connectId={}", platform, bossId, connectId);
-        if (StringUtils.isBlank(platform) ||StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id或connect_id不能为空");
         }
         return clientManager.connectClient(platform,bossId, connectId);

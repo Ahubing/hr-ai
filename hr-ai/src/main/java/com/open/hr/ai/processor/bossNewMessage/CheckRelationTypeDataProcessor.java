@@ -34,10 +34,10 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
     private AmClientTasksServiceImpl amClientTasksService;
 
     /**
-     * 判断用户是否是主动打招呼,如果是判断releationType是不是等于6
+     * 判断用户是否是主动打招呼
      */
     @Override
-    public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+    public ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
         log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(), amResume, amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             log.error("用户信息异常 amResume is null");
@@ -45,31 +45,28 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         }
 
         JSONObject chatInfo = req.getChat_info();
-        Object releationType = chatInfo.get("releationType");
-        if (Objects.nonNull(releationType) && Integer.parseInt(releationType.toString()) == 6) {
-            // 从未对此用户发起本请求时请求一次
-            LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
-            queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
-            queryWrapper.like(AmClientTasks::getData, req.getUser_id());
-            AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
-            if (Objects.isNull(tasksServiceOne)) {
-                AmClientTasks amClientTasks = new AmClientTasks();
-                amClientTasks.setBossId(amZpLocalAccouts.getId());
-                amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
-                HashMap<String, Object> hashMap = new HashMap<>();
-                HashMap<String, Object> searchDataMap = new HashMap<>();
-                hashMap.put("user_id", req.getUser_id());
-                searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
-                searchDataMap.put("name", amResume.getName());
-                hashMap.put("search_data", searchDataMap);
-                amClientTasks.setData(JSONObject.toJSONString(hashMap));
-                amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
-                amClientTasks.setCreateTime(LocalDateTime.now());
-                amClientTasks.setUpdateTime(LocalDateTime.now());
-                amClientTasksService.save(amClientTasks);
-                log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
-            }
+        // 从未对此用户发起本请求时请求一次
+        LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
+        queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
+        queryWrapper.like(AmClientTasks::getData, req.getUser_id());
+        AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
+        if (Objects.isNull(tasksServiceOne)) {
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setBossId(amZpLocalAccouts.getId());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
+            HashMap<String, Object> hashMap = new HashMap<>();
+            HashMap<String, Object> searchDataMap = new HashMap<>();
+            hashMap.put("user_id", req.getUser_id());
+            searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
+            searchDataMap.put("name", amResume.getName());
+            hashMap.put("search_data", searchDataMap);
+            amClientTasks.setData(JSONObject.toJSONString(hashMap));
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setUpdateTime(LocalDateTime.now());
+            amClientTasksService.save(amClientTasks);
+            log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
         }
         return ResultVO.success();
     }

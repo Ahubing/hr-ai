@@ -217,7 +217,7 @@ public class ClientManager {
 
             AmResume amResume = new AmResume();
             for (BossNewMessageProcessor bossNewMessageProcessor : bossNewMessageProcessors) {
-                bossNewMessageProcessor.dealBossNewMessage(amResume, amZpLocalAccouts, req);
+                bossNewMessageProcessor.dealBossNewMessage(platform,amResume, amZpLocalAccouts, req);
             }
             return ResultVO.success();
         } catch (Exception e) {
@@ -269,7 +269,7 @@ public class ClientManager {
                     greetHandle(tasksServiceOne, taskId, bossId, data);
                     break;
                 case "request_all_info":
-                    dealUserAllInfoData(taskId, amZpLocalAccouts, data);
+                    dealUserAllInfoData(platform,taskId, amZpLocalAccouts, data);
                     break;
                 case "switch_job_state":
                     switchJobState(taskId, bossId, data);
@@ -530,13 +530,14 @@ public class ClientManager {
 
     }
 
-    private void dealUserAllInfoData(String taskId, AmZpLocalAccouts amZpLocalAccouts, JSONObject jsonObject) {
+    private void dealUserAllInfoData(String platform, String taskId, AmZpLocalAccouts amZpLocalAccouts, JSONObject jsonObject) {
         // 开始提取保存用户简历信息
         // 提取拼接用户简历数据
         try {
             JSONObject resumeJSONObject = jsonObject.getJSONObject("resume");
             JSONObject chatInfoJSONObject = jsonObject.getJSONObject("chat_info");
             JSONObject geekDetailInfoJSONObject = resumeJSONObject.getJSONObject("geekDetailInfo");
+            JSONObject showExpectPositionSONObject = resumeJSONObject.getJSONObject("showExpectPosition");
             JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
             JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
             String userId = chatData.get("uid").toString();
@@ -548,25 +549,24 @@ public class ClientManager {
                     amResume.setAdminId(amZpLocalAccouts.getAdminId());
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setUid(Objects.nonNull(chatData.get("uid")) ? chatData.get("uid").toString() : "");
-                    amResume.setCity(Objects.nonNull(chatData.get("city")) ? chatData.get("city").toString() : "");
+                    amResume.setCity(Objects.nonNull(showExpectPositionSONObject.get("locationName")) ? showExpectPositionSONObject.get("locationName").toString() : "");
                     amResume.setAge(Objects.nonNull(geekBaseInfo.get("age")) ? Integer.parseInt(geekBaseInfo.get("age").toString()) : 0);
                     amResume.setApplyStatus(Objects.nonNull(chatData.get("positionStatus")) ? chatData.get("positionStatus").toString() : "");
                     amResume.setCompany(Objects.nonNull(chatData.get("lastCompany")) ? chatData.get("lastCompany").toString() : "");
-                    amResume.setAvatar(Objects.nonNull(chatData.get("avatar")) ? chatData.get("avatar").toString() : "");
-                    amResume.setEducation(Objects.nonNull(chatData.get("school")) ? chatData.get("school").toString() : "");
+                    amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
+                    amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
                     amResume.setCreateTime(LocalDateTime.now());
-                    amResume.setExperiences(Objects.nonNull(chatData.get("workExpList")) ? chatData.get("workExpList").toString() : "");
+                    amResume.setExperiences(Objects.nonNull(chatData.get("geekExpPosList")) ? chatData.get("geekExpPosList").toString() : "");
                     amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
-                    amResume.setJobSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
-                    amResume.setGender(Objects.nonNull(chatData.get("gender")) ? Integer.parseInt(chatData.get("gender").toString()) : 0);
-                    amResume.setPlatform("BOSS直聘");
+                    amResume.setJobSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
+                    amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);
+                    amResume.setPlatform(platform);
                     amResume.setWorkYear(Objects.nonNull(geekBaseInfo.get("workYears")) ? geekBaseInfo.get("workYears").toString() : "0");
-                    amResume.setJobSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResume.setType(0);
-                    amResume.setSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
-                    amResume.setPosition(Objects.nonNull(chatData.get("toPosition")) ? chatData.get("toPosition").toString() : "");
-                    amResume.setName(Objects.nonNull(chatData.get("name")) ? chatData.get("name").toString() : "");
+                    amResume.setSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
+                    amResume.setPosition(Objects.nonNull(showExpectPositionSONObject.get("positionName")) ? showExpectPositionSONObject.get("positionName").toString() : "");
+                    amResume.setName(Objects.nonNull(geekBaseInfo.get("name")) ? geekBaseInfo.get("name").toString() : "");
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setPhone(Objects.nonNull(chatData.get("phone")) ? chatData.get("phone").toString() : "");
                     amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");
@@ -577,25 +577,24 @@ public class ClientManager {
                     amResume.setAdminId(amZpLocalAccouts.getAdminId());
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setUid(Objects.nonNull(chatData.get("uid")) ? chatData.get("uid").toString() : "");
-                    amResume.setCity(Objects.nonNull(chatData.get("city")) ? chatData.get("city").toString() : "");
+                    amResume.setCity(Objects.nonNull(showExpectPositionSONObject.get("locationName")) ? showExpectPositionSONObject.get("locationName").toString() : "");
                     amResume.setAge(Objects.nonNull(geekBaseInfo.get("age")) ? Integer.parseInt(geekBaseInfo.get("age").toString()) : 0);
                     amResume.setApplyStatus(Objects.nonNull(chatData.get("positionStatus")) ? chatData.get("positionStatus").toString() : "");
                     amResume.setCompany(Objects.nonNull(chatData.get("lastCompany")) ? chatData.get("lastCompany").toString() : "");
-                    amResume.setAvatar(Objects.nonNull(chatData.get("avatar")) ? chatData.get("avatar").toString() : "");
-                    amResume.setEducation(Objects.nonNull(chatData.get("school")) ? chatData.get("school").toString() : "");
+                    amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
+                    amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
                     amResume.setCreateTime(LocalDateTime.now());
-                    amResume.setExperiences(Objects.nonNull(chatData.get("workExpList")) ? chatData.get("workExpList").toString() : "");
+                    amResume.setExperiences(Objects.nonNull(chatData.get("geekExpPosList")) ? chatData.get("geekExpPosList").toString() : "");
                     amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
-                    amResume.setJobSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
-                    amResume.setGender(Objects.nonNull(chatData.get("gender")) ? Integer.parseInt(chatData.get("gender").toString()) : 0);
-                    amResume.setPlatform("BOSS直聘");
+                    amResume.setJobSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
+                    amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);
+                    amResume.setPlatform(platform);
                     amResume.setWorkYear(Objects.nonNull(geekBaseInfo.get("workYears")) ? geekBaseInfo.get("workYears").toString() : "0");
-                    amResume.setJobSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResume.setType(0);
-                    amResume.setSalary(Objects.nonNull(chatData.get("salaryDesc")) ? chatData.get("salaryDesc").toString() : "");
-                    amResume.setPosition(Objects.nonNull(chatData.get("toPosition")) ? chatData.get("toPosition").toString() : "");
-                    amResume.setName(Objects.nonNull(chatData.get("name")) ? chatData.get("name").toString() : "");
+                    amResume.setSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
+                    amResume.setPosition(Objects.nonNull(showExpectPositionSONObject.get("positionName")) ? showExpectPositionSONObject.get("positionName").toString() : "");
+                    amResume.setName(Objects.nonNull(geekBaseInfo.get("name")) ? geekBaseInfo.get("name").toString() : "");
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setPhone(Objects.nonNull(chatData.get("phone")) ? chatData.get("phone").toString() : "");
                     amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");

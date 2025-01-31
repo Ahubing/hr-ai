@@ -10,6 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 public interface BossNewMessageProcessor {
 
 
-    ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req);
+    ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req);
 
 }
