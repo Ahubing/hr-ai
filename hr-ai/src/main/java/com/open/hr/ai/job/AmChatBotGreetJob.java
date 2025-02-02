@@ -8,6 +8,7 @@ import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
+import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -81,7 +82,7 @@ public class AmChatBotGreetJob {
         if (lock.tryLock()) {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.lambdaQuery()
-                        .ne(AmZpLocalAccouts::getState, "offline")
+                        .ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus())
                         .list();
                 for (AmZpLocalAccouts localAccout : localAccouts) {
                     //查看账号是否开启打招呼
@@ -211,7 +212,7 @@ public class AmChatBotGreetJob {
 
                 // 查询所有活跃账号
                 List<AmZpLocalAccouts> localAccounts = amZpLocalAccoutsService.lambdaQuery()
-                        .ne(AmZpLocalAccouts::getState, "offline")
+                        .ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus())
                         .list();
 
                 Map<String, AmChatbotGreetConfig> greetConfigMap = amChatbotGreetConfigService.lambdaQuery()

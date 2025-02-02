@@ -8,6 +8,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
+import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import com.open.hr.ai.constant.PositionSyncTaskStatusEnums;
 import com.open.hr.ai.convert.*;
 import com.open.hr.ai.util.AmGreetTaskUtil;
@@ -295,7 +296,7 @@ public class ChatBotManager {
         try {
             LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmZpLocalAccouts::getId, req.getAccountId());
-            queryWrapper.ne(AmZpLocalAccouts::getState, "offline");
+            queryWrapper.ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus());
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
             if (Objects.isNull(zpLocalAccouts)) {
                 return ResultVO.fail("boss账号非在线运行状态，请检查后重试！");

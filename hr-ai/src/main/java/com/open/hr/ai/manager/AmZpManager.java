@@ -13,6 +13,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmZpPlatformsServiceImpl;
 import com.open.hr.ai.bean.AmZpAccoutsResultVo;
 import com.open.hr.ai.bean.AmZpPlatformsResultVo;
+import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -47,7 +48,7 @@ public class AmZpManager {
         List<AmZpLocalAccouts> list = amZpLocalAccoutsService.getList(id);
         List<AmZpPlatforms> platforms = amZpPlatformsService.list();
         for (AmZpLocalAccouts accouts : list) {
-            if (!"offline".equals(accouts.getState())) {
+            if (!AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(accouts.getState())) {
                 account_online_num++;
             }
             if (accouts.getIsRunning() == 1) {
@@ -134,6 +135,20 @@ public class AmZpManager {
 
         boolean success = amZpLocalAccoutsService.modifyRunningStatus(id, status);
         return success ? ResultVO.success() : ResultVO.fail("删除失败，请稍后重试");
+    }
+
+
+
+
+    public ResultVO modifyStatus(String id, String status) {
+
+        AmZpLocalAccouts accouts = amZpLocalAccoutsService.getById(id);
+        if (accouts == null) {
+            return ResultVO.fail("账户不存在");
+        }
+
+        boolean success = amZpLocalAccoutsService.modifyStatus(id, status);
+        return success ? ResultVO.success() : ResultVO.fail("更新状态失败，请稍后重试");
     }
 
 

@@ -58,4 +58,14 @@ public class AmZpLocalAccoutsServiceImpl extends ServiceImpl<AmZpLocalAccoutsMap
         return this.update(updateWrapper);
 
     }
+
+
+
+    public Boolean modifyStatus(String id, String status) {
+        // 创建更新条件
+        LambdaUpdateWrapper<AmZpLocalAccouts> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(AmZpLocalAccouts::getId, id).set(AmZpLocalAccouts::getState, status);
+        // 执行更新操作
+        return this.update(updateWrapper);
+    }
 }

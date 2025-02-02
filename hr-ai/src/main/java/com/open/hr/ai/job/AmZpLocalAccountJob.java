@@ -8,6 +8,7 @@ import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
+import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -48,10 +49,10 @@ public class AmZpLocalAccountJob {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list();
                 for (AmZpLocalAccouts localAccout : localAccouts) {
-                    if ("free".equals(localAccout.getState())) {
+                    if (AmLocalAccountStatusEnums.FREE.getStatus().equals(localAccout.getState())) {
                         // 规定空闲事件超过25秒就认定下线
                         if (Objects.nonNull(localAccout.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime()) > 25 * 1000) {
-                            localAccout.setState("offline");
+                            localAccout.setState(AmLocalAccountStatusEnums.OFFLINE.getStatus());
                             localAccout.setExtra("");
                             amZpLocalAccoutsService.updateById(localAccout);
                             log.info("账号:{} 下线", localAccout.getId());

@@ -14,6 +14,7 @@ import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
+import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
@@ -79,7 +80,7 @@ public class ClientManager {
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail(404, "boss_id不存在");
             }
-            if ("free".equals(amZpLocalAccouts.getState())) {
+            if (AmLocalAccountStatusEnums.FREE.getStatus().equals(amZpLocalAccouts.getState())) {
                 // 规定超过25秒就认定下线
                 if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 25 * 1000) {
                     return ResultVO.fail(409, "boss_id 已在线");
@@ -87,7 +88,7 @@ public class ClientManager {
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
-            amZpLocalAccouts.setState("wait_login");
+            amZpLocalAccouts.setState(AmLocalAccountStatusEnums.WAIT_LOGIN.getStatus());
             amZpLocalAccouts.setExtra("");
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success();
@@ -112,7 +113,7 @@ public class ClientManager {
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
-            amZpLocalAccouts.setState("free");
+            amZpLocalAccouts.setState(AmLocalAccountStatusEnums.FREE.getStatus());
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success();
         } catch (Exception e) {

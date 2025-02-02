@@ -9,6 +9,7 @@ import com.open.hr.ai.bean.AmZpAccoutsResultVo;
 import com.open.hr.ai.bean.AmZpPlatformsResultVo;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.config.HrAIBaseController;
+import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import com.open.hr.ai.manager.AmZpManager;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -121,6 +122,17 @@ public class AmZpController extends HrAIBaseController {
             return ResultVO.fail("id不能为空");
         }
         return amZpManager.modifyRunningStatus(id, status);
+    }
+
+    @ApiOperation(value = "更新boss状态", notes = "更新运行boss状态", httpMethod = "POST", response = ResultVO.class)
+    @VerifyUserToken
+    @PostMapping("/zp/modify_status")
+    public ResultVO modifyStatus(@RequestBody @Valid UpdateAmZpAccountStatusReq req) {
+       log.info("modifyStatus req={}",req);
+       if (AmLocalAccountStatusEnums.isExist(req.getStatus())) {
+           return ResultVO.fail("状态不正确");
+       }
+        return amZpManager.modifyStatus(req.getId(), req.getStatus());
     }
 
     @ApiOperation(value = "获取登录二维码", notes = "获取登录二维码", httpMethod = "GET", response = ResultVO.class)
