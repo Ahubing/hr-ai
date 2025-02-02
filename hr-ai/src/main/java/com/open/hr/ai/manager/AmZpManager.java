@@ -3,6 +3,7 @@ package com.open.hr.ai.manager;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.open.ai.eros.common.util.HttpUtil;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
@@ -146,8 +147,13 @@ public class AmZpManager {
         if (accouts == null) {
             return ResultVO.fail("账户不存在");
         }
+        LambdaUpdateWrapper<AmZpLocalAccouts> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(AmZpLocalAccouts::getId, id).set(AmZpLocalAccouts::getState, status);
+        if (AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(accouts.getState())) {
+            updateWrapper.set(AmZpLocalAccouts::getBrowserId,"");
+        }
 
-        boolean success = amZpLocalAccoutsService.modifyStatus(id, status);
+        boolean success = amZpLocalAccoutsService.update(updateWrapper);
         return success ? ResultVO.success() : ResultVO.fail("更新状态失败，请稍后重试");
     }
 
@@ -158,6 +164,9 @@ public class AmZpManager {
         AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
         if (zpLocalAccouts == null) {
             return ResultVO.fail("账户不存在");
+        }
+        if (AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(zpLocalAccouts.getState())) {
+            return ResultVO.fail("账户已下线");
         }
         String extra = zpLocalAccouts.getExtra();
         if (StringUtils.isNotBlank(extra)) {
