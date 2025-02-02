@@ -54,6 +54,7 @@ public class AmZpLocalAccountJob {
                         if (Objects.nonNull(localAccout.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime()) > 25 * 1000) {
                             localAccout.setState(AmLocalAccountStatusEnums.OFFLINE.getStatus());
                             localAccout.setExtra("");
+                            localAccout.setBrowserId("");
                             amZpLocalAccoutsService.updateById(localAccout);
                             log.info("账号:{} 下线", localAccout.getId());
                         }

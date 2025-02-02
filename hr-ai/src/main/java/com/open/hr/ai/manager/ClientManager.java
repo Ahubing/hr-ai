@@ -137,6 +137,7 @@ public class ClientManager {
             amZpLocalAccouts.setState(inputStatus);
             if (AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(inputStatus)) {
                 amZpLocalAccouts.setExtra("");
+                amZpLocalAccouts.setBrowserId("");
             }
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success("状态更新成功");
