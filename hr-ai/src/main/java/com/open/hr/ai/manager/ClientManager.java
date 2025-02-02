@@ -88,6 +88,7 @@ public class ClientManager {
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
             amZpLocalAccouts.setState("wait_login");
+            amZpLocalAccouts.setExtra("");
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success();
         } catch (Exception e) {

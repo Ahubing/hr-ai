@@ -310,10 +310,10 @@ public class ChatBotManager {
                 amPositionSyncTaskService.save(amPositionSyncTask);
             } else {
                 if (!Objects.equals(amPositionSyncTask.getStatus(), PositionSyncTaskStatusEnums.FINISH.getStatus())) {
+                    return ResultVO.fail("存在同步中的任务，请勿重复操作");
+                } else {
                     amPositionSyncTask.setStatus(PositionSyncTaskStatusEnums.NOT_START.getStatus());
                     amPositionSyncTaskService.updateById(amPositionSyncTask);
-                } else {
-                    return ResultVO.fail("存在同步中的任务，请勿重复操作");
                 }
             }
 
