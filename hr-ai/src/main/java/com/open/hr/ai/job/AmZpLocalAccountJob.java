@@ -52,6 +52,7 @@ public class AmZpLocalAccountJob {
                         // 规定空闲事件超过25秒就认定下线
                         if (Objects.nonNull(localAccout.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime()) > 25 * 1000) {
                             localAccout.setState("offline");
+                            localAccout.setExtra("");
                             amZpLocalAccoutsService.updateById(localAccout);
                             log.info("账号:{} 下线", localAccout.getId());
                         }
