@@ -129,7 +129,7 @@ public class AmZpController extends HrAIBaseController {
     @PostMapping("/zp/modify_status")
     public ResultVO modifyStatus(@RequestBody @Valid UpdateAmZpAccountStatusReq req) {
        log.info("modifyStatus req={}",req);
-       if (AmLocalAccountStatusEnums.isExist(req.getStatus())) {
+       if (!AmLocalAccountStatusEnums.isExist(req.getStatus())) {
            return ResultVO.fail("状态不正确");
        }
         return amZpManager.modifyStatus(req.getId(), req.getStatus());
