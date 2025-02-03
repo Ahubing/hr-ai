@@ -49,7 +49,7 @@ public class AmZpLocalAccountJob {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list();
                 for (AmZpLocalAccouts localAccout : localAccouts) {
-                    if (AmLocalAccountStatusEnums.FREE.getStatus().equals(localAccout.getState())) {
+                    if (!AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(localAccout.getState())) {
                         // 规定空闲事件超过25秒就认定下线
                         if (Objects.nonNull(localAccout.getUpdateTime()) && (System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime())) > 25 * 1000) {
                             localAccout.setState(AmLocalAccountStatusEnums.OFFLINE.getStatus());

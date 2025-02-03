@@ -97,8 +97,8 @@ public class ChatBotManager {
             List<AmZpPlatforms> platforms = amZpPlatformsService.list();
 
             for (AmZpLocalAccoutsVo account : amZpLocalAccoutsVos) {
-                if (Objects.nonNull(account.getUpdateTime()) && (System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(account.getUpdateTime())) > 25 * 1000) {
-                    account.setState("offline");
+//                if (Objects.nonNull(account.getUpdateTime()) && (System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(account.getUpdateTime())) > 25 * 1000) {
+//                    account.setState("offline");
 //                }
 
 //                if (Objects.isNull(account.getUpdateTime()) || ( System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond()) > 25 ) {
