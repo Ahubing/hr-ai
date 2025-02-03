@@ -2,6 +2,7 @@ package com.open.hr.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -96,6 +97,9 @@ public class ChatBotManager {
             List<AmZpPlatforms> platforms = amZpPlatformsService.list();
 
             for (AmZpLocalAccoutsVo account : amZpLocalAccoutsVos) {
+                if (Objects.nonNull(account.getUpdateTime()) && (System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(account.getUpdateTime())) > 25 * 1000) {
+                    account.setState("offline");
+//                }
 
 //                if (Objects.isNull(account.getUpdateTime()) || ( System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond()) > 25 ) {
 //                    account.setState("offline");
