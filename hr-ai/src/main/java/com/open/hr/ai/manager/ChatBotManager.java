@@ -97,9 +97,9 @@ public class ChatBotManager {
 
             for (AmZpLocalAccoutsVo account : amZpLocalAccoutsVos) {
 
-                if (Objects.isNull(account.getUpdateTime()) || ( System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond() > 25) ) {
-                    account.setState("offline");
-                }
+//                if (Objects.isNull(account.getUpdateTime()) || ( System.currentTimeMillis() / 1000 - account.getUpdateTime().getSecond()) > 25 ) {
+//                    account.setState("offline");
+//                }
                 for (AmZpPlatforms platform : platforms) {
                     if (platform.getId().equals(account.getPlatformId())) {
                         account.setPlatform(platform.getName());
