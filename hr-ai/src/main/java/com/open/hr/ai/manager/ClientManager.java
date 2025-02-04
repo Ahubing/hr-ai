@@ -469,6 +469,7 @@ public class ClientManager {
 
                     // 如果岗位不为空,则更新简历的岗位名称
                     if (Objects.nonNull(amPosition)) {
+                        amResume.setPostId(amPosition.getId());
                         amResume.setPosition(amPosition.getName());
                         boolean result = amResumeService.updateById(amResume);
                         log.info("amResumeService update result={},amResume={}", result, amResume);
