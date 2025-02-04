@@ -26,7 +26,7 @@ public class BindAiAssistantReq {
      */
     @NotNull(message = "ai助手id不能为空")
     @ApiModelProperty("必填，ai助手id；前面的列表有返回")
-    private Integer aiAssistantId;
+    private Long aiAssistantId;
 
 
 

@@ -176,6 +176,7 @@ public class ChatBotOptionsManager {
 
     public ResultVO getAiRoles() {
         try {
+
             return ResultVO.success(amChatbotOptionAiRoleService.list());
         } catch (Exception e) {
             log.error("获取AI角色列表", e);
