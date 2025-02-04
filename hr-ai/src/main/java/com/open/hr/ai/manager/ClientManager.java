@@ -631,7 +631,7 @@ public class ClientManager {
         amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
         amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
         amResume.setCreateTime(LocalDateTime.now());
-        amResume.setExperiences(Objects.nonNull(geekBaseInfo.get("geekExpPosList")) ? geekBaseInfo.get("geekExpPosList").toString() : "");
+        amResume.setExperiences(Objects.nonNull(geekDetailInfo.get("geekExpPosList")) ? geekDetailInfo.getJSONObject("geekExpPosList").toJSONString() : "");
         amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
         amResume.setJobSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
         amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);

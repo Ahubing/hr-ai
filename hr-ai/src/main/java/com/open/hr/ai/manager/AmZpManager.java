@@ -166,7 +166,7 @@ public class AmZpManager {
             return ResultVO.fail("账户不存在");
         }
         if (AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(zpLocalAccouts.getState())) {
-            return ResultVO.fail("账户已下线");
+            return ResultVO.success("账户已下线");
         }
         String extra = zpLocalAccouts.getExtra();
         if (StringUtils.isNotBlank(extra)) {
@@ -178,7 +178,7 @@ public class AmZpManager {
             }
             return ResultVO.success(jsonObject);
         }
-        return ResultVO.fail("获取失败");
+        return ResultVO.success("二维码为空");
     }
 
     public ResultVO getJson(){
