@@ -11,8 +11,11 @@ import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionPostServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionSectionServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
+import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
+import com.open.hr.ai.constant.AmResumeEducationEnums;
+import com.open.hr.ai.constant.AmResumeWorkYearsEnums;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -139,4 +142,30 @@ public class ResumeManager {
     }
 
 
-}
+    public ResultVO<List<AmResume>> resumeSearch(SearchAmResumeReq searchAmResumeReq,Long adminId) {
+        LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
+        queryWrapper.eq(AmResume::getAdminId, adminId);
+        if (Objects.nonNull(searchAmResumeReq.getPosition_id())) {
+            queryWrapper.eq(AmResume::getPostId, searchAmResumeReq.getPosition_id());
+        }
+        if (Objects.nonNull(searchAmResumeReq.getEducation())) {
+            AmResumeEducationEnums amResumeEducationEnums = AmResumeEducationEnums.getByCode(searchAmResumeReq.getEducation());
+            if (Objects.nonNull(amResumeEducationEnums)) {
+                queryWrapper.like(AmResume::getEducation, searchAmResumeReq.getEducation());
+            }else {
+                log.error("学历类型不存在 education={}",searchAmResumeReq.getEducation());
+            }
+        }
+        if (Objects.nonNull(searchAmResumeReq.getExperience())) {
+            AmResumeWorkYearsEnums byCode = AmResumeWorkYearsEnums.getByCode(searchAmResumeReq.getExperience());
+            if (Objects.nonNull(byCode)) {
+                queryWrapper.ge(AmResume::getWorkYear, byCode.getBegin());
+                queryWrapper.le(AmResume::getWorkYear, byCode.getEnd());
+            }
+        }
+        List<AmResume> amResumeList = amResumeService.list(queryWrapper);
+        return ResultVO.success(amResumeList);
+    }
+
+
+    }

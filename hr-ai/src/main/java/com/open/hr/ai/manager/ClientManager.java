@@ -272,7 +272,7 @@ public class ClientManager {
                     getAllJobHandle(bossId, data);
                     break;
                 case "greet":
-                    greetHandle(tasksServiceOne, taskId, bossId, data);
+                    greetHandle(platform,tasksServiceOne, taskId, bossId, data);
                     break;
                 case "request_all_info":
                     dealUserAllInfoData(platform,taskId, amZpLocalAccouts, data);
@@ -405,7 +405,7 @@ public class ClientManager {
     }
 
 
-    private void greetHandle(AmClientTasks tasksServiceOne, String taskId, String bossId, JSONObject finishTaskReqData) {
+    private void greetHandle(String platform,AmClientTasks tasksServiceOne, String taskId, String bossId, JSONObject finishTaskReqData) {
         try {
             // 提取简历信息
             JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
@@ -427,7 +427,7 @@ public class ClientManager {
                 try {
                     //开始提取简历数据
                     JSONObject resumeObject = resumes.getJSONObject(i);
-                    AmResume amResume = dealAmResume(amZpLocalAccouts, resumeObject);
+                    AmResume amResume = dealAmResume(platform,amZpLocalAccouts, resumeObject);
 
                     //查看账号是否开启打招呼
                     LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
@@ -616,7 +616,7 @@ public class ClientManager {
 
     }
 
-    private AmResume dealAmResume(AmZpLocalAccouts amZpLocalAccouts, JSONObject resumeObject) {
+    private AmResume dealAmResume(String platform,AmZpLocalAccouts amZpLocalAccouts, JSONObject resumeObject) {
         JSONObject geekDetailInfo = resumeObject.getJSONObject("geekDetailInfo");
         JSONObject geekBaseInfo = geekDetailInfo.getJSONObject("geekBaseInfo");
         AmResume amResume = new AmResume();
@@ -626,16 +626,16 @@ public class ClientManager {
         amResume.setCity(Objects.nonNull(geekBaseInfo.get("city")) ? geekBaseInfo.get("city").toString() : "");
         amResume.setAge(Objects.nonNull(geekBaseInfo.get("age")) ? Integer.parseInt(geekBaseInfo.get("age").toString()) : 0);
         amResume.setType(0);
-        amResume.setApplyStatus(Objects.nonNull(geekBaseInfo.get("positionStatus")) ? geekBaseInfo.get("positionStatus").toString() : "");
+        amResume.setApplyStatus(Objects.nonNull(geekBaseInfo.get("applyStatusContent")) ? geekBaseInfo.get("applyStatusContent").toString() : "");
         amResume.setCompany(Objects.nonNull(geekBaseInfo.get("lastCompany")) ? geekBaseInfo.get("lastCompany").toString() : "");
         amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
-        amResume.setEducation(Objects.nonNull(geekBaseInfo.get("school")) ? geekBaseInfo.get("school").toString() : "");
+        amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setExperiences(Objects.nonNull(geekBaseInfo.get("geekExpPosList")) ? geekBaseInfo.get("geekExpPosList").toString() : "");
         amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
         amResume.setJobSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
         amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);
-        amResume.setPlatform("BOSS直聘");
+        amResume.setPlatform(platform);
         amResume.setWorkYear(Objects.nonNull(geekBaseInfo.get("workYears")) ? geekBaseInfo.get("workYears").toString() : "0");
         amResume.setJobSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
         amResume.setZpData(resumeObject.toJSONString());

@@ -4,6 +4,7 @@ import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
+import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ResumeManager;
@@ -13,7 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Date 2025/1/4 23:19
@@ -54,14 +57,18 @@ public class ResumeController extends HrAIBaseController {
     /**
      * todo 待补充php 高级的智能匹配...(php没写)
      *
-     * @param id
+     * @param searchAmResumeReq
      * @return
      */
     @ApiOperation("智能匹配")
     @VerifyUserToken
-    @GetMapping("resume/search")
-    public ResultVO resumeSearch(@RequestParam(value = "id", required = true) Integer id) {
-        return ResultVO.success("智能匹配");
+    @PostMapping("resume/search")
+    public ResultVO resumeSearch(@RequestBody @Valid SearchAmResumeReq searchAmResumeReq) {
+        if (Objects.isNull(searchAmResumeReq)) {
+            return ResultVO.fail("参数不能为空");
+        }
+
+       return resumeManager.resumeSearch(searchAmResumeReq,getUserId());
     }
 
 
