@@ -40,4 +40,8 @@ public class ClientBossNewMessageReq {
     private JSONObject chat_info;
 
 
+    @ApiModelProperty(value = "attachment_resume")
+    private List<String> attachmentResume;
+
+
 }

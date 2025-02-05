@@ -44,7 +44,6 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "用户信息异常");
         }
 
-        JSONObject chatInfo = req.getChat_info();
         // 从未对此用户发起本请求时请求一次
         LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());

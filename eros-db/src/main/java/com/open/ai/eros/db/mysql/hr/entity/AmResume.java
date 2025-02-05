@@ -191,5 +191,16 @@ public class AmResume implements Serializable {
      */
     private String email;
 
+    private Integer lowSalary;
+
+    private Integer highSalary;
+
+    /**
+     * 工作年限
+     */
+    private Integer workYears;
+
+    private String attachmentResume;
+
 
 }

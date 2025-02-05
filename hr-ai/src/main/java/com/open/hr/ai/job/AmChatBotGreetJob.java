@@ -10,6 +10,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.hr.ai.constant.MessageTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -121,12 +122,11 @@ public class AmChatBotGreetJob {
                                 // 执行任务
                                 AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
                                 amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
-                                amChatbotGreetMessages.setTaskType(0);
+                                amChatbotGreetMessages.setTaskType(MessageTypeEnums.daily_greet.getCode());
                                 amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
                                 amChatbotGreetMessages.setIsSystemSend(1);
                                 amChatbotGreetMessages.setContent(GREET_MESSAGE);
                                 amChatbotGreetMessages.setCreateTime(DateUtils.formatDate(new Date(), "Y-m-d"));
-                                amChatbotGreetMessages.setCreateTimestamp(LocalDateTime.now().getSecond());
                                 amChatbotGreetMessagesService.save(amChatbotGreetMessages);
                                 //更新task临时status的状态
                                 amChatbotGreetTask.setStatus(1);
@@ -194,7 +194,7 @@ public class AmChatBotGreetJob {
         if (Objects.nonNull(amChatbotGreetMessages)) {
             return true;
         }
-        return false; // 假设未执行
+        return false;
     }
 
 

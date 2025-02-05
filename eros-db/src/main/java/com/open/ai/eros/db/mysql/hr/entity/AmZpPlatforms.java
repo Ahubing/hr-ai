@@ -35,5 +35,10 @@ public class AmZpPlatforms implements Serializable {
      */
     private String name;
 
+    /**
+     * 招聘平台标识
+     */
+    private String platformCode;
+
 
 }

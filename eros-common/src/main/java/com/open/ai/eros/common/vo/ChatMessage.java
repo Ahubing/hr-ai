@@ -35,6 +35,8 @@ public class ChatMessage {
 
 	Object content;
 
+	String id;
+
 	public ChatMessage(String role, Object content) {
 		this.role = role;
 		this.content = content;

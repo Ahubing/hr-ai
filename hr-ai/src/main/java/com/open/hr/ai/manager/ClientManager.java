@@ -65,6 +65,8 @@ public class ClientManager {
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
     @Resource
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
+    @Resource
+    private AmZpPlatformsServiceImpl amZpPlatformsService;
 
     @Resource
     private JedisClientImpl jedisClient;
@@ -227,7 +229,7 @@ public class ClientManager {
             }
             return ResultVO.success();
         } catch (Exception e) {
-            log.error("获取任务异常 bossId={},connectId={},req={}", bossId, connectId, JSONObject.toJSONString(req), e);
+            log.error("保存数据异常 bossId={},connectId={},req={}", bossId, connectId, JSONObject.toJSONString(req), e);
         }
         // 异常也返回为空
         return ResultVO.success();
@@ -254,13 +256,13 @@ public class ClientManager {
                 return ResultVO.fail("task_id不存在");
             }
             if (success) {
-                tasksServiceOne.setStatus(2);
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             } else {
                 if (tasksServiceOne.getRetryTimes() < 3) {
                     return ResultVO.success("任务要重试");
                 }
-                tasksServiceOne.setStatus(3);
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
                 tasksServiceOne.setReason(reason);
             }
@@ -269,7 +271,7 @@ public class ClientManager {
             String taskType = tasksServiceOne.getTaskType();
             switch (taskType) {
                 case "get_all_job":
-                    getAllJobHandle(bossId, data);
+                    getAllJobHandle(platform,bossId, data);
                     break;
                 case "greet":
                     greetHandle(platform,tasksServiceOne, taskId, bossId, data);
@@ -296,24 +298,31 @@ public class ClientManager {
     /**
      * 同步职位结果数据处理
      */
-    private void getAllJobHandle(String bossId, JSONObject finishTaskReqData) {
+    private void getAllJobHandle(String platform,String bossId, JSONObject finishTaskReqData) {
         try {
             LambdaUpdateWrapper<AmPositionSyncTask> queryWrapper = new LambdaUpdateWrapper<>();
             queryWrapper.eq(AmPositionSyncTask::getAccountId, bossId).set(AmPositionSyncTask::getStatus, 2);
             amPositionSyncTaskService.update(queryWrapper);
-            savePosition(bossId, 1L, finishTaskReqData);
+            savePosition(bossId, platform, finishTaskReqData);
         } catch (Exception e) {
             log.error("syncPositionResultData异常 bossId={},finishTaskReqData={}", bossId, finishTaskReqData, e);
         }
     }
 
-    private void savePosition(String bossId, Long platFormId, JSONObject jsonObject) {
+    private void savePosition(String bossId, String platForm, JSONObject jsonObject) {
         try {
 
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
             if (Objects.isNull(amZpLocalAccouts)) {
                 log.error("savePosition  amZpLocalAccouts is null,bossId={}", bossId);
                 return;
+            }
+            LambdaQueryWrapper<AmZpPlatforms> zpPlatformsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            zpPlatformsLambdaQueryWrapper.eq(AmZpPlatforms::getPlatformCode, platForm);
+            AmZpPlatforms amZpPlatforms = amZpPlatformsService.getOne(zpPlatformsLambdaQueryWrapper, false);
+            if (Objects.isNull(amZpPlatforms)) {
+                //如果为空,默认取第一个
+                amZpPlatforms = amZpPlatformsService.getById(1);
             }
 
             // 查询部门信息
@@ -332,7 +341,7 @@ public class ClientManager {
             // 注意入参格式
             JSONArray jobsArray = jsonObject.getJSONArray("jobs");
             if (Objects.isNull(jobsArray) || jobsArray.isEmpty()) {
-                log.error("savePosition jobsArray is null,bossId={},platFormId={} jsonObject={}", bossId, platFormId, jsonObject);
+                log.error("savePosition jobsArray is null,bossId={},platForm{} jsonObject={}", bossId, platForm, jsonObject);
                 return;
             }
             for (int i = 0; i < jobsArray.size(); i++) {
@@ -340,7 +349,7 @@ public class ClientManager {
                     JSONObject arrayJSONObject = jobsArray.getJSONObject(i);
                     JSONArray innerDatas = arrayJSONObject.getJSONArray("data");
                     if (Objects.isNull(innerDatas) || innerDatas.isEmpty()) {
-                        log.info("savePosition innerDatas is null,bossId={},platFormId={},i={}", bossId, platFormId, i);
+                        log.info("savePosition innerDatas is null,bossId={},platForm{},i={}", bossId, platForm, i);
                         return;
                     }
 
@@ -385,7 +394,7 @@ public class ClientManager {
                             amPosition.setSectionId(sectionId);
                             amPosition.setBossId(bossId);
                             amPosition.setUid(0);
-                            amPosition.setChannel(platFormId);
+                            amPosition.setChannel(amZpPlatforms.getId());
                             int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
                             amPosition.setEncryptId(encryptId);
                             amPosition.setIsOpen(jobStatus);
@@ -396,11 +405,11 @@ public class ClientManager {
                         }
                     }
                 } catch (Exception e) {
-                    log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platFormId, i, e);
+                    log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
                 }
             }
         } catch (Exception e) {
-            log.error("savePosition异常 bossId={},platFormId={}", bossId, platFormId, e);
+            log.error("savePosition异常 bossId={},platFormId={}", bossId, platForm, e);
         }
     }
 
@@ -542,12 +551,14 @@ public class ClientManager {
         // 提取拼接用户简历数据
         try {
             JSONObject resumeJSONObject = jsonObject.getJSONObject("resume");
+            JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
             JSONObject chatInfoJSONObject = jsonObject.getJSONObject("chat_info");
-            JSONObject geekDetailInfoJSONObject = resumeJSONObject.getJSONObject("geekDetailInfo");
-            JSONObject showExpectPositionSONObject = resumeJSONObject.getJSONObject("showExpectPosition");
-            JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
-            JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
-            String userId = chatData.get("uid").toString();
+//            JSONObject geekDetailInfoJSONObject = resumeJSONObject.getJSONObject("geekDetailInfo");
+//            JSONObject showExpectPositionSONObject = resumeJSONObject.getJSONObject("showExpectPosition");
+//            JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
+//            JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
+
+            String userId = resumeJSONObject.get("uid").toString();
             if (StringUtils.isNotBlank(userId)) {
                 QueryWrapper<AmResume> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("uid", userId);
@@ -555,57 +566,73 @@ public class ClientManager {
                 if (Objects.isNull(amResume)) {
                     amResume.setAdminId(amZpLocalAccouts.getAdminId());
                     amResume.setAccountId(amZpLocalAccouts.getId());
-                    amResume.setUid(Objects.nonNull(chatData.get("uid")) ? chatData.get("uid").toString() : "");
-                    amResume.setCity(Objects.nonNull(showExpectPositionSONObject.get("locationName")) ? showExpectPositionSONObject.get("locationName").toString() : "");
-                    amResume.setAge(Objects.nonNull(geekBaseInfo.get("age")) ? Integer.parseInt(geekBaseInfo.get("age").toString()) : 0);
-                    amResume.setApplyStatus(Objects.nonNull(chatData.get("positionStatus")) ? chatData.get("positionStatus").toString() : "");
-                    amResume.setCompany(Objects.nonNull(chatData.get("lastCompany")) ? chatData.get("lastCompany").toString() : "");
-                    amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
-                    amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
                     amResume.setCreateTime(LocalDateTime.now());
-                    amResume.setExperiences(Objects.nonNull(chatData.get("geekExpPosList")) ? chatData.get("geekExpPosList").toString() : "");
-                    amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
-                    amResume.setJobSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
-                    amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);
                     amResume.setPlatform(platform);
-                    amResume.setWorkYear(Objects.nonNull(geekBaseInfo.get("workYears")) ? geekBaseInfo.get("workYears").toString() : "0");
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResume.setType(0);
-                    amResume.setSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
-                    amResume.setPosition(Objects.nonNull(showExpectPositionSONObject.get("positionName")) ? showExpectPositionSONObject.get("positionName").toString() : "");
-                    amResume.setName(Objects.nonNull(geekBaseInfo.get("name")) ? geekBaseInfo.get("name").toString() : "");
+
+                    // ---- begin 从resume search_data数据结构提取数据 ----
+                    amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
+                    amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
+                    amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
+                    amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
+                    amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
+                    amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
+                    amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    // ---- end 从resume search_data数据结构提取数据  ----
+
+                    // ---- begin 从resume数据结构提取数据  ----
+                    amResume.setUid(Objects.nonNull(resumeJSONObject.get("uid")) ? resumeJSONObject.get("uid").toString() : "");
+                    amResume.setName(Objects.nonNull(resumeJSONObject.get("name")) ? resumeJSONObject.get("name").toString() : "");
                     amResume.setAccountId(amZpLocalAccouts.getId());
-                    amResume.setPhone(Objects.nonNull(chatData.get("phone")) ? chatData.get("phone").toString() : "");
-                    amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");
-                    amResume.setEmail(Objects.nonNull(geekBaseInfo.get("email")) ? geekBaseInfo.get("email").toString() : "");
+                    amResume.setEmail(Objects.nonNull(resumeJSONObject.get("email")) ? resumeJSONObject.get("email").toString() : "");
+                    amResume.setApplyStatus(Objects.nonNull(resumeJSONObject.get("availability")) ? resumeJSONObject.get("availability").toString() : "");
+                    amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
+                    amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
+                    amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
+                    amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
+                    // ---- end 从resume数据结构提取数据  ----
+
+                    // ---- begin 从chat_info结构提取数据  ----
+                    amResume.setPhone(Objects.nonNull(chatInfoJSONObject.get("phone")) ? chatInfoJSONObject.get("phone").toString() : "");
+                    amResume.setWechat(Objects.nonNull(chatInfoJSONObject.get("weixin")) ? chatInfoJSONObject.get("weixin").toString() : "");
+                    // ---- end 从chat_info结构提取数据  ----
+
                     boolean result = amResumeService.save(amResume);
                     log.info("dealUserAllInfoData result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 } else {
-                    amResume.setAdminId(amZpLocalAccouts.getAdminId());
-                    amResume.setAccountId(amZpLocalAccouts.getId());
-                    amResume.setUid(Objects.nonNull(chatData.get("uid")) ? chatData.get("uid").toString() : "");
-                    amResume.setCity(Objects.nonNull(showExpectPositionSONObject.get("locationName")) ? showExpectPositionSONObject.get("locationName").toString() : "");
-                    amResume.setAge(Objects.nonNull(geekBaseInfo.get("age")) ? Integer.parseInt(geekBaseInfo.get("age").toString()) : 0);
-                    amResume.setApplyStatus(Objects.nonNull(chatData.get("positionStatus")) ? chatData.get("positionStatus").toString() : "");
-                    amResume.setCompany(Objects.nonNull(chatData.get("lastCompany")) ? chatData.get("lastCompany").toString() : "");
-                    amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
-                    amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
-                    amResume.setCreateTime(LocalDateTime.now());
-                    amResume.setExperiences(Objects.nonNull(chatData.get("geekExpPosList")) ? chatData.get("geekExpPosList").toString() : "");
-                    amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
-                    amResume.setJobSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
-                    amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);
-                    amResume.setPlatform(platform);
-                    amResume.setWorkYear(Objects.nonNull(geekBaseInfo.get("workYears")) ? geekBaseInfo.get("workYears").toString() : "0");
                     amResume.setZpData(resumeJSONObject.toJSONString());
-                    amResume.setType(0);
-                    amResume.setSalary(Objects.nonNull(showExpectPositionSONObject.get("salaryDesc")) ? showExpectPositionSONObject.get("salaryDesc").toString() : "");
-                    amResume.setPosition(Objects.nonNull(showExpectPositionSONObject.get("positionName")) ? showExpectPositionSONObject.get("positionName").toString() : "");
-                    amResume.setName(Objects.nonNull(geekBaseInfo.get("name")) ? geekBaseInfo.get("name").toString() : "");
+                    // ---- begin 从resume search_data数据结构提取数据 ----
+                    amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
+                    amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
+                    amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
+                    amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
+                    amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
+                    amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
+                    amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    // ---- end 从resume search_data数据结构提取数据  ----
+
+                    // ---- begin 从resume数据结构提取数据  ----
+                    amResume.setUid(Objects.nonNull(resumeJSONObject.get("uid")) ? resumeJSONObject.get("uid").toString() : "");
+                    amResume.setName(Objects.nonNull(resumeJSONObject.get("name")) ? resumeJSONObject.get("name").toString() : "");
                     amResume.setAccountId(amZpLocalAccouts.getId());
-                    amResume.setPhone(Objects.nonNull(chatData.get("phone")) ? chatData.get("phone").toString() : "");
-                    amResume.setWechat(Objects.nonNull(chatData.get("weixin")) ? chatData.get("weixin").toString() : "");
-                    amResume.setEmail(Objects.nonNull(geekBaseInfo.get("email")) ? geekBaseInfo.get("email").toString() : "");
+                    amResume.setEmail(Objects.nonNull(resumeJSONObject.get("email")) ? resumeJSONObject.get("email").toString() : "");
+                    amResume.setApplyStatus(Objects.nonNull(resumeJSONObject.get("availability")) ? resumeJSONObject.get("availability").toString() : "");
+                    amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
+                    amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
+                    amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
+                    amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
+                    // ---- end 从resume数据结构提取数据  ----
+
+                    // ---- begin 从chat_info结构提取数据  ----
+                    if (Objects.nonNull(chatInfoJSONObject.get("phone"))){
+                        amResume.setPhone( chatInfoJSONObject.get("phone").toString());
+                    }
+                    if (Objects.nonNull(chatInfoJSONObject.get("weixin"))){
+                        amResume.setWechat( chatInfoJSONObject.get("weixin").toString());
+                    }
+                    // ---- end 从chat_info结构提取数据  ----
+
                     boolean result = amResumeService.updateById(amResume);
                     log.info("dealUserAllInfoData update result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
@@ -617,35 +644,46 @@ public class ClientManager {
     }
 
     private AmResume dealAmResume(String platform,AmZpLocalAccouts amZpLocalAccouts, JSONObject resumeObject) {
-        JSONObject geekDetailInfo = resumeObject.getJSONObject("geekDetailInfo");
-        JSONObject geekBaseInfo = geekDetailInfo.getJSONObject("geekBaseInfo");
+        JSONObject searchData = resumeObject.getJSONObject("search_data");
         AmResume amResume = new AmResume();
         amResume.setAdminId(amZpLocalAccouts.getAdminId());
         amResume.setAccountId(amZpLocalAccouts.getId());
-        amResume.setUid(Objects.nonNull(geekBaseInfo.get("userId")) ? geekBaseInfo.get("userId").toString() : "");
-        amResume.setCity(Objects.nonNull(geekBaseInfo.get("city")) ? geekBaseInfo.get("city").toString() : "");
-        amResume.setAge(Objects.nonNull(geekBaseInfo.get("age")) ? Integer.parseInt(geekBaseInfo.get("age").toString()) : 0);
-        amResume.setType(0);
-        amResume.setApplyStatus(Objects.nonNull(geekBaseInfo.get("applyStatusContent")) ? geekBaseInfo.get("applyStatusContent").toString() : "");
-        amResume.setCompany(Objects.nonNull(geekBaseInfo.get("lastCompany")) ? geekBaseInfo.get("lastCompany").toString() : "");
-        amResume.setAvatar(Objects.nonNull(geekBaseInfo.get("large")) ? geekBaseInfo.get("large").toString() : "");
-        amResume.setEducation(Objects.nonNull(geekBaseInfo.get("degreeCategory")) ? geekBaseInfo.get("degreeCategory").toString() : "");
-        amResume.setCreateTime(LocalDateTime.now());
-        amResume.setExperiences(Objects.nonNull(geekDetailInfo.get("geekExpPosList")) ? geekDetailInfo.getJSONObject("geekExpPosList").toJSONString() : "");
-        amResume.setEncryptGeekId(Objects.nonNull(geekBaseInfo.get("encryptGeekId")) ? geekBaseInfo.get("encryptGeekId").toString() : "");
-        amResume.setJobSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
-        amResume.setGender(Objects.nonNull(geekBaseInfo.get("gender")) ? Integer.parseInt(geekBaseInfo.get("gender").toString()) : 0);
-        amResume.setPlatform(platform);
-        amResume.setWorkYear(Objects.nonNull(geekBaseInfo.get("workYears")) ? geekBaseInfo.get("workYears").toString() : "0");
-        amResume.setJobSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
-        amResume.setZpData(resumeObject.toJSONString());
-        amResume.setSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
-        amResume.setPosition(Objects.nonNull(geekBaseInfo.get("toPosition")) ? geekBaseInfo.get("toPosition").toString() : "");
-        amResume.setName(Objects.nonNull(geekBaseInfo.get("name")) ? geekBaseInfo.get("name").toString() : "");
+
+        // ---- begin 从resume search_data数据结构提取数据 ----
+        amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
+        amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
+        amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
+        amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
+        amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
+        amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
+        amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+        // ---- end 从resume search_data数据结构提取数据 ----
+
+        // ---- begin 从resume数据结构提取数据  ----
+        amResume.setUid(Objects.nonNull(resumeObject.get("uid")) ? resumeObject.get("uid").toString() : "");
+        amResume.setName(Objects.nonNull(resumeObject.get("name")) ? resumeObject.get("name").toString() : "");
         amResume.setAccountId(amZpLocalAccouts.getId());
-        amResume.setPhone(Objects.nonNull(geekBaseInfo.get("phone")) ? geekBaseInfo.get("phone").toString() : "");
-        amResume.setWechat(Objects.nonNull(geekBaseInfo.get("weixin")) ? geekBaseInfo.get("weixin").toString() : "");
-        amResume.setEmail(Objects.nonNull(geekBaseInfo.get("email")) ? geekBaseInfo.get("email").toString() : "");
+        amResume.setEmail(Objects.nonNull(resumeObject.get("email")) ? resumeObject.get("email").toString() : "");
+        amResume.setApplyStatus(Objects.nonNull(resumeObject.get("availability")) ? resumeObject.get("availability").toString() : "");
+        amResume.setAvatar(Objects.nonNull(resumeObject.get("avatar")) ? resumeObject.get("avatar").toString() : "");
+        amResume.setEducation(Objects.nonNull(resumeObject.get("educations")) ? resumeObject.getJSONArray("educations").toJSONString() : "");
+        amResume.setExperiences(Objects.nonNull(resumeObject.get("work_experiences")) ? resumeObject.getJSONArray("work_experiences").toJSONString() : "");
+        amResume.setEncryptGeekId(Objects.nonNull(resumeObject.get("encryptGeekId")) ? resumeObject.get("encryptGeekId").toString() : "");
+        // ---- end 从resume数据结构提取数据  ----
+
+        // 初筛
+        amResume.setType(0);
+        amResume.setCreateTime(LocalDateTime.now());
+        amResume.setPlatform(platform);
+
+        amResume.setZpData(resumeObject.toJSONString());
+        // 打招呼取不到数据,先注释
+//        amResume.setPhone(Objects.nonNull(geekBaseInfo.get("phone")) ? geekBaseInfo.get("phone").toString() : "");
+//        amResume.setWechat(Objects.nonNull(geekBaseInfo.get("weixin")) ? geekBaseInfo.get("weixin").toString() : "");
+
+//        amResume.setCompany(Objects.nonNull(geekBaseInfo.get("lastCompany")) ? geekBaseInfo.get("lastCompany").toString() : "");
+//        amResume.setJobSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
+//        amResume.setSalary(Objects.nonNull(geekBaseInfo.get("salaryDesc")) ? geekBaseInfo.get("salaryDesc").toString() : "");
         boolean result = amResumeService.save(amResume);
         log.info("amResumeService save result={},amResume={}", result, amResume);
         return amResume;

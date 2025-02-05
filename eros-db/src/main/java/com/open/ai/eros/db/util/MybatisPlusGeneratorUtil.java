@@ -24,7 +24,7 @@ public class MybatisPlusGeneratorUtil {
         // ai   user   pay  admin    bot  creator  social permission knowledge
         String model = "hr";
         System.out.println(System.getProperty("user.dir"));
-        generateByTables(author, database,model,"am_mask");
+        generateByTables(author, database,model,"am_chat_message");
     }
 
     private static void generateByTables(String author, String database,String model, String... tableNames) {
