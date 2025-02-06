@@ -8,9 +8,11 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
+import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionPostServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionSectionServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
 import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
@@ -47,11 +49,17 @@ public class ResumeManager {
     @Resource
     private AmPositionPostServiceImpl amPositionPostService;
 
+    @Resource
+    private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
+
 
     public ResultVO<AmResumeVo> resumeDetail(Integer id) {
         try {
             AmResume amResume = amResumeService.getById(id);
             AmResumeVo amResumeVo = AmResumeConvert.I.convertAmResumeVo(amResume);
+            String accountId = amResumeVo.getAccountId();
+            AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(accountId);
+            amResumeVo.setRecruiterId(amZpLocalAccouts.getExtBossId());
             return ResultVO.success(amResumeVo);
         } catch (Exception e) {
             log.error("获取简历详情 id={}", id, e);
@@ -162,9 +170,12 @@ public class ResumeManager {
         if (Objects.nonNull(searchAmResumeReq.getExperience())) {
             AmResumeWorkYearsEnums byCode = AmResumeWorkYearsEnums.getByCode(searchAmResumeReq.getExperience());
             if (Objects.nonNull(byCode)) {
-                queryWrapper.ge(AmResume::getWorkYear, byCode.getBegin());
-                queryWrapper.le(AmResume::getWorkYear, byCode.getEnd());
+                queryWrapper.ge(AmResume::getWorkYears, byCode.getBegin());
+                queryWrapper.le(AmResume::getWorkYears, byCode.getEnd());
             }
+        }
+        if (Objects.nonNull(searchAmResumeReq.getTec())) {
+            queryWrapper.like(AmResume::getSkills, searchAmResumeReq.getTec());
         }
         List<AmResume> amResumeList = amResumeService.list(queryWrapper);
         return ResultVO.success(amResumeList);

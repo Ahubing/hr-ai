@@ -239,4 +239,10 @@ public class AmResumeVo  {
     @ApiModelProperty(value = "技能")
     private String skills;
 
+
+    /**
+     * 招聘者id
+     */
+    @ApiModelProperty(value = "招聘者id")
+    private String recruiterId;
 }
