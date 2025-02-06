@@ -41,8 +41,6 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             log.error("extractData chatData is null,bossId={}", amZpLocalAccouts.getId());
             return ResultVO.fail("chatData is null");
         }
-        String phone = chatInfo.get("phone").toString();
-        String weixin = chatInfo.get("weixin").toString();
 
         String userId = req.getUser_id();
         // 保存用户信息
@@ -51,13 +49,17 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         AmResume innerAmResume = amResumeService.getOne(queryWrapper, false);
         log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
         if (Objects.nonNull(innerAmResume)) {
-            if (Objects.isNull(phone) || Objects.isNull(weixin)) {
-                log.error("extractData phone or weixin is null,bossId={}", amZpLocalAccouts.getId());
-                return ResultVO.fail("phone or weixin is null");
-            }
             BeanUtils.copyProperties(innerAmResume, amResume);
-            amResume.setPhone(chatInfo.get("phone").toString());
-            amResume.setWechat(chatInfo.get("weixin").toString());
+            if (Objects.isNull(chatInfo.get("phone")) && Objects.isNull(chatInfo.get("weixin"))) {
+                log.error("extractData phone and weixin is null,bossId={}", amZpLocalAccouts.getId());
+                return ResultVO.fail("phone and weixin is null");
+            }
+            if (Objects.nonNull(chatInfo.get("phone"))) {
+                amResume.setPhone(chatInfo.get("phone").toString());
+            }
+            if (Objects.nonNull(chatInfo.get("weixin"))) {
+                amResume.setWechat(chatInfo.get("weixin").toString());
+            }
             if (CollectionUtils.isNotEmpty(req.getAttachmentResume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachmentResume()));
             }
