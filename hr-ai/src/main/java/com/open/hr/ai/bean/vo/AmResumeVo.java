@@ -233,4 +233,10 @@ public class AmResumeVo  {
     private String attachmentResume;
 
 
+    /**
+     * 技能
+     */
+    @ApiModelProperty(value = "技能")
+    private String skills;
+
 }

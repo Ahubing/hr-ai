@@ -209,4 +209,7 @@ public class AmResume implements Serializable {
     private String attachmentResume;
 
 
+    private String skills;
+
+
 }
