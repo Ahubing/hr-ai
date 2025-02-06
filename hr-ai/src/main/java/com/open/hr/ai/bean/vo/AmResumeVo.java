@@ -37,128 +37,154 @@ public class AmResumeVo  {
     /**
      * 当前登录的总账号的id
      */
+    @ApiModelProperty(value = "当前登录的总账号的id")
     private Long adminId;
 
     /**
      * 账号id  local_accounts的id
      */
+    @ApiModelProperty(value = "账号id  local_accounts的id")
     private String accountId;
 
     /**
      * 用户信息加密id
      */
-    @TableField("encryptGeekId")
+    @ApiModelProperty(value = "用户信息加密id")
     private String encryptGeekId;
 
     /**
      * 脚本返回的用户id
      */
+    @ApiModelProperty(value = "脚本返回的用户id")
     private String uid;
 
     /**
      * 类型。0初筛 1邀约跟进，2面试安排 3已发offer 4已入职  5全部
      */
+    @ApiModelProperty(value = "类型。0初筛 1邀约跟进，2面试安排 3已发offer 4已入职  5全部")
     private Integer type;
 
     /**
      * 姓名
      */
+    @ApiModelProperty(value = "姓名")
     private String name;
 
     /**
      * 头像
      */
+    @ApiModelProperty(value = "头像")
     private String avatar;
 
     /**
      * 所在公司/曾就职的公司
      */
+    @ApiModelProperty(value = "所在公司/曾就职的公司")
     private String company;
 
     /**
      * 城市
      */
+    @ApiModelProperty(value = "城市")
     private String city;
 
     /**
      * 找的职位
      */
+    @ApiModelProperty(value = "找的职位")
     private String position;
 
     /**
      * 0女，1男
      */
+    @ApiModelProperty(value = "0女，1男")
     private Integer gender;
 
     /**
      * 薪资
      */
+    @ApiModelProperty(value = "薪资")
     private String salary;
 
     /**
      * 平台，来源
      */
+    @ApiModelProperty(value = "平台，来源")
     private String platform;
 
     /**
      * 工作年限
      */
-    @TableField("workYear")
+    @ApiModelProperty(value = "工作年限")
     private String workYear;
 
     /**
      * 教育学历
      */
+    @ApiModelProperty(value = "教育学历")
     private JSONArray education;
+
+
+    /**
+     * 项目经验。json字符串保存
+     */
+    @ApiModelProperty(value = "项目经验。json字符串保存")
+    private JSONArray projects;
 
     /**
      * 年龄
      */
+    @ApiModelProperty(value = "年龄")
     private Integer age;
 
     /**
      * 经验。json字符串保存
      */
+    @ApiModelProperty(value = "经验。json字符串保存")
     private JSONArray experiences;
 
     /**
      * 绑定的岗位id
      */
+    @ApiModelProperty(value = "绑定的岗位id")
     private Integer postId;
 
     /**
      * 招聘的职位目录
      */
     @TableField("positionCategory")
+    @ApiModelProperty(value = "招聘的职位目录")
     private String positionCategory;
 
     /**
      * 工资/薪资
      */
     @TableField("jobSalary")
+    @ApiModelProperty(value = "工资/薪资")
     private String jobSalary;
 
     /**
      * 沟通说明
      */
-    @TableField("bottomText")
+    @ApiModelProperty(value = "沟通说明")
     private String bottomText;
 
     /**
      * 申请状态
      */
-    @TableField("applyStatus")
+    @ApiModelProperty(value = "申请状态")
     private String applyStatus;
 
     /**
      * 是否有点击拿简历;0否，1是
      */
+    @ApiModelProperty(value = "是否有点击拿简历;0否，1是")
     private Boolean isClick;
 
     /**
      * 招聘信息
      */
-    @TableField("zpData")
+    @ApiModelProperty(value = "招聘信息")
     private JSONObject zpData;
 
 
@@ -166,6 +192,7 @@ public class AmResumeVo  {
     /**
      * 创建时间
      */
+    @ApiModelProperty(value = "创建时间")
     @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime createTime;
 
@@ -196,6 +223,7 @@ public class AmResumeVo  {
     /**
      * 工作年限
      */
+    @ApiModelProperty(value = "工作年限")
     private Integer workYears;
 
     /**

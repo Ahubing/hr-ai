@@ -23,6 +23,7 @@ public interface AmResumeConvert {
 
     @Mapping(target = "education",source = "education",qualifiedByName="convertToJsonArray")
     @Mapping(target = "experiences",source = "experiences",qualifiedByName="convertToJsonArray")
+    @Mapping(target = "projects",source = "projects",qualifiedByName="convertToJsonArray")
     @Mapping(target = "zpData",source = "zpData",qualifiedByName="convertToJsonObject")
     AmResumeVo convertAmResumeVo(AmResume amResume);
 

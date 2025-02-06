@@ -591,6 +591,7 @@ public class ClientManager {
                     amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
                     amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
                     amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
+                    amResume.setProjects(Objects.nonNull(resumeJSONObject.get("projects")) ? resumeJSONObject.getJSONArray("projects").toJSONString() : "");
                     amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
                     // ---- end 从resume数据结构提取数据  ----
 
@@ -622,6 +623,7 @@ public class ClientManager {
                     amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
                     amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
                     amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
+                    amResume.setProjects(Objects.nonNull(resumeJSONObject.get("projects")) ? resumeJSONObject.getJSONArray("projects").toJSONString() : "");
                     amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
                     // ---- end 从resume数据结构提取数据  ----
 
@@ -669,6 +671,7 @@ public class ClientManager {
         amResume.setAvatar(Objects.nonNull(resumeObject.get("avatar")) ? resumeObject.get("avatar").toString() : "");
         amResume.setEducation(Objects.nonNull(resumeObject.get("educations")) ? resumeObject.getJSONArray("educations").toJSONString() : "");
         amResume.setExperiences(Objects.nonNull(resumeObject.get("work_experiences")) ? resumeObject.getJSONArray("work_experiences").toJSONString() : "");
+        amResume.setProjects(Objects.nonNull(resumeObject.get("projects")) ? resumeObject.getJSONArray("projects").toJSONString() : "");
         amResume.setEncryptGeekId(Objects.nonNull(resumeObject.get("encryptGeekId")) ? resumeObject.get("encryptGeekId").toString() : "");
         // ---- end 从resume数据结构提取数据  ----
 

@@ -112,9 +112,15 @@ public class AmResume implements Serializable {
     private Integer age;
 
     /**
-     * 经验。json字符串保存
+     * 工作经验。json字符串保存
      */
     private String experiences;
+
+
+    /**
+     * 项目经验。json字符串保存
+     */
+    private String projects;
 
     /**
      * 绑定的岗位id
