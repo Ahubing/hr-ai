@@ -97,7 +97,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
             AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(lambdaQueryWrapper, false);
             List<ChatMessage> messages = new ArrayList<>();
-            if (Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
+            if (Objects.nonNull(amChatbotPositionOption) &&  Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
                 // 如果有绑定ai角色,则获取ai角色进行回复
                 AmMask amMask = amMaskService.getById(amChatbotPositionOption.getAmMaskId());
                 AmMaskVo amMaskVo = AmMaskConvert.I.convertAmMaskVo(amMask);

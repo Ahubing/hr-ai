@@ -20,6 +20,7 @@ import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.io.IntWritable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -558,19 +559,30 @@ public class ClientManager {
 //            JSONObject showExpectPositionSONObject = resumeJSONObject.getJSONObject("showExpectPosition");
 //            JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
 //            JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
-
+            Integer positionId = 0;
+            if (Objects.nonNull(chatInfoJSONObject.get("toPositionId"))) {
+                String toPositionId = chatInfoJSONObject.get("toPositionId").toString();
+                LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+                positionQueryWrapper.eq(AmPosition::getEncryptId, toPositionId);
+                AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
+                if (Objects.nonNull(amPositionServiceOne)) {
+                    positionId = amPositionServiceOne.getId();
+                }
+            }
             String userId = resumeJSONObject.get("uid").toString();
             if (StringUtils.isNotBlank(userId)) {
                 QueryWrapper<AmResume> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq("uid", userId);
                 AmResume amResume = amResumeService.getOne(queryWrapper, false);
                 if (Objects.isNull(amResume)) {
+                    amResume = new AmResume();
                     amResume.setAdminId(amZpLocalAccouts.getAdminId());
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setCreateTime(LocalDateTime.now());
                     amResume.setPlatform(platform);
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResume.setType(0);
+                    amResume.setPostId(positionId);
 
                     // ---- begin 从resume search_data数据结构提取数据 ----
                     amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
@@ -604,7 +616,10 @@ public class ClientManager {
                     boolean result = amResumeService.save(amResume);
                     log.info("dealUserAllInfoData result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 } else {
+                    amResume.setPostId(positionId);
                     amResume.setZpData(resumeJSONObject.toJSONString());
+
+
                     // ---- begin 从resume search_data数据结构提取数据 ----
                     amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
                     amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
