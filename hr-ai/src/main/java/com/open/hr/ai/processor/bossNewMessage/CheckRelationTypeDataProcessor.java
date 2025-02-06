@@ -57,8 +57,12 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             HashMap<String, Object> hashMap = new HashMap<>();
             HashMap<String, Object> searchDataMap = new HashMap<>();
             hashMap.put("user_id", req.getUser_id());
-            searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
-            searchDataMap.put("name", amResume.getName());
+            if (Objects.nonNull(amResume.getEncryptGeekId())) {
+                searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
+            }
+            if (Objects.nonNull(amResume.getName())) {
+                searchDataMap.put("name", amResume.getName());
+            }
             hashMap.put("search_data", searchDataMap);
             amClientTasks.setData(JSONObject.toJSONString(hashMap));
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());

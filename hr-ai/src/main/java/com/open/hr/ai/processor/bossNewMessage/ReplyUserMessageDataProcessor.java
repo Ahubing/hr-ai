@@ -90,7 +90,8 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         String taskId = req.getRecruiter_id() +"_"+ req.getUser_id();
         if (Objects.isNull(postId)) {
             log.info("postId is null,amResume={}", amResume);
-        } else {
+        }
+        else {
             LambdaQueryWrapper<AmChatbotPositionOption> lambdaQueryWrapper = new LambdaQueryWrapper<>();
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
             lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
@@ -178,8 +179,12 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         HashMap<String, Object> searchDataMap = new HashMap<>();
         HashMap<String, Object> messageMap = new HashMap<>();
         hashMap.put("user_id", req.getUser_id());
-        searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
+        if (Objects.nonNull(amResume.getEncryptGeekId())) {
+            searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
+        }
+        if (Objects.nonNull(amResume.getName())) {
         searchDataMap.put("name", amResume.getName());
+        }
         hashMap.put("search_data", searchDataMap);
         messageMap.put("content", content);
         hashMap.put("message", messageMap);

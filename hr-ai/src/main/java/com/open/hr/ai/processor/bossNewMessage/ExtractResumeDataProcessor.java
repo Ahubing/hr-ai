@@ -64,6 +64,13 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachmentResume()));
             }
             amResumeService.updateById(amResume);
+        }else {
+            if (Objects.nonNull(chatInfo.get("encryptUid"))){
+            amResume.setEncryptGeekId(chatInfo.get("encryptUid").toString());
+            }
+            if (Objects.nonNull(chatInfo.get("uid"))) {
+                amResume.setUid(chatInfo.get("uid").toString());
+            }
         }
 
         return ResultVO.success();
