@@ -6,6 +6,7 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
+import com.open.hr.ai.bean.vo.AmResumeVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ResumeManager;
 import io.swagger.annotations.Api;
@@ -49,7 +50,7 @@ public class ResumeController extends HrAIBaseController {
     @ApiOperation("获取简历详情")
     @VerifyUserToken
     @GetMapping("resume/detail")
-    public ResultVO<AmResume> promptDetail(@RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO<AmResumeVo> promptDetail(@RequestParam(value = "id", required = true) Integer id) {
         return resumeManager.resumeDetail(id);
     }
 

@@ -34,7 +34,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
     private AmClientTasksServiceImpl amClientTasksService;
 
     /**
-     * 判断用户是否是主动打招呼
+     * 判断用户是否是主动打招呼,此时需要获取用户的全部数据, 需要发request_all_info任务
      */
     @Override
     public ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {

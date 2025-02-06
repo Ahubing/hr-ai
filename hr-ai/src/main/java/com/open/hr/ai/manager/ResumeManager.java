@@ -14,9 +14,11 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
 import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
+import com.open.hr.ai.bean.vo.AmResumeVo;
 import com.open.hr.ai.constant.AmResumeEducationEnums;
 import com.open.hr.ai.constant.AmResumeWorkYearsEnums;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
+import com.open.hr.ai.convert.AmResumeConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -46,10 +48,11 @@ public class ResumeManager {
     private AmPositionPostServiceImpl amPositionPostService;
 
 
-    public ResultVO<AmResume> resumeDetail(Integer id) {
+    public ResultVO<AmResumeVo> resumeDetail(Integer id) {
         try {
             AmResume amResume = amResumeService.getById(id);
-            return ResultVO.success(amResume);
+            AmResumeVo amResumeVo = AmResumeConvert.I.convertAmResumeVo(amResume);
+            return ResultVO.success(amResumeVo);
         } catch (Exception e) {
             log.error("获取简历详情 id={}", id, e);
         }

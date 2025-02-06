@@ -135,7 +135,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             StringBuilder buildNewUserMessage = new StringBuilder();
             StringBuilder buildSystemUserMessage = new StringBuilder();
             // 过滤出已经存在的消息id
-            for (ChatMessage message : messages) {
+            for (ChatMessage message : bossNewMessages) {
                 // 判断是否存在消息id, 不存在则构建插入
                 if (exitAmChatMessages.stream().noneMatch(amChatbotGreetMessage -> amChatbotGreetMessage.getChatId().equals(message.getId()))) {
                     AmChatMessage greetMessages = new AmChatMessage();
