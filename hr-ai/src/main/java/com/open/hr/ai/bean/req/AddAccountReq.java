@@ -18,7 +18,7 @@ public class AddAccountReq {
      */
     @NotNull(message = "招聘平台id不能为空")
     @ApiModelProperty(value = "招聘平台id", required = true)
-    private Integer platformId;
+    private Long platformId;
 
     /**
      * 账号

@@ -146,6 +146,7 @@ public class ChatBotManager {
             AmZpLocalAccouts amZpLocalAccouts = new AmZpLocalAccouts();
             amZpLocalAccouts.setId(uuid);
             amZpLocalAccouts.setAdminId(adminId);
+            amZpLocalAccouts.setPlatformId(addAccountReq.getPlatformId());
             amZpLocalAccouts.setAccount(addAccountReq.getAccount());
             amZpLocalAccouts.setMobile(addAccountReq.getMobile());
             amZpLocalAccouts.setCity(addAccountReq.getCity());
