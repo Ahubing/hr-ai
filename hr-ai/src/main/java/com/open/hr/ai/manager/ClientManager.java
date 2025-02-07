@@ -13,10 +13,7 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
-import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import com.open.hr.ai.constant.RedisKyeConstant;
+import com.open.hr.ai.constant.*;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -264,9 +261,11 @@ public class ClientManager {
                 if (tasksServiceOne.getRetryTimes() < 3) {
                     return ResultVO.success("任务要重试");
                 }
+
                 tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
                 tasksServiceOne.setReason(reason);
+                dealErrorTask(bossId,taskId, tasksServiceOne);
             }
             boolean result = amClientTasksService.updateById(tasksServiceOne);
             log.info("amClientTasksService update result={},tasksServiceOne={}", result, tasksServiceOne);
@@ -540,6 +539,8 @@ public class ClientManager {
             } else {
                 amPositionServiceOne.setIsOpen(0);
             }
+            //清除更新状态
+            amPositionServiceOne.setIsSyncing(0);
             boolean updateResult = amPositionService.updateById(amPositionServiceOne);
             log.info("switchJobState updateResult={},amPositionServiceOne={}", updateResult, amPositionServiceOne);
         } catch (Exception e) {
@@ -712,30 +713,29 @@ public class ClientManager {
         return amResume;
     }
 
-    private AmClientTasks createRequestAllInfo(AmZpLocalAccouts amZpLocalAccouts, AmResume amResume) {
 
+    private void dealErrorTask(String taskId, String bossId, AmClientTasks amClientTasks) {
         try {
-            AmClientTasks amClientTasks = new AmClientTasks();
-            amClientTasks.setBossId(amZpLocalAccouts.getId());
-            amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
-            amClientTasks.setCreateTime(LocalDateTime.now());
-            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
-            HashMap<String, Object> hashMap = new HashMap<>();
-            HashMap<String, Object> searchDataMap = new HashMap<>();
-            hashMap.put("user_id", amResume.getUid());
-            searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
-            searchDataMap.put("name", amResume.getName());
-            hashMap.put("search_data", searchDataMap);
-            amClientTasks.setData(JSONObject.toJSONString(hashMap));
-            boolean save = amClientTasksService.save(amClientTasks);
-            log.info("createRequestAllInfo save result={},amClientTasks={}", save, amClientTasks);
-            return amClientTasks;
+            String tasksData = amClientTasks.getData();
+            JSONObject jsonObject = JSONObject.parseObject(tasksData);
+            // 如果是get_all_job 和 switch_job_state
+            if (amClientTasks.getTaskType().equals(ClientTaskTypeEnums.SWITCH_JOB_STATE.getType())) {
+                String encryptId = jsonObject.get("encrypt_id").toString();
+                LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
+                updateWrapper.eq(AmPosition::getEncryptId, encryptId).eq(AmPosition::getBossId,bossId).set(AmPosition::getIsSyncing, 0);
+                boolean result = amPositionService.update(updateWrapper);
+                log.info("dealErrorTask update result={},encryptId={}", result, encryptId);
+            }
+            if (amClientTasks.getTaskType().equals(ClientTaskTypeEnums.GET_ALL_JOB.getType())) {
+                LambdaUpdateWrapper<AmPositionSyncTask> queryWrapper = new LambdaUpdateWrapper<>();
+                queryWrapper.eq(AmPositionSyncTask::getAccountId, bossId).set(AmPositionSyncTask::getStatus, 2);
+                amPositionSyncTaskService.update(queryWrapper);
+            }
         } catch (Exception e) {
-            log.error("createRequestAllInfo error,amZpLocalAccouts={},amResume={}", amZpLocalAccouts, amResume, e);
+            log.error("处理失败任务异常 taskId={},bossId={}", taskId, bossId, e);
         }
-        return null;
-    }
 
+    }
     public static void main(String[] args) {
 //        String json = "{\"boss_id\":\"937aa1963da20a4a1ee3bd7db79e3185\",\"task_type\":\"send_message\",\"task_id\":\"2687d01d-ed5f-4d7e-8a8d-5e25e5dade7c\",\"success\":true,\"reason\":\"\",\"data\":{\"can_greet\":true,\"user_resumes\":[{\"blockDialog\":null,\"page\":null,\"pageV2\":null,\"geekQuestInfo\":null,\"geekQuestInfoV2\":null,\"jobCompetitive\":null,\"mateChatInfo\":{\"showMateChat\":false,\"innerAccountUser\":false,\"vipPaidUser\":true,\"vipChargeUser\":true,\"guideBuyUrl\":null,\"guideBzbUrl\":null,\"accountType\":0,\"source\":2,\"cooperateCompany\":false},\"notice\":{\"need\":false,\"msg\":null,\"usablePrivilegeMsg\":null,\"purchasableMsg\":null},\"securityJid\":\"ecpEgadOZiG2w-d1VpAahqkML398oVbJeuGEgkNxiKWVe_aFasP6W6wEA4ecnAk4HwddFuaowsTGdG3o7tTAMzl0YJNawEd3yEGOuuoPsxA7ZoxvQlVtekhrMVMNneZ_R-ucxX4vQn2t9lDbsyK8RT3fcDDWU051tY79DnmJcO0WCfiIZ_ejrDUZXrQyx008ZGmUL3gN2G1l7cexBMqAM-iP7BCA4dp2CaklIvEn-ToTQrX04MvQWJVN9OcPcdQ2-cNC6STzwOfa4AF0T-GLJ_YZutVfFK7egn6009WeJPzxmuxvtEd-COlfcbgGlSm8XuZ99jmXolUN2HK7Qq0cpKrxVk8SYI2V2YvPiyRAvjoBjgrF4zCOEeb0KyTX8wKziIibXAkpwWvEYNlW76QSmkRnG8ELDEF0P0D030LsYbamehUY8MYDdAL6B2htbXgOFbGJAEeqNKrKU0YKko4KLAr6-8L6aSWMif0SVbZl02q214-BRVU~\",\"hightLightManual\":1,\"geekDetailInfo\":{\"resumeSummary\":null,\"geekBaseInfo\":{\"name\":\"姜佳敏\",\"nameRareChars\":null,\"large\":\"https://img.bosszhipin.com/beijin/upload/avatar/20231001/607f1f3d68754fd05fac5d02611b849142bba3b79846861a129e160848b2214c1998e31b6a1c95e4.png.webp\",\"tiny\":\"https://img.bosszhipin.com/beijin/upload/avatar/20231001/607f1f3d68754fd05fac5d02611b849142bba3b79846861a129e160848b2214c1998e31b6a1c95e4_s.png.webp\",\"headImg\":0,\"gender\":0,\"degree\":203,\"degreeCategory\":\"本科\",\"freshGraduate\":3,\"applyStatus\":2,\"email\":null,\"workYears\":0,\"workDate8\":0,\"workYearDesc\":\"25年应届生\",\"age\":0,\"ageDesc\":\"21岁\",\"eventTime\":1736590826791,\"activeTimeDesc\":\"刚刚活跃\",\"unregister\":false,\"longitude\":0,\"latitude\":0,\"appVersion\":0,\"resumeStatus\":0,\"complete\":true,\"status\":0,\"applyStatusContent\":\"在校-考虑机会\",\"userId\":557777895,\"suid\":null,\"blur\":0,\"workEduDesc\":null,\"userHighlightList\":[],\"workYearsDesc\":\"25年应届生\",\"userDescription\":\"1.乐观、自信,敢于面对和克服困难,抗压能力好,有扎实的Python编程基础。\\n2.热爱编程语言,具备强烈责任心和团队合作精神\",\"foldedRows\":0,\"studyAbroadCert\":false,\"userDescHighlightList\":[],\"geekSource\":0,\"ageDescHighLightList\":null,\"designGreeting\":null,\"haveChattedText\":null,\"showSelectJob\":0,\"eliteGeekInfo\":{\"eliteGeek\":0,\"eliteIcon\":null,\"eliteExplainTips\":null,\"searchCardCostTips\":null},\"resumeAssistGuide\":null,\"advantages\":null,\"completeType\":0,\"interactiveHometown\":null,\"encryptGeekId\":\"07ea4d5c0ae7818f0nF93Nq6GFtV\",\"student\":true,\"preChatTips\":null,\"applyStatusDesc\":\"在校-考虑机会\",\"openMoment\":false,\"simpleCompleteGeek\":false},\"multiGeekVideoResume4BossVO\":null,\"resumeVideoInfo\":null,\"geekStatus\":0,\"showWorkExpDescFlag\":0,\"hasOverLapWorkExp\":false,\"toAnswerDetailUrl\":null,\"trickGeekQuestionAnswers\":null,\"showJobExperienceTip\":null,\"postExpData\":null,\"distanceText\":null,\"languageCertList\":null,\"authentication\":false,\"geekDzDoneWorks\":null,\"geekWorkPositionExpDescList\":null,\"nonMatchWorkExpIndex\":0,\"blueGeekCharacters\":null,\"blueGeekSkills\":null,\"geekExpPosList\":[{\"id\":1119331506,\"expectId\":1119331506,\"encryptExpId\":\"35c961d119fd1f081nV70t6-EVdQxA~~\",\"geekId\":557777895,\"expectType\":1,\"position\":10000028,\"positionName\":\"数据标注/AI训练师\",\"location\":101110100,\"locationName\":\"西安\",\"subLocation\":0,\"subLocationName\":null,\"lowSalary\":4,\"highSalary\":5,\"customPositionId\":0,\"deleted\":0,\"industryCodeList\":[],\"industryList\":[],\"addTime\":1736038905000,\"updateTime\":1736038905000,\"industryDesc\":\"行业不限\",\"salaryDesc\":\"4-5K\",\"positionCodeLv1\":10000000,\"positionCodeLv2\":10000028,\"potentialJobInterest\":null,\"recommendReason\":null,\"positionType\":0,\"positionNameHighlightList\":null},{\"id\":1119331469,\"expectId\":1119331469,\"encryptExpId\":\"ef5575e1227a9a5d1nV70t6-EVZWyw~~\",\"geekId\":557777895,\"expectType\":1,\"position\":10000015,\"positionName\":\"数据分析师\",\"location\":101110100,\"locationName\":\"西安\",\"subLocation\":0,\"subLocationName\":null,\"lowSalary\":4,\"highSalary\":5,\"customPositionId\":0,\"deleted\":0,\"industryCodeList\":[],\"industryList\":[],\"addTime\":1736038569000,\"updateTime\":1736038569000,\"industryDesc\":\"行业不限\",\"salaryDesc\":\"4-5K\",\"positionCodeLv1\":10000000,\"positionCodeLv2\":10000015,\"potentialJobInterest\":null,\"recommendReason\":null,\"positionType\":0,\"positionNameHighlightList\":null}],\"geekWorkExpList\":[],\"geekProjExpList\":[{\"name\":\"山西省金地杯数学建模竞赛\",\"url\":null,\"roleName\":\"核心成员\",\"performance\":\"\",\"startDate\":\"20230401\",\"endDate\":\"20230501\",\"projectId\":60562127,\"projDescHighlightList\":[],\"perfHighlightList\":[],\"projectDescription\":\"项目内容:基于python的物资存储和运送问题的研究针对物资分配和货车运送安排问题,建立了线性规划模型、整数规划模型,使用了最小生成树的遍历、贪心算法、暴力枚举算法,求解出可行性最强、效率最高的运输方案\\n负责工作:利用Python语言将数学模型转换为代码,论文的撰写\",\"workYearDesc\":\"1个月\",\"startDateDesc\":\"2023.04\",\"endDateDesc\":\"2023.05\",\"fastChatDialog\":null,\"startYearMonStr\":\"2023.04\",\"endYearMonStr\":\"2023.05\"}],\"geekEduExpList\":[{\"userId\":0,\"school\":\"晋中学院\",\"schoolId\":1580,\"major\":\"数据科学与大数据技术\",\"degree\":203,\"degreeName\":\"本科\",\"eduType\":1,\"startDate\":\"20210101\",\"endDate\":\"20250101\",\"eduId\":129260902,\"country\":\"\",\"tags\":[],\"schoolTags\":[],\"schoolType\":0,\"trainingAgency\":0,\"studyAbroad\":0,\"verifiedText\":\"\",\"eduDescription\":\"\",\"startDateDesc\":\"2021\",\"endDateDesc\":\"2025\",\"schNameHighLightList\":null,\"majorHighLightList\":null,\"majorRankingDesc\":\"专业前3%\",\"courseDesc\":null,\"keySubjectList\":null,\"badge\":\"https://img.bosszhipin.com/beijin/icon/28fefbf333c550dc29d23aafb8a7da9fb1792042df7d374e83c5b195df57be51.png\",\"briefIntroduce\":\"\",\"showBriefIntroduceIcon\":false,\"thesisTitle\":null,\"thesisDesc\":null,\"iconGray\":false}],\"geekTrainingExpList\":null,\"workExpCheckRes\":null,\"eduExpCheckRes\":null,\"attachCheckRes\":null,\"geekSocialContactList\":[],\"geekVolunteerExpList\":[{\"volunteerId\":2066363,\"name\":\"青春兴晋\",\"serviceLength\":\"200.0小时\",\"startDate\":202207,\"endDate\":202209,\"volunteerDescription\":\"参与大学生青春兴晋活动\",\"startYearMonthStr\":\"2022.07\",\"endYearMonthStr\":\"2022.09\"}],\"geekCertificationList\":[{\"certName\":\"大学英语四级\",\"certStatus\":0,\"highlight\":0,\"certTipText\":null},{\"certName\":\"普通话二级乙等\",\"certStatus\":0,\"highlight\":0,\"certTipText\":null},{\"certName\":\"大学英语六级\",\"certStatus\":0,\"highlight\":0,\"certTipText\":null},{\"certName\":\"C1驾驶证\",\"certStatus\":0,\"highlight\":0,\"certTipText\":null},{\"certName\":\"CET6\",\"certStatus\":0,\"highlight\":0,\"certTipText\":null},{\"certName\":\"CET4\",\"certStatus\":0,\"highlight\":0,\"certTipText\":null}],\"geekDesignWorksList\":null,\"attachmentResumeChatInfo\":null,\"speakTestResult\":null,\"geekQuestionAnswerList\":null,\"geekDoneWorkPositionList\":[],\"geekResumePictureModuleList\":[],\"geekResumeProductList\":[],\"geekClubExpList\":[{\"name\":\"核酸检测志愿服务\",\"roleName\":\"秩序岗\",\"desc\":\"维持现场秩序,引导居民排队,确保核酸检测工作高效运行,与其他志愿者共同合作,增强了问题解决能力和团\\n队合作精神。\",\"startDateStr\":\"2022.07\",\"endDateStr\":\"2022.08\"},{\"name\":\"红色筑梦之旅部门\",\"roleName\":\"策划部部长\",\"desc\":\"负责策划部日常运营管理,制定并执行部门工作计划与流程。在组织校园活动期间,合理分配任务,确保每个成员清楚了解自己的职责,使活动筹备工作有条不紊地进行。\",\"startDateStr\":\"2021.10\",\"endDateStr\":\"2022.06\"}],\"geekHandicappedInfo4BossVO\":null,\"rcdGeekLabel\":null,\"hitGeekUpperRightGray\":false,\"hitGeekProductUpperRight\":false,\"geekHonorList\":[{\"honorName\":\"山西省金地杯数学建模二等奖\"},{\"honorName\":\"青春兴晋优秀志愿者\"},{\"honorName\":\"数学建模省奖\"}],\"hitGeekWorkExpGray\":false,\"groupTitle\":null,\"groupMemberList\":null,\"geekOverseasPreference\":null,\"professionalSkill\":\"语言能力:通过CET4、CET6,有良好的英语听说读写能力,普通话二级乙等:,计算机能力:熟练掌握office办公软件;熟悉Python语言,具备一定的数据分析能力,获得荣誉:山西省金地杯数学建模二等奖、青春兴晋优秀志愿者;,C1驾驶证:熟练掌握驾驶技能。\",\"v110304\":-1,\"hideFullNameProcessed\":false,\"toast\":null,\"mbtiInfo\":null,\"enshrineGeek\":false,\"fromInterestListAnymous\":false,\"showExpectPosition\":{\"id\":1119331506,\"expectId\":1119331506,\"encryptExpId\":\"35c961d119fd1f081nV70t6-EVdQxA~~\",\"geekId\":557777895,\"expectType\":1,\"position\":10000028,\"positionName\":\"数据标注/AI训练师\",\"location\":101110100,\"locationName\":\"西安\",\"subLocation\":0,\"subLocationName\":null,\"lowSalary\":4,\"highSalary\":5,\"customPositionId\":0,\"deleted\":0,\"industryCodeList\":[],\"industryList\":[],\"addTime\":1736038905000,\"updateTime\":1736038905000,\"industryDesc\":\"行业不限\",\"salaryDesc\":\"4-5K\",\"positionCodeLv1\":10000000,\"positionCodeLv2\":10000028,\"potentialJobInterest\":null,\"recommendReason\":null,\"positionType\":0,\"positionNameHighlightList\":null},\"supportInterested\":false,\"geekWorksResume\":null,\"encryptJid\":\"b485df832a62be0803R-2NW0FFZV\"},\"hiddenResume\":0,\"geekStatus\":0,\"bossViewedGeekStyle\":true,\"rightsUseTip\":null,\"preJobViewGeekGray\":0,\"interBossSelectJob\":false,\"directCall\":{\"canUseDirectCall\":false,\"usedDirectCall\":false,\"count\":0,\"bannerDesc\":\"\",\"activityDesc\":\"\"},\"formattedCompanyGray\":0,\"queryZoomNewStyleGray\":1,\"feedbackDialog\":null,\"hunterIntentionEntrance\":{\"showEntrance\":false,\"text\":null,\"cardType\":null,\"hasIntention\":null,\"usedService\":false,\"rightCnt\":0,\"searchLimit\":false,\"chatLimit\":false},\"hunterGeekReqText\":null,\"anonymousChatItemOptions\":null,\"selectedItem\":0,\"toast\":null,\"geekRequirementEncJobId\":null,\"geekRequirementTags\":null,\"friend\":true}]}}";
 //        JSONObject jsonObject = JSONObject.parseObject(json);

@@ -5,6 +5,7 @@ import com.open.ai.eros.db.mysql.hr.entity.AmClientTasks;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
+import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,20 +29,18 @@ public class AmClientTaskManager {
     /**
      * 批量关闭打开岗位
      */
-    public Boolean batchCloseOrOpenPosition(AmZpLocalAccouts zpLocalAccouts, List<AmPosition> amPositions, Integer status) {
+    public Boolean batchCloseOrOpenPosition(String bossId, AmPosition amPosition, Integer status) {
         try {
-            for (AmPosition amPosition : amPositions) {
                 AmClientTasks amClientTasks = new AmClientTasks();
-                amClientTasks.setBossId(zpLocalAccouts.getId());
+                amClientTasks.setBossId(bossId);
                 amClientTasks.setCreateTime(LocalDateTime.now());
                 amClientTasks.setTaskType(ClientTaskTypeEnums.SWITCH_JOB_STATE.getType());
-                amClientTasks.setStatus(1);
+                amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("encrypt_id", amPosition.getEncryptId());
                 amClientTasks.setData(jsonObject.toJSONString());
                 boolean result = amClientTasksService.save(amClientTasks);
                 log.info("batchCloseOrOpenPosition amClientTasks={} result={}", amClientTasks, result);
-            }
         } catch (Exception e) {
             log.error("batchCloseOrOpenPosition error", e);
             return false;

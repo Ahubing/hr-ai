@@ -97,17 +97,15 @@ public class ChatBotPositionManager {
             queryWrapper.eq(AmPosition::getAdminId, adminId);
             queryWrapper.in(AmPosition::getId, ids);
             List<AmPosition> amPositions = amPositionService.list(queryWrapper);
-            AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(new LambdaQueryWrapper<AmZpLocalAccouts>().eq(AmZpLocalAccouts::getAdminId, adminId), false);
-            if (Objects.isNull(zpLocalAccouts)) {
-                log.info("boss账号不存在");
-                return ResultVO.fail("boss账号不存在");
-            }
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_CLOSE.getStatus());
+            // 先存
+            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_CLOSE.getStatus()).set(AmPosition::getIsSyncing, 1);
             boolean result = amPositionService.update(updateWrapper);
             if (result) {
-                Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
-                log.info("batchResult={}", batchResult);
+                for (AmPosition amPosition : amPositions) {
+                    Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(amPosition.getBossId(), amPosition, PositionStatusEnums.POSITION_CLOSE.getStatus());
+                    log.info("close position bossId={}, positionId={} batchResult={}",amPosition.getBossId(),amPosition.getId(), batchResult);
+                }
             }
             return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
         } catch (Exception e) {
@@ -133,17 +131,14 @@ public class ChatBotPositionManager {
             queryWrapper.eq(AmPosition::getAdminId, adminId);
             queryWrapper.in(AmPosition::getId, ids);
             List<AmPosition> amPositions = amPositionService.list(queryWrapper);
-            AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(new LambdaQueryWrapper<AmZpLocalAccouts>().eq(AmZpLocalAccouts::getAdminId, adminId));
-            if (Objects.isNull(zpLocalAccouts)) {
-                log.info("boss账号不存在");
-                return ResultVO.fail("boss账号不存在");
-            }
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_OPEN.getStatus());
+            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_OPEN.getStatus()).set(AmPosition::getIsSyncing, 1);;
             boolean result = amPositionService.update(updateWrapper);
             if (result) {
-                Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(zpLocalAccouts, amPositions, PositionStatusEnums.POSITION_OPEN.getStatus());
-                log.info("batchResult={}", batchResult);
+                for (AmPosition amPosition : amPositions) {
+                    Boolean batchResult = amClientTaskManager.batchCloseOrOpenPosition(amPosition.getBossId(), amPosition, PositionStatusEnums.POSITION_OPEN.getStatus());
+                    log.info("open position bossId={}, positionId={} batchResult={}",amPosition.getBossId(),amPosition.getId(), batchResult);
+                }
             }
             return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
         } catch (Exception e) {

@@ -101,5 +101,10 @@ public class AmPosition implements Serializable {
      */
     private String extendParams;
 
+    /**
+     * 是否正在更改中 0否 1是
+     */
+    private Integer isSyncing;
+
 
 }
