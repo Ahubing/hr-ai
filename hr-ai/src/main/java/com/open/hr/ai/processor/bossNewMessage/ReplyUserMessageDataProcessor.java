@@ -103,6 +103,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             AmMask amMask = amMaskService.getById(amChatbotPositionOption.getAmMaskId());
             AmMaskVo amMaskVo = AmMaskConvert.I.convertAmMaskVo(amMask);
             if (Objects.nonNull(amMaskVo)) {
+                log.info("amMaskVo ={}", JSONObject.toJSONString(amMaskVo));
                 LinkedList<ChatMessage> chatMessages = amMaskVo.getAiParam().getMessages();
                 messages.addAll(chatMessages);
             } else {
@@ -167,6 +168,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         if (StringUtils.isNotBlank(buildNewUserMessage.toString())) {
             messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), buildNewUserMessage.toString()));
         }
+        log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);
         String content = chatMessage.getContent().toString();
         AmClientTasks amClientTasks = new AmClientTasks();
