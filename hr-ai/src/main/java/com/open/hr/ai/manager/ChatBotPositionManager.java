@@ -99,7 +99,7 @@ public class ChatBotPositionManager {
             List<AmPosition> amPositions = amPositionService.list(queryWrapper);
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
             // 先存
-            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_CLOSE.getStatus()).set(AmPosition::getIsSyncing, 1);
+            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsSyncing, 1);
             boolean result = amPositionService.update(updateWrapper);
             if (result) {
                 for (AmPosition amPosition : amPositions) {
@@ -132,7 +132,7 @@ public class ChatBotPositionManager {
             queryWrapper.in(AmPosition::getId, ids);
             List<AmPosition> amPositions = amPositionService.list(queryWrapper);
             LambdaUpdateWrapper<AmPosition> updateWrapper = new LambdaUpdateWrapper<>();
-            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsOpen, PositionStatusEnums.POSITION_OPEN.getStatus()).set(AmPosition::getIsSyncing, 1);;
+            updateWrapper.eq(AmPosition::getAdminId, adminId).in(AmPosition::getId, ids).set(AmPosition::getIsSyncing, 1);;
             boolean result = amPositionService.update(updateWrapper);
             if (result) {
                 for (AmPosition amPosition : amPositions) {

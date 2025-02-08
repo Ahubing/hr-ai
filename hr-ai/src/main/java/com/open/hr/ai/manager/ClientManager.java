@@ -535,9 +535,9 @@ public class ClientManager {
                 return;
             }
             if (Objects.nonNull(state) && state.equals(true)) {
-                amPositionServiceOne.setIsOpen(1);
+                amPositionServiceOne.setIsOpen(PositionStatusEnums.POSITION_OPEN.getStatus());
             } else {
-                amPositionServiceOne.setIsOpen(0);
+                amPositionServiceOne.setIsOpen(PositionStatusEnums.POSITION_CLOSE.getStatus());
             }
             //清除更新状态
             amPositionServiceOne.setIsSyncing(0);
