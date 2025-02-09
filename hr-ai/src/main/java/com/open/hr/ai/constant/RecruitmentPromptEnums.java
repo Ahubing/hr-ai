@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @Author liuzilin
  * @Date 2025/2/8 19:39
  */
 public enum RecruitmentPromptEnums {

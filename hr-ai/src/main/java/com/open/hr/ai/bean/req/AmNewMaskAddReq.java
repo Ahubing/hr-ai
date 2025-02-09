@@ -29,7 +29,7 @@ public class AmNewMaskAddReq {
      * 面具名称
      */
     @NotEmpty(message = "面具名称不能为空")
-    @ApiModelProperty(value = "面具名称")
+    @ApiModelProperty(value = "面具名称", required = true)
     private String name;
 
     /**
@@ -42,7 +42,7 @@ public class AmNewMaskAddReq {
      * 模型来源  aws  az gpt  claude
      */
     @NotEmpty(message = "渠道模版不能为空")
-    @ApiModelProperty(value = "模型来源")
+    @ApiModelProperty(value = "模型来源", required = true)
     private List<String> templateModel;
 
     /**
@@ -81,7 +81,7 @@ public class AmNewMaskAddReq {
     /**
      * 公司的基本信息
      */
-    @ApiModelProperty(value = "公司的基本信息")
+    @ApiModelProperty(value = "公司的基本信息", required = true)
     private CompanyInfo companyInfo;
 
     /**
