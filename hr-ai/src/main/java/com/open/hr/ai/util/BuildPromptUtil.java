@@ -126,7 +126,7 @@ public class BuildPromptUtil {
                 }
 
                 // 差异化优势（可选，若没有则整个模块都不出现）
-                if (Objects.nonNull(amNewMaskAddReq.getDifferentiatedAdvantages()) && amNewMaskAddReq.getDifferentiatedAdvantages()) {
+                if (Objects.nonNull(amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) && amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) {
                     for (String provideStr : providePrompt) {
                         List<String> strings = VariableUtil.regexVariable(provideStr);
                         if (strings.isEmpty()){

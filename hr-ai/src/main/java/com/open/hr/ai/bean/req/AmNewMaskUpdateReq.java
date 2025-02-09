@@ -102,13 +102,13 @@ public class AmNewMaskUpdateReq {
      *
      */
     @ApiModelProperty(value = "开启差异化优势开关")
-    private Boolean differentiatedAdvantages;
+    private Boolean differentiatedAdvantagesSwitch;
 
     /**
      * 开启面试信息
      */
     @ApiModelProperty(value = "开启面试信息开关")
-    private Boolean openInterview;
+    private Boolean openInterviewSwitch;
 
     /**
      * 面试信息开关后, 需要填写面试地点

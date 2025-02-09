@@ -111,12 +111,12 @@ public class AmNewMaskVo {
      * 面试地点
      *
      */
-    private Boolean differentiatedAdvantages;
+    private Boolean differentiatedAdvantagesSwitch;
 
     /**
      * 面试信息
      */
-    private Boolean openInterview;
+    private Boolean openInterviewSwitch;
 
     /**
      * 面试信息开关后, 需要填写面试地点

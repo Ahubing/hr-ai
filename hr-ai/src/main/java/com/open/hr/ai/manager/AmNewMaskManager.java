@@ -6,10 +6,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.MaskStatusEnum;
-import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptions;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotPositionOption;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotOptionsServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotPositionOptionServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmNewMaskServiceImpl;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
@@ -226,9 +224,9 @@ public class AmNewMaskManager {
         if (StringUtils.isNotEmpty(aiRequestParam)) {
             AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
             amNewMaskVo.setCompanyInfo(amNewMaskAddReq.getCompanyInfo());
-            amNewMaskVo.setDifferentiatedAdvantages(amNewMaskAddReq.getDifferentiatedAdvantages());
+            amNewMaskVo.setDifferentiatedAdvantagesSwitch(amNewMaskAddReq.getDifferentiatedAdvantagesSwitch());
             amNewMaskVo.setInterviewAddress(amNewMaskAddReq.getInterviewAddress());
-            amNewMaskVo.setOpenInterview(amNewMaskAddReq.getOpenInterview());
+            amNewMaskVo.setOpenInterviewSwitch(amNewMaskAddReq.getOpenInterviewSwitch());
             amNewMaskVo.setStyle(amNewMaskAddReq.getStyle());
             amNewMaskVo.setOtherRecruitmentInfo(amNewMaskAddReq.getOtherRecruitmentInfo());
             amNewMaskVo.setOtherArgue(amNewMaskAddReq.getOtherArgue());

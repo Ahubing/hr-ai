@@ -197,6 +197,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);
         String content = chatMessage.getContent().toString();
+        if (StringUtils.isBlank(content)) {
+            log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiNoStream content is null");
+            return ResultVO.fail(404, "ai回复内容为空");
+        }
         AmClientTasks amClientTasks = new AmClientTasks();
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
