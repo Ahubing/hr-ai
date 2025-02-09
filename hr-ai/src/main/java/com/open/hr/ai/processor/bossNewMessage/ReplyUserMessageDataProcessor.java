@@ -15,6 +15,7 @@ import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.convert.AmMaskConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.BuildPromptUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
@@ -48,7 +49,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
 
     @Resource
-    private AmMaskServiceImpl amMaskService;
+    private AmNewMaskServiceImpl amNewMaskService;
+    @Resource
+    private AmPositionServiceImpl amPositionService;
 
 
     @Resource
@@ -88,8 +91,20 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         Integer postId = amResume.getPostId();
         String taskId = req.getRecruiter_id() + "_" + req.getUser_id();
         if (Objects.isNull(postId)) {
-            log.info("postId is null,amResume={}", amResume);
-            return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
+            // 如果postId为空,则尝试通过bossId 和 encryptGeekId 查询对应的岗位
+            if (StringUtils.isNotBlank(amResume.getEncryptGeekId())) {
+                LambdaQueryWrapper<AmPosition> positionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                positionLambdaQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
+                positionLambdaQueryWrapper.eq(AmPosition::getEncryptId, 1);
+                AmPosition amPosition = amPositionService.getOne(positionLambdaQueryWrapper, false);
+                if (Objects.nonNull(amPosition)) {
+                    postId = amPosition.getId();
+                }
+            }
+            if (Objects.isNull(postId)) {
+                log.info("postId is null,amResume={}", amResume);
+                return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
+            }
         }
 
 
@@ -100,17 +115,28 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         List<ChatMessage> messages = new ArrayList<>();
         if (Objects.nonNull(amChatbotPositionOption) && Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
             // 如果有绑定ai角色,则获取ai角色进行回复
-            AmMask amMask = amMaskService.getById(amChatbotPositionOption.getAmMaskId());
-            AmMaskVo amMaskVo = AmMaskConvert.I.convertAmMaskVo(amMask);
-            if (Objects.nonNull(amMaskVo)) {
-                log.info("amMaskVo ={}", JSONObject.toJSONString(amMaskVo));
-                LinkedList<ChatMessage> chatMessages = amMaskVo.getAiParam().getMessages();
-                messages.addAll(chatMessages);
+            AmNewMask amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
+
+            if (Objects.nonNull(amNewMask)) {
+                AmPosition amPosition = amPositionService.getById(postId);
+                if (Objects.isNull(amPosition)) {
+                    log.info("amPosition is null,postId ={}", postId);
+                    return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
+                }
+
+                String aiPrompt = BuildPromptUtil.buildPrompt(amResume, amNewMask, amPosition);
+                if (StringUtils.isBlank(aiPrompt)) {
+                    log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
+                    return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
+                }
+                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), aiPrompt);
+                messages.add(chatMessage);
             } else {
                 log.info("amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");
             }
-        } else {
+        }
+        else {
             log.info("amChatbotPositionOption is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
             return ResultVO.fail(404, "未找到对应的amChatbotPositionOption配置,不继续下一个流程");
         }

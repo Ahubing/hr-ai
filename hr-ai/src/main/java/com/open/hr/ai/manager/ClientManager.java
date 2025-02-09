@@ -212,6 +212,7 @@ public class ClientManager {
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail(404, "boss_id不存在");
             }
+
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
                 return ResultVO.fail(401, "connect_id 不一致");
             }
