@@ -340,6 +340,8 @@ public class ClientManager {
 
             //开始
             Integer sectionId = amPositionSection.getId();
+            amZpLocalAccouts.setIsSync(1);
+
             // 注意入参格式
             JSONArray jobsArray = jsonObject.getJSONArray("jobs");
             if (Objects.isNull(jobsArray) || jobsArray.isEmpty()) {
@@ -354,12 +356,7 @@ public class ClientManager {
 //                        log.info("savePosition innerDatas is null,bossId={},platForm{},i={}", bossId, platForm, i);
 //                        return;
 //                    }
-                    AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
-                    if (Objects.isNull(zpLocalAccouts)) {
-                        log.error("savePosition amZpLocalAccouts is null,bossId={}", bossId);
-                        return;
-                    }
-                    zpLocalAccouts.setIsSync(1);
+
 
 
                     String jobName = jobData.get("jobName").toString();
@@ -373,13 +370,14 @@ public class ClientManager {
                     //查询出全部的岗位数据,进行处理
                     LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
                     positionQueryWrapper.eq(AmPosition::getBossId, bossId);
-                    positionQueryWrapper.eq(AmPosition::getEncryptId, amZpPlatforms.getId());
+                    positionQueryWrapper.eq(AmPosition::getEncryptId,encryptId);
                     AmPosition amPosition = amPositionService.getOne(positionQueryWrapper,false);
 
                     if (Objects.nonNull(amPosition)) {
                         int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
                         amPosition.setEncryptId(encryptId);
                         amPosition.setIsOpen(jobStatus);
+                        amPosition.setName(jobName);
                         amPosition.setExtendParams(jobData.toJSONString());
                         amPositionService.updateById(amPosition);
                     } else {
@@ -402,6 +400,9 @@ public class ClientManager {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
                 }
             }
+
+            boolean result = amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+            log.info("amZpLocalAccoutsService update result={},amZpLocalAccouts={}", result, amZpLocalAccouts);
         } catch (Exception e) {
             log.error("savePosition异常 bossId={},platFormId={}", bossId, platForm, e);
         }
