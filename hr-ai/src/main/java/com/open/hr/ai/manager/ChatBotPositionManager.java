@@ -379,6 +379,9 @@ public class ChatBotPositionManager {
             amPositionVo.setUserName(miniUniUser.getName());
             amPositionVo.setChannelName("BOSS直聘");
             amPositionVo.setBossAccount(amZpLocalAccouts.getAccount());
+            amPositionVo.setIsDeleted(amPosition.getIsDeleted());
+            amPositionVo.setIsOpen(amPosition.getIsOpen());
+            amPositionVo.setStatus(amPosition.getStatus());
             return ResultVO.success(amPositionVo);
         } catch (Exception e) {
             log.error("查询职位详情异常 id={}", id, e);
@@ -393,7 +396,6 @@ public class ChatBotPositionManager {
      */
     public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req, Long adminId) {
         try {
-            JSONObject jsonObject = new JSONObject();
 
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmPositionSection::getAdminId, adminId);
@@ -403,6 +405,8 @@ public class ChatBotPositionManager {
             }
             LambdaQueryWrapper<AmPosition> amPositionQueryWrapper = new LambdaQueryWrapper<>();
             amPositionQueryWrapper.eq(AmPosition::getAdminId, adminId);
+            // 查询未删除的数据
+            amPositionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
 
             if (Objects.nonNull(req.getSectionId())) {
                 amPositionQueryWrapper.eq(AmPosition::getSectionId, req.getSectionId());
@@ -425,6 +429,7 @@ public class ChatBotPositionManager {
             if (Objects.nonNull(req.getPositionId())) {
                 amPositionQueryWrapper.like(AmPosition::getPostId, req.getPositionId());
             }
+
             if (Objects.nonNull(req.getAccountId())) {
                 amPositionQueryWrapper.like(AmPosition::getBossId, req.getAccountId());
             } else {
@@ -458,6 +463,7 @@ public class ChatBotPositionManager {
 
             LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
             positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
+            positionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
             List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
 //
             LambdaQueryWrapper<AmMask> rolesQueryWrapper = new LambdaQueryWrapper<>();

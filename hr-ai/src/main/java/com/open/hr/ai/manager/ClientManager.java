@@ -26,6 +26,7 @@ import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -348,6 +349,8 @@ public class ClientManager {
                 log.error("savePosition jobsArray is null,bossId={},platForm{} jsonObject={}", bossId, platForm, jsonObject);
                 return;
             }
+            // 加密岗位id, 用于删除岗位状态
+            List<String> encryptIds = new ArrayList<>();
             for (int i = 0; i < jobsArray.size(); i++) {
                 try {
                     JSONObject jobData = jobsArray.getJSONObject(i);
@@ -357,14 +360,13 @@ public class ClientManager {
 //                        return;
 //                    }
 
-
-
                     String jobName = jobData.get("jobName").toString();
                     String encryptId = jobData.get("encryptId").toString();
                     if (StringUtils.isBlank(jobName) || StringUtils.isBlank(encryptId)) {
                         log.error("savePosition jobName or encryptId is null,bossId={},platForm{},i={}", bossId, platForm, i);
                         return;
                     }
+                    encryptIds.add(encryptId);
 
 
                     //查询出全部的岗位数据,进行处理
@@ -401,6 +403,12 @@ public class ClientManager {
                 }
             }
 
+            LambdaUpdateWrapper<AmPosition> deleteQueryWrapper = new LambdaUpdateWrapper<>();
+            deleteQueryWrapper.eq(AmPosition::getBossId, bossId);
+            deleteQueryWrapper.notIn(AmPosition::getEncryptId, encryptIds);
+            deleteQueryWrapper.set(AmPosition::getIsDeleted, 1);
+            boolean updatedResult = amPositionService.update(deleteQueryWrapper);
+            log.info("amPositionService update result={},bossId={}", updatedResult,bossId);
             boolean result = amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             log.info("amZpLocalAccoutsService update result={},amZpLocalAccouts={}", result, amZpLocalAccouts);
         } catch (Exception e) {

@@ -145,5 +145,11 @@ public class AmPositionVo {
     @ApiModelProperty(value = "是否正在更改中 0否 1是")
     private Integer isSyncing;
 
+    /**
+     * 是否删除 0否 1是
+     */
+    @ApiModelProperty(value = "是否删除 0否 1是")
+    private Integer isDeleted;
+
 
 }

@@ -106,5 +106,10 @@ public class AmPosition implements Serializable {
      */
     private Integer isSyncing;
 
+    /**
+     * 是否删除 0否 1是
+     */
+    private Integer isDeleted;
+
 
 }
