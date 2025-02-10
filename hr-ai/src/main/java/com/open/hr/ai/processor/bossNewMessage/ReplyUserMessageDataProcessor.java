@@ -81,6 +81,13 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
 
         String taskId = req.getRecruiter_id() + "_" + req.getUser_id();
+
+        LambdaQueryWrapper<AmChatMessage> messagesLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        messagesLambdaQueryWrapper.in(AmChatMessage::getConversationId, taskId);
+        messagesLambdaQueryWrapper.eq(AmChatMessage::getType, 1);
+        messagesLambdaQueryWrapper.orderByAsc(AmChatMessage::getCreateTime);
+        List<AmChatMessage> amChatMessages = amChatMessageService.list(messagesLambdaQueryWrapper);
+
         // 过滤和保存
         List<ChatMessage> bossNewMessages = req.getMessages();
         // 过滤出消息id
@@ -173,11 +180,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             log.info("amChatbotPositionOption is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
             return ResultVO.fail(404, "未找到对应的amChatbotPositionOption配置,不继续下一个流程");
         }
-        LambdaQueryWrapper<AmChatMessage> messagesLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        messagesLambdaQueryWrapper.in(AmChatMessage::getConversationId, taskId);
-        messagesLambdaQueryWrapper.eq(AmChatMessage::getType, 1);
-        messagesLambdaQueryWrapper.orderByAsc(AmChatMessage::getCreateTime);
-        List<AmChatMessage> amChatMessages = amChatMessageService.list(messagesLambdaQueryWrapper);
+
         for (AmChatMessage message : amChatMessages) {
             if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
                 messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), message.getContent().toString()));
