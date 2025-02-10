@@ -96,13 +96,11 @@ public class BuildPromptUtil {
                 return null;
             } else {
                 AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
-                String extendParams = amPosition.getExtendParams();
-                JSONObject positionObject = JSONObject.parseObject(extendParams);
 
                 // 提取基本的数据
                 CompanyInfo companyInfo = amNewMaskAddReq.getCompanyInfo();
                 Map<String, Object> companyObject = convertToMap(companyInfo);
-                if (Objects.isNull(companyObject) || Objects.isNull(positionObject)) {
+                if (Objects.isNull(companyObject) ) {
                     log.info("公司信息或者职位信息为空");
                     return null;
                 }
@@ -119,8 +117,6 @@ public class BuildPromptUtil {
                     for (String string : strings) {
                         if (companyObject.containsKey(string) && companyObject.get(string) != null) {
                             stringBuilder.append(baseStr.replace("{" + string + "}", companyObject.get(string).toString()));
-                        } else if (positionObject.containsKey(string) && positionObject.get(string) != null) {
-                            stringBuilder.append(baseStr.replace("{" + string + "}", positionObject.get(string).toString()));
                         }
                     }
                 }
@@ -136,8 +132,6 @@ public class BuildPromptUtil {
                         for (String string : strings) {
                             if (companyObject.containsKey(string) && companyObject.get(string) != null) {
                                 stringBuilder.append(provideStr.replace("{" + string + "}", companyObject.get(string).toString()));
-                            } else if (positionObject.containsKey(string) && positionObject.get(string) != null) {
-                                stringBuilder.append(provideStr.replace("{" + string + "}", positionObject.get(string).toString()));
                             }
                         }
                     }
