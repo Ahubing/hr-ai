@@ -8,10 +8,7 @@ import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
-import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import com.open.hr.ai.constant.MessageTypeEnums;
-import com.open.hr.ai.constant.RedisKyeConstant;
+import com.open.hr.ai.constant.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -67,6 +64,9 @@ public class AmChatBotGreetJob {
 
     @Resource
     private JedisClientImpl jedisClient;
+
+    @Resource
+    private AmChatMessageServiceImpl amChatMessageService;
 
 
     private static final String GREET_MESSAGE = "你好";
@@ -330,21 +330,33 @@ public class AmChatBotGreetJob {
                     log.error("复聊任务处理失败,amChatbotGreetResult解析:{}", reChatTask);
                     continue;
                 }
-                AmChatbotGreetResult chatbotGreetResult = amChatbotGreetResultService.getById(amChatbotGreetResult.getId());
-                if (chatbotGreetResult.getSuccess() == 2) {
-                    // 收到招聘者的回复, 任务已经结束,则不再进行复聊任务
-                    continue;
-                }
+
                 // 查询出对应的任务
                 Integer rechatItem = amChatbotGreetResult.getRechatItem();
                 AmChatbotOptionsItems amChatbotOptionsItems = amChatbotOptionsItemsService.getById(rechatItem);
                 if (Objects.isNull(amChatbotOptionsItems)) {
+                    log.error("复聊任务处理失败,未找到对应的任务:{}", rechatItem);
                     continue;
                 }
+
                 String accountId = amChatbotGreetResult.getAccountId();
                 AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()), false);
                 if (Objects.isNull(amResume)) {
                     log.error("复聊任务处理失败,未找到用户:{}", amChatbotGreetResult.getUserId());
+                    continue;
+                }
+
+                AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(accountId);
+                String conversationId = amZpLocalAccouts.getExtBossId() + "_" + amResume.getUid();
+
+                // 查询用户是否已经回复消息
+                LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
+                chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
+                chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+                AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
+
+                if (Objects.isNull(amChatMessage)) {
+                    log.info("复聊任务处理失败,用户已经回复消息:{}", amChatMessage);
                     continue;
                 }
 
@@ -373,7 +385,7 @@ public class AmChatBotGreetJob {
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setBossId(accountId);
         amClientTasks.setData(jsonObject.toJSONString());
-        amClientTasks.setStatus(0);
+        amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         amClientTasks.setCreateTime(LocalDateTime.now());
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);

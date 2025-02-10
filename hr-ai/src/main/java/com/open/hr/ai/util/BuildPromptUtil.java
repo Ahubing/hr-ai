@@ -83,9 +83,7 @@ public class BuildPromptUtil {
             "- 候选人姓名：{userName}\n" +
             "\n" +
             "# 候选人沟通脚本\n" +
-            "\n" +
-            "1. 确认是否感兴趣\n" +
-            "2. 引导进入面试流程";
+            "{CommunicationScript}\n";
 
 
     public static String buildPrompt(AmResume amResume, AmNewMask amNewMask) {
@@ -167,7 +165,8 @@ public class BuildPromptUtil {
                     }
                 }
                 // 候选人信息
-                stringBuilder.append(userInfoPrompt.replace("{userName}", amResume.getName()));
+                String userInfoPromptStr = userInfoPrompt.replace("{userName}", amResume.getName()).replace("{CommunicationScript}", amNewMaskAddReq.getCommunicationScript());
+                stringBuilder.append(userInfoPromptStr);
             }
             return stringBuilder.toString();
         } catch (Exception e) {

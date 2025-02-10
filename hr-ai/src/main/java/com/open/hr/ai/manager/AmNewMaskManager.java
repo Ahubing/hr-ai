@@ -230,6 +230,7 @@ public class AmNewMaskManager {
             amNewMaskVo.setStyle(amNewMaskAddReq.getStyle());
             amNewMaskVo.setOtherRecruitmentInfo(amNewMaskAddReq.getOtherRecruitmentInfo());
             amNewMaskVo.setOtherArgue(amNewMaskAddReq.getOtherArgue());
+            amNewMaskVo.setCommunicationScript(amNewMaskAddReq.getCommunicationScript());
         }
         return amNewMaskVo;
 

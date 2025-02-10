@@ -125,6 +125,14 @@ public class AmNewMaskAddReq {
     private String style;
 
 
+    /**
+     * 沟通脚本
+     */
+    @ApiModelProperty(value = "沟通脚本")
+    @NotEmpty(message = "沟通脚本不能为空")
+    private String CommunicationScript;
+
+
 
 
 }

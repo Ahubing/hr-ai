@@ -111,32 +111,45 @@ public class AmNewMaskVo {
      * 面试地点
      *
      */
+    @ApiModelProperty(value = "是否开启 差异化优势")
     private Boolean differentiatedAdvantagesSwitch;
 
     /**
      * 面试信息
      */
+    @ApiModelProperty(value = "是否开启 面试信息")
     private Boolean openInterviewSwitch;
 
     /**
      * 面试信息开关后, 需要填写面试地点
      */
+    @ApiModelProperty(value = "面试地点")
     private String interviewAddress;
 
     /**
      * 其他要求
      */
+    @ApiModelProperty(value = "其他要求")
     private String otherArgue;
 
     /**
      * 其他招聘信息
      */
+    @ApiModelProperty(value = "其他招聘信息")
     private String otherRecruitmentInfo;
 
     /**
      * 智能交互指令
      */
+    @ApiModelProperty(value = "智能交互指令")
     private String style;
+
+
+    /**
+     * 沟通脚本
+     */
+    @ApiModelProperty(value = "沟通脚本")
+    private String CommunicationScript;
 
 
 

@@ -134,6 +134,12 @@ public class AmNewMaskUpdateReq {
     private Integer status;
 
 
+    /**
+     * 沟通脚本
+     */
+    @ApiModelProperty(value = "沟通脚本")
+    private String CommunicationScript;
+
 
 
 
