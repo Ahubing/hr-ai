@@ -1,5 +1,6 @@
 package com.open.ai.eros.db.mysql.hr.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpPlatforms;
 import com.open.ai.eros.db.mysql.hr.mapper.AmZpPlatformsMapper;
@@ -37,5 +38,13 @@ public class AmZpPlatformsServiceImpl extends ServiceImpl<AmZpPlatformsMapper, A
     public Boolean deletePlatformName(Long id) {
         int delResult = getBaseMapper().deletePlatFormById(id);
         return delResult > 0;
+    }
+
+    public AmZpPlatforms getByPlatformCode( String name) {
+        // 创建更新条件
+        LambdaQueryWrapper<AmZpPlatforms> updateWrapper = new LambdaQueryWrapper<>();
+        updateWrapper.eq(AmZpPlatforms::getPlatformCode, name);
+        // 执行更新操作
+        return this.getOne(updateWrapper, false);
     }
 }

@@ -582,7 +582,14 @@ public class ClientManager {
                     amResume.setAdminId(amZpLocalAccouts.getAdminId());
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setCreateTime(LocalDateTime.now());
+
                     amResume.setPlatform(platform);
+
+                    AmZpPlatforms byPlatformCode = amZpPlatformsService.getByPlatformCode(platform);
+                    if (Objects.nonNull(byPlatformCode)) {
+                        amResume.setPlatform(byPlatformCode.getName());
+                    }
+
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResume.setType(0);
                     amResume.setPostId(positionId);
@@ -701,6 +708,11 @@ public class ClientManager {
         amResume.setType(0);
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setPlatform(platform);
+
+        AmZpPlatforms byPlatformCode = amZpPlatformsService.getByPlatformCode(platform);
+        if (Objects.nonNull(byPlatformCode)) {
+            amResume.setPlatform(byPlatformCode.getName());
+        }
 
         amResume.setZpData(resumeObject.toJSONString());
         // 打招呼取不到数据,先注释
