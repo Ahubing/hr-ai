@@ -88,7 +88,7 @@ public class BuildPromptUtil {
             "2. 引导进入面试流程";
 
 
-    public static String buildPrompt(AmResume amResume, AmNewMask amNewMask, AmPosition amPosition) {
+    public static String buildPrompt(AmResume amResume, AmNewMask amNewMask) {
         try {
             StringBuilder stringBuilder = new StringBuilder();
             String aiRequestParam = amNewMask.getAiRequestParam();
@@ -214,7 +214,7 @@ public class BuildPromptUtil {
         amResume.setName("张三");
         AmPosition amPosition = new AmPosition();
         amPosition.setExtendParams("{\"jobName\":\"数据标注\",\"locationName\":\"广州\",\"degreeName\":\"本科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得帅就好\"}\n");
-        String s = buildPrompt(amResume, amNewMask, amPosition);
+        String s = buildPrompt(amResume, amNewMask);
         System.out.println(s);
     }
 }

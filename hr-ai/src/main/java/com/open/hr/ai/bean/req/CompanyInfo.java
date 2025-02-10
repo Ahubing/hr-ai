@@ -66,4 +66,31 @@ public class CompanyInfo {
     private String salaryDesc;
 
 
+    /**
+     * 其他要求
+     */
+    @ApiModelProperty(value = "其他要求")
+    private String otherArgue;
+
+    @ApiModelProperty(value = "工作经验", required = true)
+    @NotEmpty(message = "工作经验不能为空")
+    private String experienceName;
+
+    @ApiModelProperty(value = "职位名称", required = true)
+    @NotEmpty(message = "职位名称不能为空")
+    private String jobName;
+
+    @ApiModelProperty(value = "工作城市", required = true)
+    @NotEmpty(message = "工作城市不能为空")
+    private String locationName;
+
+
+    @ApiModelProperty(value = "专业技能", required = true)
+    @NotEmpty(message = "专业技能不能为空")
+    private String skillRequire;
+
+    @ApiModelProperty(value = "degreeName", required = true)
+    @NotEmpty(message = "degreeName不能为空")
+    private String degreeName;
+
 }

@@ -348,63 +348,55 @@ public class ClientManager {
             }
             for (int i = 0; i < jobsArray.size(); i++) {
                 try {
-                    JSONObject arrayJSONObject = jobsArray.getJSONObject(i);
-                    JSONArray innerDatas = arrayJSONObject.getJSONArray("data");
-                    if (Objects.isNull(innerDatas) || innerDatas.isEmpty()) {
-                        log.info("savePosition innerDatas is null,bossId={},platForm{},i={}", bossId, platForm, i);
+                    JSONObject jobData = jobsArray.getJSONObject(i);
+//                    JSONArray innerDatas = arrayJSONObject.getJSONArray("data");
+//                    if (Objects.isNull(innerDatas) || innerDatas.isEmpty()) {
+//                        log.info("savePosition innerDatas is null,bossId={},platForm{},i={}", bossId, platForm, i);
+//                        return;
+//                    }
+                    AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
+                    if (Objects.isNull(zpLocalAccouts)) {
+                        log.error("savePosition amZpLocalAccouts is null,bossId={}", bossId);
                         return;
                     }
+                    zpLocalAccouts.setIsSync(1);
+
+
+                    String jobName = jobData.get("jobName").toString();
+                    String encryptId = jobData.get("encryptId").toString();
+                    if (StringUtils.isBlank(jobName) || StringUtils.isBlank(encryptId)) {
+                        log.error("savePosition jobName or encryptId is null,bossId={},platForm{},i={}", bossId, platForm, i);
+                        return;
+                    }
+
 
                     //查询出全部的岗位数据,进行处理
                     LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
                     positionQueryWrapper.eq(AmPosition::getBossId, bossId);
-                    List<AmPosition> amPositionList = amPositionService.list(positionQueryWrapper);
+                    positionQueryWrapper.eq(AmPosition::getEncryptId, amZpPlatforms.getId());
+                    AmPosition amPosition = amPositionService.getOne(positionQueryWrapper,false);
 
-                    for (int i1 = 0; i1 < innerDatas.size(); i1++) {
-                        JSONObject jobData = innerDatas.getJSONObject(i1);
-                        String positionName = jobData.get("positionName").toString();
-                        String encryptId = jobData.get("encryptId").toString();
-                        Boolean useUpdate = false;
-                        Integer useUpdateId = 0;
-                        for (AmPosition amPosition : amPositionList) {
-                            if (amPosition.getName().equals(positionName)) {
-                                useUpdate = true;
-                                useUpdateId = amPosition.getId();
-                            }
-                        }
-                        AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
-                        if (Objects.isNull(zpLocalAccouts)) {
-                            log.error("savePosition amZpLocalAccouts is null,bossId={}", bossId);
-                            return;
-                        }
-                        zpLocalAccouts.setIsSync(1);
-
-                        //职位同步状态更新
-                        boolean result = amZpLocalAccoutsService.updateById(zpLocalAccouts);
-                        log.info("amZpLocalAccoutsService update result={}, zpLocalAccouts={}", result, zpLocalAccouts);
-                        if (useUpdate) {
-                            AmPosition amPosition = amPositionService.getById(useUpdateId);
-                            int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
-                            amPosition.setEncryptId(encryptId);
-                            amPosition.setIsOpen(jobStatus);
-                            amPosition.setExtendParams(jobData.toJSONString());
-                            amPositionService.updateById(amPosition);
-                        } else {
-                            AmPosition amPosition = new AmPosition();
-                            amPosition.setAdminId(amZpLocalAccouts.getAdminId());
-                            amPosition.setName(positionName);
-                            amPosition.setSectionId(sectionId);
-                            amPosition.setBossId(bossId);
-                            amPosition.setUid(0);
-                            amPosition.setChannel(amZpPlatforms.getId());
-                            int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
-                            amPosition.setEncryptId(encryptId);
-                            amPosition.setIsOpen(jobStatus);
-                            amPosition.setCreateTime(LocalDateTime.now());
-                            amPosition.setExtendParams(jobData.toJSONString());
-                            boolean saveResult = amPositionService.save(amPosition);
-                            log.info("amPositionService save result={}, amPosition={}", saveResult, amPosition);
-                        }
+                    if (Objects.nonNull(amPosition)) {
+                        int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
+                        amPosition.setEncryptId(encryptId);
+                        amPosition.setIsOpen(jobStatus);
+                        amPosition.setExtendParams(jobData.toJSONString());
+                        amPositionService.updateById(amPosition);
+                    } else {
+                        AmPosition newAmPosition = new AmPosition();
+                        newAmPosition.setAdminId(amZpLocalAccouts.getAdminId());
+                        newAmPosition.setName(jobName);
+                        newAmPosition.setSectionId(sectionId);
+                        newAmPosition.setBossId(bossId);
+                        newAmPosition.setUid(0);
+                        newAmPosition.setChannel(amZpPlatforms.getId());
+                        int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
+                        newAmPosition.setEncryptId(encryptId);
+                        newAmPosition.setIsOpen(jobStatus);
+                        newAmPosition.setCreateTime(LocalDateTime.now());
+                        newAmPosition.setExtendParams(jobData.toJSONString());
+                        boolean saveResult = amPositionService.save(newAmPosition);
+                        log.info("amPositionService save result={}, amPosition={}", saveResult, newAmPosition);
                     }
                 } catch (Exception e) {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);

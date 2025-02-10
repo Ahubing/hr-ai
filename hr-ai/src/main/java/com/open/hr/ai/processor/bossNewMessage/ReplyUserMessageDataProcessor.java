@@ -118,13 +118,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             AmNewMask amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                AmPosition amPosition = amPositionService.getById(postId);
-                if (Objects.isNull(amPosition)) {
-                    log.info("amPosition is null,postId ={}", postId);
-                    return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
-                }
-
-                String aiPrompt = BuildPromptUtil.buildPrompt(amResume, amNewMask, amPosition);
+                String aiPrompt = BuildPromptUtil.buildPrompt(amResume, amNewMask);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
