@@ -275,7 +275,7 @@ public class AmChatBotGreetJob {
                         Map<Integer, AmChatbotOptionsItems> dayToItemMap = optionsItemsMap.get(positionOption.getId())
                                 .stream().collect(Collectors.toMap(AmChatbotOptionsItems::getDayNum, item -> item));
 
-                        // 判断与创建时间的日期差
+                        // 判断与创建时间的日期差, 下面是打招呼时间
                         LocalDateTime createTime = greetResult.getCreateTime();
                         int daysBetween = Period.between(createTime.toLocalDate(), LocalDate.now()).getDays();
 
@@ -355,8 +355,10 @@ public class AmChatBotGreetJob {
                 chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
                 AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
 
+                //
                 if (Objects.isNull(amChatMessage)) {
-                    log.info("复聊任务处理失败,用户已经回复消息:{}", amChatMessage);
+                    log.info("用户已经回复消息:{}", amChatMessage);
+
                     continue;
                 }
 

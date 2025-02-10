@@ -80,6 +80,44 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "用户信息异常");
         }
 
+        String taskId = req.getRecruiter_id() + "_" + req.getUser_id();
+        // 过滤和保存
+        List<ChatMessage> bossNewMessages = req.getMessages();
+        // 过滤出消息id
+        List<String> messageIds = bossNewMessages.stream().map(ChatMessage::getId).collect(Collectors.toList());
+        // 查询数据库中是否存在消息id
+        LambdaQueryWrapper<AmChatMessage> messageLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        messageLambdaQueryWrapper.in(AmChatMessage::getChatId, messageIds);
+        List<AmChatMessage> exitAmChatMessages = amChatMessageService.list(messageLambdaQueryWrapper);
+
+        //buildMessage 用于拼接用户的新消息
+        StringBuilder buildNewUserMessage = new StringBuilder();
+        StringBuilder buildSystemUserMessage = new StringBuilder();
+        // 过滤出已经存在的消息id
+        for (ChatMessage message : bossNewMessages) {
+            // 判断是否存在消息id, 不存在则构建插入
+            if (exitAmChatMessages.stream().noneMatch(amChatbotGreetMessage -> amChatbotGreetMessage.getChatId().equals(message.getId()))) {
+                AmChatMessage greetMessages = new AmChatMessage();
+                greetMessages.setContent(message.getContent().toString());
+                greetMessages.setCreateTime(LocalDateTime.now());
+                if (message.getRole().equals("user")) {
+                    buildNewUserMessage.append(message.getContent().toString()).append("\n\n");
+                    greetMessages.setUserId(Long.parseLong(req.getUser_id()));
+                    greetMessages.setRole(AIRoleEnum.USER.getRoleName());
+                } else {
+                    buildSystemUserMessage.append(message.getContent().toString()).append("\n\n");
+                    greetMessages.setUserId(Long.parseLong(req.getRecruiter_id()));
+                    greetMessages.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+                }
+                //  招聘账号id + 用户id作为任务id
+                greetMessages.setConversationId(taskId);
+                greetMessages.setChatId(message.getId());
+                greetMessages.setCreateTime(LocalDateTime.now());
+                boolean result = amChatMessageService.save(greetMessages);
+                log.info("SaveMessageDataProcessor dealBossNewMessage greetMessages={} save result={}", JSONObject.toJSONString(greetMessages), result);
+            }
+        }
+
         LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmChatbotGreetConfig::getAccountId, amZpLocalAccouts.getId());
         queryWrapper.eq(AmChatbotGreetConfig::getIsAiOn, 1);
@@ -89,7 +127,8 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "未找到对应的配置");
         }
         Integer postId = amResume.getPostId();
-        String taskId = req.getRecruiter_id() + "_" + req.getUser_id();
+
+
         if (Objects.isNull(postId)) {
             // 如果postId为空,则尝试通过bossId 和 encryptGeekId 查询对应的岗位
             if (StringUtils.isNotBlank(amResume.getEncryptGeekId())) {
@@ -146,42 +185,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), message.getContent().toString()));
             }
         }
-        // 过滤和保存
-        List<ChatMessage> bossNewMessages = req.getMessages();
-        // 过滤出消息id
-        List<String> messageIds = bossNewMessages.stream().map(ChatMessage::getId).collect(Collectors.toList());
-        // 查询数据库中是否存在消息id
-        LambdaQueryWrapper<AmChatMessage> messageLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        messageLambdaQueryWrapper.in(AmChatMessage::getChatId, messageIds);
-        List<AmChatMessage> exitAmChatMessages = amChatMessageService.list(messageLambdaQueryWrapper);
 
-        //buildMessage 用于拼接用户的新消息
-        StringBuilder buildNewUserMessage = new StringBuilder();
-        StringBuilder buildSystemUserMessage = new StringBuilder();
-        // 过滤出已经存在的消息id
-        for (ChatMessage message : bossNewMessages) {
-            // 判断是否存在消息id, 不存在则构建插入
-            if (exitAmChatMessages.stream().noneMatch(amChatbotGreetMessage -> amChatbotGreetMessage.getChatId().equals(message.getId()))) {
-                AmChatMessage greetMessages = new AmChatMessage();
-                greetMessages.setContent(message.getContent().toString());
-                greetMessages.setCreateTime(LocalDateTime.now());
-                if (message.getRole().equals("user")) {
-                    buildNewUserMessage.append(message.getContent().toString()).append("\n\n");
-                    greetMessages.setUserId(Long.parseLong(req.getUser_id()));
-                    greetMessages.setRole(AIRoleEnum.USER.getRoleName());
-                } else {
-                    buildSystemUserMessage.append(message.getContent().toString()).append("\n\n");
-                    greetMessages.setUserId(Long.parseLong(req.getRecruiter_id()));
-                    greetMessages.setRole(AIRoleEnum.ASSISTANT.getRoleName());
-                }
-                //  招聘账号id + 用户id作为任务id
-                greetMessages.setConversationId(taskId);
-                greetMessages.setChatId(message.getId());
-                greetMessages.setCreateTime(LocalDateTime.now());
-                boolean result = amChatMessageService.save(greetMessages);
-                log.info("SaveMessageDataProcessor dealBossNewMessage greetMessages={} save result={}", JSONObject.toJSONString(greetMessages), result);
-            }
-        }
         if (StringUtils.isNotBlank(buildSystemUserMessage.toString())) {
             messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), buildSystemUserMessage.toString()));
         }
