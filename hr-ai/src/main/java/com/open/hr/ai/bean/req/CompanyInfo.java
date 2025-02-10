@@ -53,4 +53,17 @@ public class CompanyInfo {
     @NotEmpty(message = "紧急程度不能为空")
     private String emergencyDegree;
 
+
+
+    @ApiModelProperty(value = "职位类型", required = true)
+    @NotEmpty(message = "职位类型不能为空")
+    private String jobTypeName;
+
+
+
+    @ApiModelProperty(value = "薪资范围", required = true)
+    @NotEmpty(message = "薪资范围不能为空")
+    private String salaryDesc;
+
+
 }

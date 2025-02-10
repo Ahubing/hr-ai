@@ -240,7 +240,7 @@ public class AmChatBotGreetJob {
                             .eq(AmChatbotGreetResult::getAccountId, accountId)
                             .eq(AmChatbotGreetResult::getSuccess, 1).list();
 
-                    // 批量查询任务和职位，减少单个查询
+                    // 批量查询任务和职位
                     Set<Integer> taskIds = greetResults.stream().map(AmChatbotGreetResult::getTaskId).collect(Collectors.toSet());
                     Map<Integer, AmChatbotGreetTask> taskMap = amChatbotGreetTaskService.lambdaQuery()
                             .in(AmChatbotGreetTask::getId, taskIds).list().stream()
