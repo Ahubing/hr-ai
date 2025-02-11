@@ -146,8 +146,8 @@ public class AmChatBotGreetJob {
                                         log.error("未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
                                         continue;
                                     } else {
-                                        if (amPosition.getIsDeleted() == 1) {
-                                            log.error("职位已删除:{}", amPosition.getId());
+                                        if (amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
+                                            log.error("职位已删除: amPosition={}", amPosition);
                                             continue;
                                         }
                                         condition.setRecruitPosition(amPosition.getName());
