@@ -524,7 +524,7 @@ public class ClientManager {
 
     private void switchJobState(String taskId, String bossId, JSONObject finishTaskReqData) {
         try {
-            String encryptId = finishTaskReqData.get("encrypt_id").toString();
+            String encryptId = finishTaskReqData.get("encryptId").toString();
             Object state = finishTaskReqData.get("state");
             if (StringUtils.isBlank(encryptId)) {
                 return;
