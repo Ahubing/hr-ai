@@ -356,14 +356,18 @@ public class AmChatBotGreetJob {
 
                 // 查询用户是否已经回复消息
                 LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
-                chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
                 chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
                 AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
 
                 //
-                if (Objects.isNull(amChatMessage)) {
-                    log.info("用户已经回复消息:{}", amChatMessage);
-                    continue;
+                if (Objects.nonNull(amChatMessage)) {
+                    log.info("用户已经回复过消息:{}", amChatMessage);
+                    chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
+                    AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
+                    if (Objects.isNull(chatMessage)) {
+                        log.info("用户已经回复过消息:{}", chatMessage);
+                        continue;
+                    }
                 }
 
                 buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, accountId);

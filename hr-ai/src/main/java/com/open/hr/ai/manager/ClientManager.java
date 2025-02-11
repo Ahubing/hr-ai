@@ -510,7 +510,7 @@ public class ClientManager {
                         amChatbotGreetResult.setRechatItem(amChatbotOptionsItem.getId());
                         amChatbotGreetResult.setTaskId(amChatbotGreetTask.getId());
                         amChatbotGreetResultService.updateById(amChatbotGreetResult);
-                        Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime());
+                        Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime())* 1000L;
                         Long zadd = jedisClient.zadd(RedisKyeConstant.AmChatBotReChatTask, operateTime, JSONObject.toJSONString(amChatbotGreetResult));
                         log.info("复聊任务处理开始, 账号:{}, 复聊任务添加结果:{}", amZpLocalAccouts.getId(), zadd);
                     }
