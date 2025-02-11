@@ -149,7 +149,7 @@ public class AmZpManager {
         }
         LambdaUpdateWrapper<AmZpLocalAccouts> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(AmZpLocalAccouts::getId, id).set(AmZpLocalAccouts::getState, status);
-        if (AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(accouts.getState())) {
+        if (AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(status)) {
             updateWrapper.set(AmZpLocalAccouts::getBrowserId,"");
         }
 

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.util.DistributedLockUtils;
+import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
@@ -370,7 +371,7 @@ public class AmChatBotGreetJob {
                     }
                 }
 
-                buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, accountId);
+                buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts);
                 jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
             } catch (Exception e) {
                 log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", reChatTask);
@@ -379,7 +380,7 @@ public class AmChatBotGreetJob {
     }
 
 
-    private void buildReChatTask(AmResume amResume, AmChatbotOptionsItems amChatbotOptionsItems, AmChatbotGreetResult amChatbotGreetResult, String accountId) {
+    private void buildReChatTask(AmResume amResume, AmChatbotOptionsItems amChatbotOptionsItems, AmChatbotGreetResult amChatbotGreetResult, AmZpLocalAccouts amZpLocalAccouts) {
 
         AmClientTasks amClientTasks = new AmClientTasks();
         JSONObject jsonObject = new JSONObject();
@@ -393,12 +394,25 @@ public class AmChatBotGreetJob {
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
-        amClientTasks.setBossId(accountId);
+        amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         amClientTasks.setCreateTime(LocalDateTime.now());
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
+        if (result) {
+            // 生成聊天记录
+            AmChatMessage amChatMessage = new AmChatMessage();
+            amChatMessage.setConversationId(amChatbotGreetResult.getAccountId() + "_" + amResume.getUid());
+            amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
+            amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+            amChatMessage.setType(-1);
+            amChatMessage.setContent(amChatbotOptionsItems.getContent());
+            amChatMessage.setCreateTime(LocalDateTime.now());
+            boolean save = amChatMessageService.save(amChatMessage);
+            log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
+        }
     }
+
 
 }

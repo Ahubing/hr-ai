@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
@@ -67,6 +68,8 @@ public class ClientManager {
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
     @Resource
     private AmZpPlatformsServiceImpl amZpPlatformsService;
+    @Resource
+    private AmChatMessageServiceImpl amChatMessageService;
 
     @Resource
     private JedisClientImpl jedisClient;
@@ -467,6 +470,19 @@ public class ClientManager {
                     amChatbotGreetResult.setTaskId(Integer.parseInt(greetId));
                     amChatbotGreetResult.setUserId(amResume.getUid());
                     boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
+
+                    if (saveResult) {
+                        // 生成聊天记录
+                        AmChatMessage amChatMessage = new AmChatMessage();
+                        amChatMessage.setConversationId(amChatbotGreetResult.getAccountId() + "_" + amResume.getUid());
+                        amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
+                        amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+                        amChatMessage.setType(-1);
+                        amChatMessage.setContent("你好");
+                        amChatMessage.setCreateTime(LocalDateTime.now());
+                        boolean save = amChatMessageService.save(amChatMessage);
+                        log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
+                    }
 
                     //查询打招呼任务数据
                     AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(greetId);
