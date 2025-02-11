@@ -341,7 +341,8 @@ public class ClientManager {
 
             //开始
             Integer sectionId = amPositionSection.getId();
-            amZpLocalAccouts.setIsSync(1);
+            // 同步结束
+            amZpLocalAccouts.setIsSync(2);
 
             // 注意入参格式
             JSONArray jobsArray = jsonObject.getJSONArray("jobs");

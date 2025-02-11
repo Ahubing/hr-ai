@@ -86,7 +86,7 @@ public class AmZpLocalAccouts implements Serializable {
     private String state;
 
     /**
-     * 同步状态。0待同步，1已同步
+     * 同步状态。0待同步(从未同步)，1同步中,2 已同步
      */
     private int isSync;
 
