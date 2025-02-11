@@ -31,30 +31,30 @@ public class VectorStoreStart {
 
     @PostConstruct
     public void initVectorStore(){
-        log.info("开始初始化知识库向量库------");
-        try {
-            for (VectorStoreInitApi vectorStoreInitApi : vectorStoreInitApis) {
-                List<CollectionVo> collectionVos = vectorStoreInitApi.getCollectionName();
-                if(CollectionUtils.isEmpty(collectionVos)){
-                    continue;
-                }
-                VectorStoreEnum vectorStoreEnum = vectorStoreInitApi.vectorStoreType();
-                VectorStoreApi vectorStoreApi = VectorStoreFactory.getVectorStoreApi(vectorStoreEnum.getVector());
-                for (CollectionVo collectionVo : collectionVos) {
-                    if(collectionVo.getDimension()==null || collectionVo.getDimension()<=0){
-                        continue;
-                    }
-                    if(vectorStoreApi==null){
-                        continue;
-                    }
-                    vectorStoreApi.createCollectionVectorStore(collectionVo.getCollectionName(),collectionVo.getDimension());
-                }
-            }
-        }catch (Exception e){
-                log.error("初始化失败",e);
-        }
-
-        log.info("初始化知识库向量库结束------");
+//        log.info("开始初始化知识库向量库------");
+//        try {
+//            for (VectorStoreInitApi vectorStoreInitApi : vectorStoreInitApis) {
+//                List<CollectionVo> collectionVos = vectorStoreInitApi.getCollectionName();
+//                if(CollectionUtils.isEmpty(collectionVos)){
+//                    continue;
+//                }
+//                VectorStoreEnum vectorStoreEnum = vectorStoreInitApi.vectorStoreType();
+//                VectorStoreApi vectorStoreApi = VectorStoreFactory.getVectorStoreApi(vectorStoreEnum.getVector());
+//                for (CollectionVo collectionVo : collectionVos) {
+//                    if(collectionVo.getDimension()==null || collectionVo.getDimension()<=0){
+//                        continue;
+//                    }
+//                    if(vectorStoreApi==null){
+//                        continue;
+//                    }
+//                    vectorStoreApi.createCollectionVectorStore(collectionVo.getCollectionName(),collectionVo.getDimension());
+//                }
+//            }
+//        }catch (Exception e){
+//                log.error("初始化失败",e);
+//        }
+//
+//        log.info("初始化知识库向量库结束------");
 
     }
 
