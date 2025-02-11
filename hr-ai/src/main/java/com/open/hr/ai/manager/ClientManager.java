@@ -530,10 +530,11 @@ public class ClientManager {
                 return;
             }
             LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
-            positionQueryWrapper.eq(AmPosition::getExtendParams, encryptId);
+            positionQueryWrapper.eq(AmPosition::getEncryptId, encryptId);
             positionQueryWrapper.eq(AmPosition::getBossId, bossId);
             AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
             if (Objects.isNull(amPositionServiceOne)) {
+                log.error("switchJobState amPositionServiceOne is null,taskId={},bossId={},finishTaskReqData={}", taskId, bossId, finishTaskReqData);
                 return;
             }
             if (Objects.nonNull(state) && state.equals(true)) {
