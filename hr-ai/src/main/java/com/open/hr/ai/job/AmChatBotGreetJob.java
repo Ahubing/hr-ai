@@ -143,8 +143,13 @@ public class AmChatBotGreetJob {
                                     condition = amChatbotGreetConditionService.getById(1);
                                     AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
                                     if (Objects.isNull(amPosition)) {
-                                        condition.setRecruitPosition("不限");
+                                        log.error("未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
+                                        continue;
                                     } else {
+                                        if (amPosition.getIsDeleted() == 1) {
+                                            log.error("职位已删除:{}", amPosition.getId());
+                                            continue;
+                                        }
                                         condition.setRecruitPosition(amPosition.getName());
                                     }
                                 }
