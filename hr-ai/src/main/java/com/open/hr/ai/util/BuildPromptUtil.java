@@ -6,6 +6,7 @@ import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.CompanyInfo;
+import com.open.hr.ai.bean.req.DifferentiationAdvantage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -118,22 +119,24 @@ public class BuildPromptUtil {
                         }
                     }
                 }
-
                 // 差异化优势（可选，若没有则整个模块都不出现）
                 if (Objects.nonNull(amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) && amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) {
-                    for (String provideStr : providePrompt) {
-                        List<String> strings = VariableUtil.regexVariable(provideStr);
-                        if (strings.isEmpty()){
-                            stringBuilder.append(provideStr);
-                            continue;
-                        }
-                        for (String string : strings) {
-                            if (companyObject.containsKey(string) && companyObject.get(string) != null) {
-                                stringBuilder.append(provideStr.replace("{" + string + "}", companyObject.get(string).toString()));
+                    DifferentiationAdvantage differentiationAdvantage = amNewMaskAddReq.getDifferentiationAdvantage();
+                    Map<String, Object> differentiationAdvantageObject = convertToMap(differentiationAdvantage);
+                    if (Objects.nonNull(differentiationAdvantageObject)) {
+                        for (String provideStr : providePrompt) {
+                            List<String> strings = VariableUtil.regexVariable(provideStr);
+                            if (strings.isEmpty()){
+                                stringBuilder.append(provideStr);
+                                continue;
+                            }
+                            for (String string : strings) {
+                                if (differentiationAdvantageObject.containsKey(string) && differentiationAdvantageObject.get(string) != null) {
+                                    stringBuilder.append(provideStr.replace("{" + string + "}", differentiationAdvantageObject.get(string).toString()));
+                                }
                             }
                         }
                     }
-
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
                         stringBuilder.append(interviewPrompt.replace("{address}", interviewAddress));

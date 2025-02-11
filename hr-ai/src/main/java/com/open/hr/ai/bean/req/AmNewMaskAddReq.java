@@ -101,6 +101,12 @@ public class AmNewMaskAddReq {
     private Boolean differentiatedAdvantagesSwitch;
 
     /**
+     * 差异化优势
+     */
+    @ApiModelProperty(value = "差异化优势")
+    private DifferentiationAdvantage differentiationAdvantage;
+
+    /**
      * 开启面试信息
      */
     @ApiModelProperty(value = "是否开启 面试信息")
