@@ -361,7 +361,7 @@ public class AmChatBotGreetJob {
 
                 //
                 if (Objects.nonNull(amChatMessage)) {
-                    log.info("用户已经回复过消息:{}", amChatMessage);
+                    log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage,conversationId);
                     chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
                     AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
                     if (Objects.isNull(chatMessage)) {
