@@ -72,6 +72,13 @@ public class CompanyInfo {
     @ApiModelProperty(value = "其他要求")
     private String otherArgue;
 
+    /**
+     * 招聘人数
+     */
+    @ApiModelProperty(value = "招聘人数")
+    private Integer recruitingNumbers;
+
+
     @ApiModelProperty(value = "工作经验", required = true)
     @NotEmpty(message = "工作经验不能为空")
     private String experienceName;
