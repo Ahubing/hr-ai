@@ -479,8 +479,8 @@ public class ChatBotPositionManager {
                     continue;
                 }
                 String name = miniUniUser.getName();
-                if ("0".equals(amPositionVo.getAiAssistant())) {
-                    amPositionVo.setAiAssistant("");
+                if ( amPositionVo.getAiAssistant() == 0L) {
+                    amPositionVo.setAiAssistant(null);
                 }
                 amPositionVo.setUserName(StringUtils.isNotBlank(name) ? name : "");
                 amPositionVo.setChannelName("");

@@ -126,7 +126,7 @@ public class AmPositionVo {
     /**
      * ai_assitant
      */
-    private String aiAssistant;
+    private Long aiAssistant;
 
     /**
      * section
