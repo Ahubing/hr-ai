@@ -363,7 +363,6 @@ public class AmChatBotGreetJob {
                 //
                 if (Objects.isNull(amChatMessage)) {
                     log.info("用户已经回复消息:{}", amChatMessage);
-
                     continue;
                 }
 
