@@ -376,7 +376,7 @@ public class ClientManager {
                     AmPosition amPosition = amPositionService.getOne(positionQueryWrapper,false);
 
                     if (Objects.nonNull(amPosition)) {
-                        int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
+                        int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
                         amPosition.setEncryptId(encryptId);
                         amPosition.setIsOpen(jobStatus);
                         amPosition.setName(jobName);
@@ -390,7 +390,7 @@ public class ClientManager {
                         newAmPosition.setBossId(bossId);
                         newAmPosition.setUid(0);
                         newAmPosition.setChannel(amZpPlatforms.getId());
-                        int jobStatus = jobData.get("jobStatus").toString().equals("0") ? 1 : 0;
+                        int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
                         newAmPosition.setEncryptId(encryptId);
                         newAmPosition.setIsOpen(jobStatus);
                         newAmPosition.setCreateTime(LocalDateTime.now());
