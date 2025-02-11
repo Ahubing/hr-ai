@@ -479,10 +479,12 @@ public class ChatBotPositionManager {
                     continue;
                 }
                 String name = miniUniUser.getName();
+                if ("0".equals(amPositionVo.getAiAssistant())) {
+                    amPositionVo.setAiAssistant("");
+                }
                 amPositionVo.setUserName(StringUtils.isNotBlank(name) ? name : "");
                 amPositionVo.setChannelName("");
                 amPositionVo.setBossAccount("");
-                amPositionVo.setAiAssistant("");
                 amPositionVo.setDetail(amPositionVo.getExtendParams());
                 for (AmPositionSection amPositionSection : amPositionSections) {
                     if (Objects.equals(amPositionSection.getId(), amPositionVo.getSectionId())) {
