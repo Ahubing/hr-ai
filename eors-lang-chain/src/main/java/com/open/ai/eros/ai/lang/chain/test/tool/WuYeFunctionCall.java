@@ -1,6 +1,7 @@
 package com.open.ai.eros.ai.lang.chain.test.tool;
 
 import com.alibaba.fastjson.JSONObject;
+import com.open.ai.eros.ai.tool.function.InterviewFunction;
 import com.open.ai.eros.ai.tool.function.SopFunction;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
@@ -29,7 +30,7 @@ public class WuYeFunctionCall {
 
 
     public static void main(String[] args) {
-        wuye("YQ1");
+        wuyew("setStatus");
     }
 
 
@@ -106,6 +107,124 @@ public class WuYeFunctionCall {
             System.out.println(JSONObject.toJSONString(messages));
             //AiMessage finalResponse = model.generate(messages).content();
             //System.out.println(finalResponse.text());
+        }else{
+            System.out.println(content.text());
+        }
+        try {
+            Thread.sleep(10000);
+        }catch (Exception e){
+
+        }
+    }
+
+
+
+
+    public static void wuyew(@MemoryId String firstLevelClassification) {
+
+        InterviewFunction calculator = new InterviewFunction();
+        Method[] methods = calculator.getClass().getMethods();
+
+        Map<String,DefaultToolExecutor> toolExecutorMap = new HashMap<>();
+        List<ToolSpecification> toolSpecifications = new ArrayList<>();
+        for (Method method : methods) {
+            if(method.isAnnotationPresent(Tool.class)){
+                Tool annotation = method.getAnnotation(Tool.class);
+                toolSpecifications.add(ToolSpecifications.toolSpecificationFrom(method));
+                DefaultToolExecutor defaultToolExecutor = new DefaultToolExecutor(calculator, method);
+                toolExecutorMap.put(annotation.name(),defaultToolExecutor);
+            }
+        }
+
+        OpenAiChatModel model = OpenAiChatModel.builder()
+                .apiKey("sk-ZfLhlVjKuhKdZ8qY33C1A655C7104840A9Cc175250C05752")
+                .baseUrl("https://vip.zen-ai.top/v1")
+                .modelName("gpt-4o")
+                .build();
+
+        List<ChatMessage> messages = new ArrayList<>();
+
+
+        SystemMessage systemMessage = new SystemMessage("核心角色设定\n" +
+                "你是一位专业的人力资源AI助手，负责在招聘平台以专业且友好的方式吸引优质候选人。你的任务是模拟资深HR的沟通方式与候选人互动。\n" +
+                "每次对话的同时调用 setStatus 函数。" +
+                "企业基础信息\n" +
+                "[公司名称]：陕西会飞的猫网络科技所（个人独资企业）\n" +
+                "[行业领域]：互联网/IT\n" +
+                "[成立时间]：2023年\n" +
+                "[公司规模]：0～50人\n" +
+                "[总部地点]：陕西省西安市未央区明光路阳光北郡\n" +
+                "招聘职位\n" +
+                "[职位名称]：数据标注/AI训练师\n" +
+                "[工作地点]：陕西省西安市未央区明光路阳光北郡4号楼\n" +
+                "[工作时间]:   9:00到12点 13点到17点，周末双休。\n" +
+                "[最短工作时间要求]:  3个月。\n" +
+                "[职位类型]：实习\n" +
+                "[薪资范围]：50-100元/天\n" +
+                "[招聘人数]：5人\n" +
+                "[紧急程度]：常规招聘\n" +
+                "职位要求\n" +
+                "【硬性要求】\n" +
+                "- 学历要求：本科\n" +
+                "- 工作经验：无\n" +
+                "- 专业技能：标注方法优化、数据标注、标注数据分析、标注结果抽查、标注结果整理、文本标注\n" +
+                "- 其他要求：无\n" +
+                "面试信息\n" +
+                "- 面试方式：线下\n" +
+                "- 面试地址：陕西省西安市未央区明光路阳光北郡4号楼\n" +
+                "\n" +
+                "其他招聘信息\n" +
+                "\n" +
+                "对话规则\n" +
+                "1. 内容生成原则：\n" +
+                "  - 语气风格：专业严谨\n" +
+                "  - 关键词密度：自然植入行业关键词\n" +
+                "  - 转化引导：包含明确的CTA（立即申请/咨询详情）\n" +
+                "  - 模拟人类：不要暴露你是AI助手，尽量模仿人类消息的风格。\n" +
+                "  - 模糊不清楚的信息：不要虚构不存在的信息，如果用户问的问题你不清楚，就含糊过去。\n" +
+                "  - 纯文本内容：不要使用markdown语法，招聘平台只支持纯文本内容。\n" +
+                "  - 无关性原则：拒绝回复与招聘无关的内容\n" +
+                "2. 合规性要求：\n" +
+                "  - 自动规避年龄/性别/地域等敏感信息\n" +
+                "  - 符合当地劳动法规定\n" +
+                "  - 体现DEI（多元化、公平、包容）原则\n" +
+                "候选人信息\n" +
+                "- 候选人姓名：岳铜军\n" +
+                "候选人沟通脚本\n" +
+                "1. 确认是否感兴趣\n" +
+                "2. 引导进入面试流程");
+
+        messages.add(systemMessage);
+
+        String userMessage = "你好,对你们公司非常感兴趣,我接受你们的面试";
+        UserMessage user = new UserMessage("user", userMessage);
+        messages.add(user);
+        Response<AiMessage> generate = model.generate(messages,toolSpecifications);
+        AiMessage content = generate.content();
+        messages.add(content);
+        boolean updated = content.hasToolExecutionRequests();
+        if(updated){
+            List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
+            for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
+                DefaultToolExecutor defaultToolExecutor = toolExecutorMap.get(toolExecutionRequest.name());
+                if(defaultToolExecutor==null){
+                    continue;
+                }
+                String result = defaultToolExecutor.execute(toolExecutionRequest, 1);
+                System.out.println("-------------------------------------------------------");
+                System.out.println(toolExecutionRequest.name()+" "+toolExecutionRequest.arguments()+" result:"+result);
+                ToolExecutionResultMessage toolExecutionResultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, result);
+                messages.add(toolExecutionResultMessage);
+            }
+            System.out.println("-------------------------------------------------------");
+            OpenAiChatModel model2 = OpenAiChatModel.builder()
+                    .apiKey("sk-ZfLhlVjKuhKdZ8qY33C1A655C7104840A9Cc175250C05752")
+                    .baseUrl("https://vip.zen-ai.top/v1")
+                    .modelName("gpt-4o")
+                    .build();
+            Response<AiMessage> generate1 = model2.generate(messages);
+            System.out.println("-------------------------------------------------------");
+            System.out.println(generate1.content().text());
         }else{
             System.out.println(content.text());
         }

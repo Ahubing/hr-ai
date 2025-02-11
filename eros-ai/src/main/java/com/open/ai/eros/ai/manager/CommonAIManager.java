@@ -1,20 +1,22 @@
 package com.open.ai.eros.ai.manager;
 
+import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.db.constants.AIRoleEnum;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @类名：CommonAIManager
@@ -53,11 +55,32 @@ public class CommonAIManager {
      * @return
      */
     public ChatMessage aiNoStream(List<ChatMessage> messages,
-                                  List<dev.langchain4j.data.message.ChatMessage> toolExecutionResultMessages,
+                                  List<String> tools,
                                   String templateModel,
                                   Double temperature) {
 
         try {
+
+            Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
+            Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
+
+
+            Map<String,DefaultToolExecutor> executorMap = new HashMap<>();
+            List<ToolSpecification> toolSpecifications = new ArrayList<>();
+            for (String tool : tools) {
+                ToolSpecification toolSpecification = methodMap.get(tool);
+                if(toolSpecification==null){
+                    log.error("未发现 tool ={}",tool);
+                    continue;
+                }
+                DefaultToolExecutor defaultToolExecutor = toolExecutorMap.get(toolSpecification);
+                if(defaultToolExecutor==null){
+                    log.error("未发现 tool功能提供者 ={}",tool);
+                    continue;
+                }
+                toolSpecifications.add(toolSpecification);
+                executorMap.put(toolSpecification.name(),defaultToolExecutor);
+            }
             //ModelConfigVo modelConfig = modelConfigManager.getModelConfig(templateModel);
             //if (modelConfig == null) {
             //    log.error("aiNoStream  error  无可用的渠道 templateModel={}", templateModel);
@@ -82,9 +105,6 @@ public class CommonAIManager {
                     newMessages.add(aiMessage);
                 }
             }
-            if (CollectionUtils.isNotEmpty(toolExecutionResultMessages)) {
-                newMessages.addAll(toolExecutionResultMessages);
-            }
 
             String url = getUrl("https://bluecatai.net/");
             String token = "sk-7e3d932bef164aedb8f3a33a90a51e7f";
@@ -95,8 +115,24 @@ public class CommonAIManager {
                     .modelName(split[1])
                     .temperature(temperature)
                     .build();
-            Response<AiMessage> generate = modelService.generate(newMessages);
-            String text = generate.content().text();
+            Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
+            AiMessage content = generate.content();
+            List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
+            for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
+                // tool的名称
+                String name = toolExecutionRequest.name();
+                try {
+                    DefaultToolExecutor defaultToolExecutor = executorMap.get(name);
+                    if (defaultToolExecutor == null) {
+                        continue;
+                    }
+                    String aDefault = defaultToolExecutor.execute(toolExecutionRequest, "default");
+                    log.info("useTool tool={},aDefault={}", name, aDefault);
+                } catch (Exception e) {
+                    log.error("useTool error toolName={}", name, e);
+                }
+            }
+            String text = content.text();
             return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), text);
         } catch (Exception e) {
             log.error("aiNoStream error templateModel={} ", templateModel, e);
@@ -109,5 +145,17 @@ public class CommonAIManager {
         return cdnHost.endsWith("/") ? cdnHost + "v1" : cdnHost + "/v1";
     }
 
+
+
+    private static String name = "setStatus";
+
+    public DefaultToolExecutor getToolExecutor(List<String> tools) {
+
+        List<DefaultToolExecutor> defaultToolExecutors = new ArrayList<>();
+        Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
+        ToolSpecification toolSpecification = methodMap.get(name);
+        Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
+        return toolExecutorMap.get(toolSpecification);
+    }
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.AIManager;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -16,6 +17,8 @@ import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.convert.AmMaskConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.BuildPromptUtil;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
@@ -196,8 +199,15 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), buildNewUserMessage.toString()));
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
-        ChatMessage chatMessage = commonAIManager.aiNoStream(messages, null, "OpenAI:gpt-4o-2024-05-13", 0.8);
-        String content = chatMessage.getContent().toString();
+        // 如果content为空 重试10次
+        String content = "";
+        for (int i = 0; i < 10; i++) {
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("setStatus"), "OpenAI:gpt-4o-2024-05-13", 0.8);
+            content = chatMessage.getContent().toString();
+            if (StringUtils.isNotBlank(content)) {
+                break;
+            }
+        }
         if (StringUtils.isBlank(content)) {
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiNoStream content is null");
             return ResultVO.fail(404, "ai回复内容为空");
