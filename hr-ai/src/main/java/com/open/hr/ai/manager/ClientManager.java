@@ -27,10 +27,7 @@ import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Date 2025/1/6 20:00
@@ -120,6 +117,22 @@ public class ClientManager {
             amZpLocalAccouts.setBrowserId(connectId);
             amZpLocalAccouts.setState(AmLocalAccountStatusEnums.FREE.getStatus());
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+
+            HashMap<String, Object> map = new HashMap<>();
+
+            map.put("boss_id", amZpLocalAccouts.getId());
+            map.put("browser_id", amZpLocalAccouts.getBrowserId());
+            map.put("page", 1);
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setId(UUID.randomUUID().toString());
+            amClientTasks.setBossId(amZpLocalAccouts.getId());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            amClientTasks.setData(JSONObject.toJSONString(map));
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setUpdateTime(LocalDateTime.now());
+            boolean result = amClientTasksService.save(amClientTasks);
+            log.info("amClientTasksService save result={},amClientTasks={}", result, amClientTasks);
             return ResultVO.success();
         } catch (Exception e) {
             log.error("客户端登录异常 bossId={},connectId={},extBossId={}", bossId, connectId, extBossId, e);
