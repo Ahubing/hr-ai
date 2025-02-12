@@ -353,6 +353,21 @@ public class AmChatBotGreetJob {
                 }
 
                 AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(accountId);
+
+                //判断是否在线
+                if (Objects.isNull(amZpLocalAccouts) || amZpLocalAccouts.getState() == AmLocalAccountStatusEnums.OFFLINE.getStatus()) {
+                    log.error("复聊任务处理失败,未找到账号或账号已下线:{}", accountId);
+                    continue;
+                }
+
+                LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
+                greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, accountId);
+                AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper,false);
+                if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
+                    log.info("复聊任务跳过: 账号:{}, 未找到复聊任务或未开启复聊", accountId);
+                    continue;
+                }
+
                 String conversationId = amZpLocalAccouts.getExtBossId() + "_" + amResume.getUid();
 
                 // 查询用户是否已经回复消息
