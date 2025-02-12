@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,9 +46,9 @@ public class AmNewMaskUpdateReq {
     /**
      * 模型来源  aws  az gpt  claude
      */
-    @NotEmpty(message = "渠道模版不能为空")
+//    @NotEmpty(message = "渠道模版不能为空")
     @ApiModelProperty(value = "模型来源", required = true)
-    private List<String> templateModel;
+    private List<String> templateModel = Arrays.asList("OpenAI:gpt-4o");
 
     /**
      * 面具的详情说明
