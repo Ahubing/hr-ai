@@ -66,6 +66,16 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
+            if (Objects.nonNull(chatInfo.get("toPositionId"))) {
+                String toPositionId = chatInfo.get("toPositionId").toString();
+                LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+                positionQueryWrapper.eq(AmPosition::getEncryptId, toPositionId);
+                AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
+                if (Objects.nonNull(amPositionServiceOne)) {
+                    amResume.setPostId(amPositionServiceOne.getId());
+                    amResume.setPosition(amPositionServiceOne.getName());
+                }
+            }
             boolean result = amResumeService.updateById(amResume);
             log.info("ExtractResumeDataProcessor dealBossNewMessage update amResume result={}", result);
         }else {
