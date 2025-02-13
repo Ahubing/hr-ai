@@ -360,6 +360,7 @@ public class ChatBotManager {
             amChatbotGreetConfig.setIsGreetOn(req.getIsGreetOn());
             amChatbotGreetConfig.setIsAiOn(req.getIsAiOn());
             amChatbotGreetConfig.setIsRechatOn(req.getIsRechatOn());
+            amChatbotGreetConfig.setIsAllOn(req.getIsAllOn());
             boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
             return result ? ResultVO.success() : ResultVO.fail("修改失败");
         } catch (Exception e) {
@@ -405,6 +406,24 @@ public class ChatBotManager {
         return ResultVO.fail("程序异常,修改复聊任务的状态失败");
     }
 
+
+    @Transactional
+    public ResultVO modifyAllOnStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {
+        try {
+            LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConfig::getAccountId, updateGreetStatusReq.getAccountId());
+            AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper);
+            if (amChatbotGreetConfig == null) {
+                return ResultVO.fail("配置信息不存在");
+            }
+            amChatbotGreetConfig.setIsAllOn(updateGreetStatusReq.getIsAllOn());
+            boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
+            return result ? ResultVO.success() : ResultVO.fail("修改总开关状态失败");
+        } catch (Exception e) {
+            log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(updateGreetStatusReq), e);
+        }
+        return ResultVO.fail("程序异常,修改总开关的状态失败");
+    }
 
     @Transactional
     public ResultVO modifyAIOnStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {

@@ -167,6 +167,7 @@ public class ClientManager {
                 jsonObject.put("isGreetOn",amChatbotGreetConfig.getIsGreetOn());
                 jsonObject.put("isRechatOn",amChatbotGreetConfig.getIsRechatOn());
                 jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
+                jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
             }
             return ResultVO.success(jsonObject);
         } catch (Exception e) {
@@ -643,7 +644,7 @@ public class ClientManager {
                     amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
                     amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
                     amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-                    amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
                     // ---- end 从resume search_data数据结构提取数据  ----
 
                     // ---- begin 从resume数据结构提取数据  ----
@@ -679,7 +680,7 @@ public class ClientManager {
                     amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
                     amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
                     amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-                    amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
                     // ---- end 从resume search_data数据结构提取数据  ----
 
                     // ---- begin 从resume数据结构提取数据  ----
@@ -728,7 +729,7 @@ public class ClientManager {
         amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
         amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
         amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-        amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+        amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
         // ---- end 从resume search_data数据结构提取数据 ----
 
         // ---- begin 从resume数据结构提取数据  ----

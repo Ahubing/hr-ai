@@ -149,6 +149,18 @@ public class ChatBotController extends HrAIBaseController {
     }
 
 
+    @ApiOperation("修改复聊任务的状态")
+    @VerifyUserToken
+    @PostMapping("/chatbot/modify_All_on_status")
+    public ResultVO modifyAllOnStatus(@RequestBody @Valid UpdateGreetConfigStatusReq req) {
+
+        if (Objects.isNull(req) || Objects.isNull(req.getIsRechatOn())) {
+            return ResultVO.fail("参数不能为空");
+        }
+        return chatBotManager.modifyAllOnStatus(req);
+    }
+
+
     @ApiOperation("修改AI跟进任务的状态")
     @VerifyUserToken
     @PostMapping("/chatbot/modify_ai_status")

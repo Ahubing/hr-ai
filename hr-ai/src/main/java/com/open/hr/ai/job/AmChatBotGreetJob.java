@@ -90,8 +90,10 @@ public class AmChatBotGreetJob {
                     //查看账号是否开启打招呼
                     LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
                     greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, localAccout.getId());
+                    greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getIsAllOn, 1);
                     AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                     if (Objects.isNull(one) || one.getIsGreetOn() == 0) {
+                        log.info("打招呼任务跳过: 账号:{}, 未找到打招呼任务配置 或总开关关闭 或未开启打招呼", localAccout.getId());
                         continue;
                     }
 
@@ -237,8 +239,8 @@ public class AmChatBotGreetJob {
 
                     // 获取复聊方案
                     AmChatbotGreetConfig greetConfig = greetConfigMap.get(accountId);
-                    if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
-                        log.info("复聊任务跳过: 账号:{}, 未找到复聊任务或未开启复聊", accountId);
+                    if (greetConfig == null || greetConfig.getIsAllOn() ==0 || greetConfig.getIsRechatOn() == 0) {
+                        log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或总开关关闭 或未开启复聊", accountId);
                         continue;
                     }
 
@@ -363,9 +365,10 @@ public class AmChatBotGreetJob {
 
                 LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
                 greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, accountId);
+                greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getIsAllOn, 1);
                 AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper,false);
-                if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
-                    log.info("复聊任务跳过: 账号:{}, 未找到复聊任务或未开启复聊", accountId);
+                if (greetConfig == null  ||  greetConfig.getIsRechatOn() == 0) {
+                    log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或 全部开关关闭中 或 未开启复聊 greetConfig={}", accountId,greetConfig);
                     continue;
                 }
 

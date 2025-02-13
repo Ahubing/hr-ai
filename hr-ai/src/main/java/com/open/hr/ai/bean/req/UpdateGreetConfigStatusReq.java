@@ -46,12 +46,11 @@ public class UpdateGreetConfigStatusReq {
     @ApiModelProperty(value = "isAiOn不能为空",required = false, notes = "3个字段必须选一个,是否开启ai跟进")
     private Integer isAiOn;
 
-//    /**
-//     * 全部开关
-//     */
-//    @ApiModelProperty(value = "全部开关",required = false, notes = "全部开关 1开启, 0 关闭")
-//    private Integer allSwitch;
-
+    /**
+     * 总开关
+     */
+    @ApiModelProperty(value = "全部开关",required = false, notes = "全部开关 1开启, 0 关闭")
+    private Integer isAllOn;
 
 
 

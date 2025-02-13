@@ -130,7 +130,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         queryWrapper.eq(AmChatbotGreetConfig::getIsAiOn, 1);
         AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper, false);
         if (Objects.isNull(amChatbotGreetConfig)) {
-            log.error("未找到ai跟进对应的配置,bossId={}", amZpLocalAccouts.getId());
+            log.error("未找到ai跟进对应的配置 或 未开启总开关,bossId={}", amZpLocalAccouts.getId());
             return ResultVO.fail(404, "未找到对应的配置");
         }
         Integer postId = amResume.getPostId();
