@@ -333,6 +333,7 @@ public class ChatBotManager {
             amClientTasks.setId(UUID.randomUUID().toString());
             amClientTasks.setBossId(req.getAccountId());
             amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
             amClientTasks.setData(JSONObject.toJSONString(map));
             amClientTasks.setCreateTime(LocalDateTime.now());

@@ -127,6 +127,7 @@ public class ClientManager {
             amClientTasks.setId(UUID.randomUUID().toString());
             amClientTasks.setBossId(amZpLocalAccouts.getId());
             amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
             amClientTasks.setData(JSONObject.toJSONString(map));
             amClientTasks.setCreateTime(LocalDateTime.now());
@@ -157,8 +158,17 @@ public class ClientManager {
                 amZpLocalAccouts.setExtra("");
                 amZpLocalAccouts.setBrowserId("");
             }
-            amZpLocalAccoutsService.updateById(amZpLocalAccouts);
-            return ResultVO.success("状态更新成功");
+
+            boolean result = amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+            log.info("updateClientStatus result={},bossId={}",result,bossId);
+            JSONObject jsonObject = new JSONObject();
+            AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(new LambdaQueryWrapper<AmChatbotGreetConfig>().eq(AmChatbotGreetConfig::getAccountId, bossId), false);
+            if (Objects.nonNull(amChatbotGreetConfig)) {
+                jsonObject.put("isGreetOn",amChatbotGreetConfig.getIsGreetOn());
+                jsonObject.put("isRechatOn",amChatbotGreetConfig.getIsRechatOn());
+                jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
+            }
+            return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("客户端状态更新异常 bossId={},connectId={},status={}", bossId, connectId, inputStatus, e);
         }
@@ -203,6 +213,7 @@ public class ClientManager {
             queryWrapper.eq(AmClientTasks::getBossId, bossId);
             queryWrapper.le(AmClientTasks::getStatus, 1);
             queryWrapper.le(AmClientTasks::getRetryTimes, 2);
+            queryWrapper.orderByDesc(AmClientTasks::getOrderNumber);
             queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
             AmClientTasks amClientTasks = amClientTasksService.getOne(queryWrapper, false);
             if (Objects.nonNull(amClientTasks)) {

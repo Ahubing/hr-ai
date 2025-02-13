@@ -96,6 +96,7 @@ public class AmGreetTaskUtil {
             amClientTasks.setId(UUID.randomUUID().toString());
             amClientTasks.setBossId(amChatbotGreetTask.getAccountId());
             amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GREET.getOrder());
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
 
             JSONObject jsonObject = new JSONObject();

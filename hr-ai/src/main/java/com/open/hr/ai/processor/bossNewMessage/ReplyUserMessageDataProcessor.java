@@ -205,6 +205,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AmClientTasks amClientTasks = new AmClientTasks();
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
         amClientTasks.setCreateTime(LocalDateTime.now());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         HashMap<String, Object> hashMap = new HashMap<>();

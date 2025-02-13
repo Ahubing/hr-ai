@@ -169,7 +169,8 @@ public class AmChatBotGreetJob {
                                 AmClientTasks amClientTasks = new AmClientTasks();
                                 amClientTasks.setId(UUID.randomUUID().toString());
                                 amClientTasks.setBossId(localAccout.getId());
-                                amClientTasks.setTaskType("greet");
+                                amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
+                                amClientTasks.setOrderNumber(ClientTaskTypeEnums.GREET.getOrder());
                                 amClientTasks.setStatus(0);
                                 JSONObject jsonObject = new JSONObject();
                                 jsonObject.put("conditions", conditions);
@@ -409,6 +410,7 @@ public class AmChatBotGreetJob {
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());

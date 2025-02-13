@@ -76,4 +76,9 @@ public class AmClientTasks implements Serializable {
     private LocalDateTime updateTime;
 
 
+    /**
+     * 排序
+     */
+    private Integer orderNumber;
+
 }

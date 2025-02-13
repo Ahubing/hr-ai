@@ -54,6 +54,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             AmClientTasks amClientTasks = new AmClientTasks();
             amClientTasks.setBossId(amZpLocalAccouts.getId());
             amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_ALL_INFO.getOrder());
             HashMap<String, Object> hashMap = new HashMap<>();
             HashMap<String, Object> searchDataMap = new HashMap<>();
             hashMap.put("user_id", req.getUser_id());
