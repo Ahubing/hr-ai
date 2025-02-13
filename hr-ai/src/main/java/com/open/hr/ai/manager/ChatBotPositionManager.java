@@ -452,7 +452,6 @@ public class ChatBotPositionManager {
 
 
             LambdaQueryWrapper<AmZpPlatforms> platformsQueryWrapper = new LambdaQueryWrapper<>();
-            platformsQueryWrapper.gt(AmZpPlatforms::getId, 0);
             List<AmZpPlatforms> amZpPlatforms = amZpPlatformsService.list(platformsQueryWrapper);
 
 
