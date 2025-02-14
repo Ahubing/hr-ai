@@ -332,7 +332,7 @@ public class ChatBotPositionManager {
             if (Objects.nonNull(req.getId())) {
                 AmPositionSection section = amPositionSectionService.getById(req.getId());
                 if (Objects.isNull(section)) {
-                    return ResultVO.fail("部门不存在");
+                    return ResultVO.fail("部门不存在, 请先去建立部门");
                 }
                 section.setName(req.getName());
                 boolean result = amPositionSectionService.updateById(section);
@@ -363,7 +363,7 @@ public class ChatBotPositionManager {
             AmPositionVo amPositionVo = AmPositionConvert.I.converAmPositionVo(amPosition);
             AmPositionSection section = amPositionSectionService.getById(amPosition.getSectionId());
             if (Objects.isNull(section)) {
-                return ResultVO.fail("部门不存在");
+                return ResultVO.fail("部门不存在, 请先去建立部门");
             }
             MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
             if (Objects.isNull(miniUniUser)) {
@@ -400,7 +400,7 @@ public class ChatBotPositionManager {
             queryWrapper.eq(AmPositionSection::getAdminId, adminId);
             AmPositionSection serviceOne = amPositionSectionService.getOne(queryWrapper, false);
             if (Objects.isNull(serviceOne)) {
-                return ResultVO.fail("部门不存在");
+                return ResultVO.fail("部门不存在, 请先去建立部门");
             }
             LambdaQueryWrapper<AmPosition> amPositionQueryWrapper = new LambdaQueryWrapper<>();
             amPositionQueryWrapper.eq(AmPosition::getAdminId, adminId);
@@ -452,7 +452,6 @@ public class ChatBotPositionManager {
 
 
             LambdaQueryWrapper<AmZpPlatforms> platformsQueryWrapper = new LambdaQueryWrapper<>();
-            platformsQueryWrapper.gt(AmZpPlatforms::getId, 0);
             List<AmZpPlatforms> amZpPlatforms = amZpPlatformsService.list(platformsQueryWrapper);
 
 

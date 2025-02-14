@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
@@ -26,10 +27,7 @@ import java.sql.SQLOutput;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @Date 2025/1/6 20:00
@@ -67,6 +65,8 @@ public class ClientManager {
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
     @Resource
     private AmZpPlatformsServiceImpl amZpPlatformsService;
+    @Resource
+    private AmChatMessageServiceImpl amChatMessageService;
 
     @Resource
     private JedisClientImpl jedisClient;
@@ -117,6 +117,23 @@ public class ClientManager {
             amZpLocalAccouts.setBrowserId(connectId);
             amZpLocalAccouts.setState(AmLocalAccountStatusEnums.FREE.getStatus());
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+
+            HashMap<String, Object> map = new HashMap<>();
+
+            map.put("boss_id", amZpLocalAccouts.getId());
+            map.put("browser_id", amZpLocalAccouts.getBrowserId());
+            map.put("page", 1);
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setId(UUID.randomUUID().toString());
+            amClientTasks.setBossId(amZpLocalAccouts.getId());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            amClientTasks.setData(JSONObject.toJSONString(map));
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setUpdateTime(LocalDateTime.now());
+            boolean result = amClientTasksService.save(amClientTasks);
+            log.info("amClientTasksService save result={},amClientTasks={}", result, amClientTasks);
             return ResultVO.success();
         } catch (Exception e) {
             log.error("客户端登录异常 bossId={},connectId={},extBossId={}", bossId, connectId, extBossId, e);
@@ -141,8 +158,18 @@ public class ClientManager {
                 amZpLocalAccouts.setExtra("");
                 amZpLocalAccouts.setBrowserId("");
             }
-            amZpLocalAccoutsService.updateById(amZpLocalAccouts);
-            return ResultVO.success("状态更新成功");
+
+            boolean result = amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+            log.info("updateClientStatus result={},bossId={}",result,bossId);
+            JSONObject jsonObject = new JSONObject();
+            AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(new LambdaQueryWrapper<AmChatbotGreetConfig>().eq(AmChatbotGreetConfig::getAccountId, bossId), false);
+            if (Objects.nonNull(amChatbotGreetConfig)) {
+                jsonObject.put("isGreetOn",amChatbotGreetConfig.getIsGreetOn());
+                jsonObject.put("isRechatOn",amChatbotGreetConfig.getIsRechatOn());
+                jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
+                jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
+            }
+            return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("客户端状态更新异常 bossId={},connectId={},status={}", bossId, connectId, inputStatus, e);
         }
@@ -187,6 +214,7 @@ public class ClientManager {
             queryWrapper.eq(AmClientTasks::getBossId, bossId);
             queryWrapper.le(AmClientTasks::getStatus, 1);
             queryWrapper.le(AmClientTasks::getRetryTimes, 2);
+            queryWrapper.orderByDesc(AmClientTasks::getOrderNumber);
             queryWrapper.orderByAsc(AmClientTasks::getCreateTime);
             AmClientTasks amClientTasks = amClientTasksService.getOne(queryWrapper, false);
             if (Objects.nonNull(amClientTasks)) {
@@ -341,7 +369,8 @@ public class ClientManager {
 
             //开始
             Integer sectionId = amPositionSection.getId();
-            amZpLocalAccouts.setIsSync(1);
+            // 同步结束
+            amZpLocalAccouts.setIsSync(2);
 
             // 注意入参格式
             JSONArray jobsArray = jsonObject.getJSONArray("jobs");
@@ -467,6 +496,19 @@ public class ClientManager {
                     amChatbotGreetResult.setUserId(amResume.getUid());
                     boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
 
+                    if (saveResult) {
+                        // 生成聊天记录
+                        AmChatMessage amChatMessage = new AmChatMessage();
+                        amChatMessage.setConversationId(amChatbotGreetResult.getAccountId() + "_" + amResume.getUid());
+                        amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
+                        amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+                        amChatMessage.setType(-1);
+                        amChatMessage.setContent("你好");
+                        amChatMessage.setCreateTime(LocalDateTime.now());
+                        boolean save = amChatMessageService.save(amChatMessage);
+                        log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
+                    }
+
                     //查询打招呼任务数据
                     AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(greetId);
                     if (Objects.isNull(amChatbotGreetTask)) {
@@ -498,7 +540,7 @@ public class ClientManager {
                         continue;
                     }
                     // 查询第一天的复聊任务
-                    List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
+                    List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
                     if (Objects.isNull(amChatbotOptionsItems) || amChatbotOptionsItems.isEmpty()) {
                         log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
                         continue;
@@ -509,7 +551,7 @@ public class ClientManager {
                         amChatbotGreetResult.setRechatItem(amChatbotOptionsItem.getId());
                         amChatbotGreetResult.setTaskId(amChatbotGreetTask.getId());
                         amChatbotGreetResultService.updateById(amChatbotGreetResult);
-                        Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime());
+                        Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime())* 1000L;
                         Long zadd = jedisClient.zadd(RedisKyeConstant.AmChatBotReChatTask, operateTime, JSONObject.toJSONString(amChatbotGreetResult));
                         log.info("复聊任务处理开始, 账号:{}, 复聊任务添加结果:{}", amZpLocalAccouts.getId(), zadd);
                     }
@@ -602,7 +644,7 @@ public class ClientManager {
                     amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
                     amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
                     amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-                    amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
                     // ---- end 从resume search_data数据结构提取数据  ----
 
                     // ---- begin 从resume数据结构提取数据  ----
@@ -638,7 +680,7 @@ public class ClientManager {
                     amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
                     amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
                     amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-                    amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
                     // ---- end 从resume search_data数据结构提取数据  ----
 
                     // ---- begin 从resume数据结构提取数据  ----
@@ -687,7 +729,7 @@ public class ClientManager {
         amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
         amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
         amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-        amResume.setPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+        amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
         // ---- end 从resume search_data数据结构提取数据 ----
 
         // ---- begin 从resume数据结构提取数据  ----

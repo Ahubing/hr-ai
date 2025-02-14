@@ -35,6 +35,7 @@ public class AmClientTaskManager {
                 amClientTasks.setBossId(bossId);
                 amClientTasks.setCreateTime(LocalDateTime.now());
                 amClientTasks.setTaskType(ClientTaskTypeEnums.SWITCH_JOB_STATE.getType());
+                amClientTasks.setOrderNumber(ClientTaskTypeEnums.SWITCH_JOB_STATE.getOrder());
                 amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("encrypt_id", amPosition.getEncryptId());

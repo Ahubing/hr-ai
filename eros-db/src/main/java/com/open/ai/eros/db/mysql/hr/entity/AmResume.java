@@ -76,9 +76,14 @@ public class AmResume implements Serializable {
     private String city;
 
     /**
-     * 找的职位
+     * 应聘职位
      */
-    private String position;
+    private String  position;
+
+    /**
+     * 期望职位
+     */
+    private String expectPosition;
 
     /**
      * 0女，1男
@@ -207,7 +212,6 @@ public class AmResume implements Serializable {
     private Integer workYears;
 
     private String attachmentResume;
-
 
     private String skills;
 

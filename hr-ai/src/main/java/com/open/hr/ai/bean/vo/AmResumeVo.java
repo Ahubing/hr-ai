@@ -89,10 +89,16 @@ public class AmResumeVo  {
     private String city;
 
     /**
-     * 找的职位
+     * 应聘的职位
      */
-    @ApiModelProperty(value = "找的职位")
+    @ApiModelProperty(value = "应聘职位")
     private String position;
+
+    /**
+     * 期望的职位
+     */
+    @ApiModelProperty(value = "期望的职位")
+    private String expectPosition;
 
     /**
      * 0女，1男

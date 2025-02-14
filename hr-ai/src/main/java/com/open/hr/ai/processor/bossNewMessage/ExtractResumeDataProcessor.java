@@ -2,7 +2,6 @@ package com.open.hr.ai.processor.bossNewMessage;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
@@ -18,8 +17,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -66,8 +63,18 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             if (Objects.nonNull(chatInfo.get("weixin"))) {
                 amResume.setWechat(chatInfo.get("weixin").toString());
             }
-            if (CollectionUtils.isNotEmpty(req.getAttachmentResume())){
-                amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachmentResume()));
+            if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
+                amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
+            }
+            if (Objects.nonNull(chatInfo.get("toPositionId"))) {
+                String toPositionId = chatInfo.get("toPositionId").toString();
+                LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+                positionQueryWrapper.eq(AmPosition::getEncryptId, toPositionId);
+                AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
+                if (Objects.nonNull(amPositionServiceOne)) {
+                    amResume.setPostId(amPositionServiceOne.getId());
+                    amResume.setPosition(amPositionServiceOne.getName());
+                }
             }
             boolean result = amResumeService.updateById(amResume);
             log.info("ExtractResumeDataProcessor dealBossNewMessage update amResume result={}", result);
@@ -78,8 +85,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             if (Objects.nonNull(chatInfo.get("uid"))) {
                 amResume.setUid(chatInfo.get("uid").toString());
             }
-            if (CollectionUtils.isNotEmpty(req.getAttachmentResume())){
-                amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachmentResume()));
+            if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
+                amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());

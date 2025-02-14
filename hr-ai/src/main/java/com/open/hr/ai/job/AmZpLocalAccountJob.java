@@ -8,7 +8,9 @@ import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
+import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
+import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -33,14 +35,15 @@ public class AmZpLocalAccountJob {
 
     @Resource
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
+
+    @Resource
+    private AmClientTasksServiceImpl amClientTasksService;
     private static final String GREET_MESSAGE = "你好";
 
 
     /**
-     * 处理定时任务
-     * 下面跟着php逻辑实现, 后续改造
+     * 处理定时任务 检测用户的状态, 超过25秒即下线
      */
-
     // 20秒检测一次
     @Scheduled(cron = "0/20 * * * * ?")
     public void offerLineAccount() {
@@ -66,5 +69,51 @@ public class AmZpLocalAccountJob {
         }
     }
 
+
+
+    /**
+     * 处理定时任务 每小时根据在线的账号,生成同步岗位的任务
+     */
+    // 20秒检测一次
+    @Scheduled(cron = "0 0 * * * ?")
+    public void getAllPositionJob() {
+        Lock lock = DistributedLockUtils.getLock("get_all_job", 10);
+        if (lock.tryLock()) {
+            try {
+                LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new QueryWrapper<AmZpLocalAccouts>().lambda();
+                queryWrapper.ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus());
+                List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list();
+                for (AmZpLocalAccouts localAccout : localAccouts) {
+                    // 查询这个用户是否存在get_all_job 任务
+                    LambdaQueryWrapper<AmClientTasks> queryWrapper1 = new QueryWrapper<AmClientTasks>().lambda();
+                    queryWrapper1.eq(AmClientTasks::getBossId, localAccout.getId());
+                    queryWrapper1.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.GET_ALL_JOB.getType());
+                    queryWrapper1.le(AmClientTasks::getStatus, AmClientTaskStatusEnums.START.getStatus());
+                    int count = amClientTasksService.count(queryWrapper1);
+                    if (count > 0) {
+                        log.info("账号:{} 存在未完成的任务", localAccout.getId());
+                        continue;
+                    }
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("boss_id", localAccout.getId());
+                    map.put("browser_id", localAccout.getBrowserId());
+                    map.put("page", 1);
+                    AmClientTasks amClientTasks = new AmClientTasks();
+                    amClientTasks.setId(UUID.randomUUID().toString());
+                    amClientTasks.setBossId(localAccout.getId());
+                    amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+                    amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
+                    amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+                    amClientTasks.setData(JSONObject.toJSONString(map));
+                    amClientTasks.setCreateTime(LocalDateTime.now());
+                    amClientTasks.setUpdateTime(LocalDateTime.now());
+                    boolean result = amClientTasksService.save(amClientTasks);
+                    log.info("syncPositions save amClientTasks result={}", result);
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
 
 }

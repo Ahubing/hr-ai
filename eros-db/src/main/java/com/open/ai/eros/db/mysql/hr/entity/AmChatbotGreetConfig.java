@@ -49,5 +49,10 @@ public class AmChatbotGreetConfig implements Serializable {
      */
     private Integer isAiOn;
 
+    /**
+     * 总开关
+     */
+    private Integer isAllOn;
+
 
 }

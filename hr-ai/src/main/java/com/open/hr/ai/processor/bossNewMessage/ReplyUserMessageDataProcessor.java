@@ -133,7 +133,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         queryWrapper.eq(AmChatbotGreetConfig::getIsAiOn, 1);
         AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper, false);
         if (Objects.isNull(amChatbotGreetConfig)) {
-            log.error("未找到ai跟进对应的配置,bossId={}", amZpLocalAccouts.getId());
+            log.error("未找到ai跟进对应的配置 或 未开启总开关,bossId={}", amZpLocalAccouts.getId());
             return ResultVO.fail(404, "未找到对应的配置");
         }
         Integer postId = amResume.getPostId();
@@ -215,6 +215,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AmClientTasks amClientTasks = new AmClientTasks();
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
         amClientTasks.setCreateTime(LocalDateTime.now());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         HashMap<String, Object> hashMap = new HashMap<>();

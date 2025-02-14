@@ -10,6 +10,7 @@ import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
+import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.PositionSyncTaskStatusEnums;
 import com.open.hr.ai.convert.*;
 import com.open.hr.ai.util.AmGreetTaskUtil;
@@ -322,15 +323,17 @@ public class ChatBotManager {
                     amPositionSyncTaskService.updateById(amPositionSyncTask);
                 }
             }
-
-            String taskType = "get_all_job";
+            zpLocalAccouts.setIsSync(1);
+            boolean updateResult = amZpLocalAccoutsService.updateById(zpLocalAccouts);
+            log.info("syncPositions id={},updateResult={}",zpLocalAccouts.getId(), updateResult);
             map.put("boss_id", req.getAccountId());
             map.put("browser_id", zpLocalAccouts.getBrowserId());
             map.put("page", 1);
             AmClientTasks amClientTasks = new AmClientTasks();
             amClientTasks.setId(UUID.randomUUID().toString());
             amClientTasks.setBossId(req.getAccountId());
-            amClientTasks.setTaskType(taskType);
+            amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
             amClientTasks.setData(JSONObject.toJSONString(map));
             amClientTasks.setCreateTime(LocalDateTime.now());
@@ -357,6 +360,7 @@ public class ChatBotManager {
             amChatbotGreetConfig.setIsGreetOn(req.getIsGreetOn());
             amChatbotGreetConfig.setIsAiOn(req.getIsAiOn());
             amChatbotGreetConfig.setIsRechatOn(req.getIsRechatOn());
+            amChatbotGreetConfig.setIsAllOn(req.getIsAllOn());
             boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
             return result ? ResultVO.success() : ResultVO.fail("修改失败");
         } catch (Exception e) {
@@ -402,6 +406,24 @@ public class ChatBotManager {
         return ResultVO.fail("程序异常,修改复聊任务的状态失败");
     }
 
+
+    @Transactional
+    public ResultVO modifyAllOnStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {
+        try {
+            LambdaQueryWrapper<AmChatbotGreetConfig> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConfig::getAccountId, updateGreetStatusReq.getAccountId());
+            AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(queryWrapper);
+            if (amChatbotGreetConfig == null) {
+                return ResultVO.fail("配置信息不存在");
+            }
+            amChatbotGreetConfig.setIsAllOn(updateGreetStatusReq.getIsAllOn());
+            boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
+            return result ? ResultVO.success() : ResultVO.fail("修改总开关状态失败");
+        } catch (Exception e) {
+            log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(updateGreetStatusReq), e);
+        }
+        return ResultVO.fail("程序异常,修改总开关的状态失败");
+    }
 
     @Transactional
     public ResultVO modifyAIOnStatus(UpdateGreetConfigStatusReq updateGreetStatusReq) {
@@ -483,10 +505,12 @@ public class ChatBotManager {
                 req.setCreateTime(LocalDateTime.now());
                 AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
                 boolean result = amChatbotGreetTaskService.save(amChatbotGreetTask);
-                log.info("setGreetTask save amChatbotGreetTask result={}", result);
+                log.info("setGreetTask save amChatbotGreetTask amChatbotGreetTask={}, result={}",JSONObject.toJSONString(amChatbotGreetTask), result);
                 req.setId(amChatbotGreetTask.getId());
                 // 处理临时打招呼任务
-                amGreetTaskUtil.dealGreetTask(amChatbotGreetTask);
+                if (req.getTaskType() == 1) {
+                    amGreetTaskUtil.dealGreetTask(amChatbotGreetTask);
+                }
                 return ResultVO.success(amChatbotGreetTask);
             }
         } catch (Exception e) {
@@ -494,6 +518,7 @@ public class ChatBotManager {
         }
         return ResultVO.fail("程序异常,添加/编辑任务失败");
     }
+
 
 
     /**

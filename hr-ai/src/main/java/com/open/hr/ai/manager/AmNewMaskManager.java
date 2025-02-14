@@ -97,7 +97,7 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        amNewMask.setTags(String.join(",", req.getTags()));
+//        amNewMask.setTags(String.join(",", req.getTags()));
         amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setCreateTime(LocalDateTime.now());
@@ -132,7 +132,7 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        amNewMask.setTags(String.join(",", req.getTags()));
+//        amNewMask.setTags(String.join(",", req.getTags()));
         amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setStatus(req.getStatus());

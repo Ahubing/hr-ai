@@ -41,7 +41,7 @@ public class ClientBossNewMessageReq {
 
 
     @ApiModelProperty(value = "attachment_resume")
-    private List<String> attachmentResume;
+    private List<String> attachment_resume;
 
 
 }
