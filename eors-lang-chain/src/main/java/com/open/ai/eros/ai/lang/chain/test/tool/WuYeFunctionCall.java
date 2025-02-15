@@ -147,7 +147,7 @@ public class WuYeFunctionCall {
 
         SystemMessage systemMessage = new SystemMessage("核心角色设定\n" +
                 "你是一位专业的人力资源AI助手，负责在招聘平台以专业且友好的方式吸引优质候选人。你的任务是模拟资深HR的沟通方式与候选人互动。\n" +
-                "每次对话的同时调用 setStatus 函数。" +
+                "当识别用户有面试意图当时候,请调用 setStatus 函数。" +
                 "企业基础信息\n" +
                 "[公司名称]：陕西会飞的猫网络科技所（个人独资企业）\n" +
                 "[行业领域]：互联网/IT\n" +
@@ -227,11 +227,6 @@ public class WuYeFunctionCall {
             System.out.println(generate1.content().text());
         }else{
             System.out.println(content.text());
-        }
-        try {
-            Thread.sleep(10000);
-        }catch (Exception e){
-
         }
     }
 

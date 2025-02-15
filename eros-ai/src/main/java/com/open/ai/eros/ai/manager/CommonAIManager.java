@@ -1,6 +1,7 @@
 package com.open.ai.eros.ai.manager;
 
 import com.open.ai.eros.ai.tool.config.ToolConfig;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.db.constants.AIRoleEnum;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @类名：CommonAIManager
@@ -41,9 +43,9 @@ public class CommonAIManager {
      * @param content
      * @return
      */
-    public ChatMessage aiNoStream(String templateModel, String content) {
-        return aiNoStream(Collections.singletonList(new ChatMessage(AIRoleEnum.USER.getRoleName(), content)), null, templateModel, 0.8);
-    }
+//    public ChatMessage aiNoStream(String templateModel, String content) {
+//        return aiNoStream(Collections.singletonList(new ChatMessage(AIRoleEnum.USER.getRoleName(), content)), null, templateModel, 0.8);
+//    }
 
     /**
      * 非流获取ai结果
@@ -57,7 +59,8 @@ public class CommonAIManager {
     public ChatMessage aiNoStream(List<ChatMessage> messages,
                                   List<String> tools,
                                   String templateModel,
-                                  Double temperature) {
+                                  Double temperature, AtomicInteger statusCode ) {
+
 
         try {
 
@@ -126,14 +129,26 @@ public class CommonAIManager {
                     if (defaultToolExecutor == null) {
                         continue;
                     }
-                    String aDefault = defaultToolExecutor.execute(toolExecutionRequest, "default");
-                    log.info("useTool tool={},aDefault={}", name, aDefault);
+                    if (name.equals("set_status")){
+                        String status = defaultToolExecutor.execute(toolExecutionRequest, "default");
+                        ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(status);
+                        statusCode.set(enums.getStatus());
+                        log.info("useTool tool={},aDefault={},statusCode={}", name, enums.getDesc(),statusCode);
+                    }
                 } catch (Exception e) {
                     log.error("useTool error toolName={}", name, e);
                 }
             }
             String text = content.text();
+            if (text == null) {
+                // 命中函数,重新生成回答
+                Response<AiMessage> newGenerate = modelService.generate(newMessages);
+                AiMessage aiMessage = newGenerate.content();
+                text = aiMessage.text();
+                return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), text);
+            }
             return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), text);
+
         } catch (Exception e) {
             log.error("aiNoStream error templateModel={} ", templateModel, e);
         }

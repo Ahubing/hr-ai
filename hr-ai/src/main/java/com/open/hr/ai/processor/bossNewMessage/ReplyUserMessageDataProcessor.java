@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.AIManager;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.config.ToolConfig;
+import com.open.ai.eros.ai.tool.function.InterviewFunction;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -17,16 +18,21 @@ import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.convert.AmMaskConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.BuildPromptUtil;
+import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.agent.tool.ToolSpecifications;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -58,7 +64,31 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
 
     @Resource
+    private AmResumeServiceImpl amResumeService;
+
+
+    @Resource
     private CommonAIManager commonAIManager;
+
+
+    private Map<String,DefaultToolExecutor> toolExecutorMap = new HashMap<>();
+    private List<ToolSpecification> toolSpecifications = new ArrayList<>();
+
+    @PostConstruct
+    public void init() {
+
+        InterviewFunction calculator = new InterviewFunction();
+        Method[] methods = calculator.getClass().getMethods();
+
+        for (Method method : methods) {
+            if(method.isAnnotationPresent(Tool.class)){
+                Tool annotation = method.getAnnotation(Tool.class);
+                toolSpecifications.add(ToolSpecifications.toolSpecificationFrom(method));
+                DefaultToolExecutor defaultToolExecutor = new DefaultToolExecutor(calculator, method);
+                toolExecutorMap.put(annotation.name(),defaultToolExecutor);
+            }
+        }
+    }
 
     private static final String prompt = "你是一名杰出的招聘专员助理，负责为求职者提供清晰、专业和友好的回复。当你准备回复求职者的申请或问题时，请使用以下模板：\n" +
             "1. 别人说你好的时候，你也回复，你好\n" +
@@ -201,8 +231,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         // 如果content为空 重试10次
         String content = "";
+        AtomicInteger statusCode = new AtomicInteger(0);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("setStatus"), "OpenAI:gpt-4o-2024-05-13", 0.8);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
@@ -248,10 +279,16 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             aiMockMessages.setType(-1);
             boolean mockSaveResult = amChatMessageService.save(aiMockMessages);
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
+
+            // 更新简历状态
+            amResume.setType(statusCode.get());
+            boolean updateResume = amResumeService.updateById(amResume);
+            log.info("ReplyUserMessageDataProcessor dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
         }
 
         return ResultVO.success();
     }
+
 
 
 }
