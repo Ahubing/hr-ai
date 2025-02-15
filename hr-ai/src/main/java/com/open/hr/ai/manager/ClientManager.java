@@ -117,9 +117,17 @@ public class ClientManager {
             amZpLocalAccouts.setBrowserId(connectId);
             amZpLocalAccouts.setState(AmLocalAccountStatusEnums.FREE.getStatus());
             amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+            LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new QueryWrapper<AmClientTasks>().lambda();
+            lambdaQueryWrapper.eq(AmClientTasks::getBossId, bossId);
+            lambdaQueryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.GET_ALL_JOB.getType());
+            lambdaQueryWrapper.le(AmClientTasks::getStatus, AmClientTaskStatusEnums.START.getStatus());
+            int count = amClientTasksService.count(lambdaQueryWrapper);
+            if (count > 0) {
+                log.info("账号:{} 存在未完成的任务", bossId);
+                return ResultVO.success();
+            }
 
             HashMap<String, Object> map = new HashMap<>();
-
             map.put("boss_id", amZpLocalAccouts.getId());
             map.put("browser_id", amZpLocalAccouts.getBrowserId());
             map.put("page", 1);

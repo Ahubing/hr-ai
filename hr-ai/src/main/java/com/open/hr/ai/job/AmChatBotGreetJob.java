@@ -3,6 +3,7 @@ package com.open.hr.ai.job;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -352,6 +353,15 @@ public class AmChatBotGreetJob {
                 AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()), false);
                 if (Objects.isNull(amResume)) {
                     log.error("复聊任务处理失败,未找到用户:{}", amChatbotGreetResult.getUserId());
+                    continue;
+                }
+
+                //判断简历状态
+                if (ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus().equals(amResume.getType())
+                        || ReviewStatusEnums.OFFER_ISSUED.getStatus().equals(amResume.getType())
+                        || ReviewStatusEnums.ONBOARD.getStatus().equals(amResume.getType())
+                        || ReviewStatusEnums.ABANDON.getStatus().equals(amResume.getType())) {
+                    log.error("复聊任务处理失败,简历状态不是初筛 Uid:{}", amResume.getUid());
                     continue;
                 }
 
