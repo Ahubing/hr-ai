@@ -7,4 +7,5 @@ package com.open.hr.ai.constant;
 public class RedisKyeConstant {
 
     public static final String AmChatBotReChatTask = "am_chatbot_rechat_task";
+    public static final String AmChatBotGreetTask = "am_chatbot_greet_task";
 }

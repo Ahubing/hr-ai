@@ -16,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -75,13 +76,14 @@ public class AmChatBotGreetJob {
 
 
     /**
-     * 处理定时任务
-     * 下面跟着php逻辑实现, 后续改造
+     * 处理打招呼的定时任务
+     * 下面是java 优化后的数据
      */
 
-    @Scheduled(cron = "0 0 * * * ?")
-    public void run_scheduled_timer() {
-        Lock lock = DistributedLockUtils.getLock("run_scheduled_timer", 30);
+    @Scheduled(cron = "0 * * * * ?")
+//    @Scheduled(cron = "0/20 * * * * ?")
+    public void run_scheduled_greet_timer() {
+        Lock lock = DistributedLockUtils.getLock("run_scheduled_greet_timer", 30);
         if (lock.tryLock()) {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.lambdaQuery()
@@ -106,86 +108,25 @@ public class AmChatBotGreetJob {
                     if (CollectionUtils.isEmpty(amChatbotGreetTasks)) {
                         continue;
                     }
-                    LocalDateTime now = LocalDateTime.now();
-                    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("H:m");
-                    String curTime = now.format(timeFormatter);
-
-                    // 计算前一个小时的时间
-                    LocalDateTime preHourTime = now.minusHours(1);
-                    String preTime = preHourTime.format(timeFormatter);
+                    String todayDate = RedisKyeConstant.AmChatBotGreetTask +":"+DateUtils.getTodayDate();
                     for (AmChatbotGreetTask amChatbotGreetTask : amChatbotGreetTasks) {
                         Integer taskNum = amChatbotGreetTask.getTaskNum();
                         if (Objects.isNull(taskNum) || taskNum <= 0) {
                             continue;
                         }
                         String execTime = amChatbotGreetTask.getExecTime();
-                        if (execTime.compareTo(preTime) > 0 && preTime.compareTo(curTime) <= 0) {
-                            // 检查是否已执行
-                            boolean isExecuted = checkIfTaskExecuted(amChatbotGreetTask.getId());
-                            if (!isExecuted) {
-                                // 执行任务
-                                AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
-                                amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
-                                amChatbotGreetMessages.setTaskType(MessageTypeEnums.daily_greet.getCode());
-                                amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
-                                amChatbotGreetMessages.setIsSystemSend(1);
-                                amChatbotGreetMessages.setContent(GREET_MESSAGE);
-                                amChatbotGreetMessages.setCreateTime(DateUtils.formatDate(new Date(), "Y-m-d"));
-                                amChatbotGreetMessagesService.save(amChatbotGreetMessages);
-                                //更新task临时status的状态
-                                amChatbotGreetTask.setStatus(1);
-                                amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
-                                amChatbotGreetTaskService.updateById(amChatbotGreetTask);
-
-                                AmChatbotGreetCondition condition = amChatbotGreetConditionService.lambdaQuery()
-                                        .eq(AmChatbotGreetCondition::getAccountId, amChatbotGreetTask.getAccountId())
-                                        .eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTask.getPositionId())
-                                        .last("LIMIT 1") // 限制查询结果为一条
-                                        .one(); // 禁止抛出异常
-
-                                if (Objects.isNull(condition)) {
-                                    condition = amChatbotGreetConditionService.getById(1);
-                                    AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
-                                    if (Objects.isNull(amPosition)) {
-                                        log.error("未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
-                                        continue;
-                                    } else {
-                                        if (amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
-                                            log.error("职位已删除: amPosition={}", amPosition);
-                                            continue;
-                                        }
-                                        condition.setRecruitPosition(amPosition.getName());
-                                    }
-                                }
-                                // 创建 JSON 对象并根据逻辑填充数据
-                                JSONObject conditions = new JSONObject();
-                                conditions.put("曾就职单位", condition.getPreviousCompany() != null ? condition.getPreviousCompany() : "");
-                                conditions.put("招聘职位", condition.getRecruitPosition() != null ? condition.getRecruitPosition() : "不限");
-                                conditions.put("年龄", condition.getAge() != null ? condition.getAge() : "不限");
-                                conditions.put("性别", condition.getGender() != null ? condition.getGender() : "不限");
-                                conditions.put("经验要求", condition.getExperience() != null ? condition.getExperience() : "不限");
-                                conditions.put("学历要求", condition.getEducation() != null ? condition.getEducation() : "不限");
-                                conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
-                                conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
-
-                                // 创建任务
-                                AmClientTasks amClientTasks = new AmClientTasks();
-                                amClientTasks.setId(UUID.randomUUID().toString());
-                                amClientTasks.setBossId(localAccout.getId());
-                                amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
-                                amClientTasks.setOrderNumber(ClientTaskTypeEnums.GREET.getOrder());
-                                amClientTasks.setStatus(0);
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("conditions", conditions);
-                                jsonObject.put("times", amChatbotGreetTask.getTaskNum());
-                                JSONObject messageObject = new JSONObject();
-                                messageObject.put("content", GREET_MESSAGE);
-                                jsonObject.put("message", messageObject);
-                                amClientTasks.setData(jsonObject.toJSONString());
-                                amClientTasks.setCreateTime(LocalDateTime.now());
-                                amClientTasks.setUpdateTime(LocalDateTime.now());
-                                amClientTasksService.save(amClientTasks);
+                        // 将execTime 转化成时间戳
+                        long taskExecTimeStamp = DateUtils.convertToTimestamp(execTime);
+                        if (taskExecTimeStamp >= System.currentTimeMillis()) {
+                            if (jedisClient.sismember(todayDate, amChatbotGreetTask.getId().toString())) {
+                                log.info("打招呼任务跳过: id:{}，今天已经执行过", amChatbotGreetTask.getId());
+                                continue;
                             }
+
+                            jedisClient.zadd(RedisKyeConstant.AmChatBotGreetTask, taskExecTimeStamp, JSONObject.toJSONString(amChatbotGreetTask));
+                            jedisClient.sadd(todayDate, amChatbotGreetTask.getId().toString());
+                            //设置一天缓存时间
+                            jedisClient.expire(todayDate, 24 * 60 * 60);
                         }
                     }
                 }
@@ -193,19 +134,13 @@ public class AmChatBotGreetJob {
                 lock.unlock();
             }
         }
-    }
-
-
-    private boolean checkIfTaskExecuted(int taskId) {
-        AmChatbotGreetMessages amChatbotGreetMessages = amChatbotGreetMessagesService.lambdaQuery()
-                .eq(AmChatbotGreetMessages::getTaskId, taskId)
-                .eq(AmChatbotGreetMessages::getCreateTime, DateUtils.formatDate(new Date(), "Y-m-d"))
-                .one();
-        if (Objects.nonNull(amChatbotGreetMessages)) {
-            return true;
+        else {
+            log.warn("打招呼定时任务未执行，因锁未获取成功");
         }
-        return false;
     }
+
+
+
 
 
     /**
@@ -218,7 +153,7 @@ public class AmChatBotGreetJob {
             try {
                 log.info("复聊定时任务开始执行...");
                 // 获取当天的 Redis Key
-                String todayKey = "rechat_executed_accounts:" + LocalDate.now();
+                String todayKey = "rechat_executed_accounts:" + DateUtils.getTodayDate();
 
                 // 查询所有活跃账号
                 List<AmZpLocalAccouts> localAccounts = amZpLocalAccoutsService.lambdaQuery()
@@ -331,82 +266,208 @@ public class AmChatBotGreetJob {
      */
     @Scheduled(cron = "0/20 * * * * ?")
     public void deal_rechat_timer() {
-        Set<String> reChatTasks = jedisClient.zrangeByScore(RedisKyeConstant.AmChatBotReChatTask, 0, Double.valueOf(System.currentTimeMillis()));
-        for (String reChatTask : reChatTasks) {
-
+        Lock lock = DistributedLockUtils.getLock("deal_rechat_timer", 30);
+        if (lock.tryLock()) {
             try {
-                AmChatbotGreetResult amChatbotGreetResult = JSONObject.parseObject(reChatTask, AmChatbotGreetResult.class);
-                if (Objects.isNull(amChatbotGreetResult)) {
-                    log.error("复聊任务处理失败,amChatbotGreetResult解析:{}", reChatTask);
-                    continue;
+                Set<String> reChatTasks = jedisClient.zrangeByScore(RedisKyeConstant.AmChatBotReChatTask, 0, Double.valueOf(System.currentTimeMillis()));
+                for (String reChatTask : reChatTasks) {
+                    try {
+                        AmChatbotGreetResult amChatbotGreetResult = JSONObject.parseObject(reChatTask, AmChatbotGreetResult.class);
+                        if (Objects.isNull(amChatbotGreetResult)) {
+                            log.error("复聊任务处理失败,amChatbotGreetResult解析:{}", reChatTask);
+                            continue;
+                        }
+
+                        // 查询出对应的任务
+                        Integer rechatItem = amChatbotGreetResult.getRechatItem();
+                        AmChatbotOptionsItems amChatbotOptionsItems = amChatbotOptionsItemsService.getById(rechatItem);
+                        if (Objects.isNull(amChatbotOptionsItems)) {
+                            log.error("复聊任务处理失败,未找到对应的任务:{}", rechatItem);
+                            continue;
+                        }
+
+                        String accountId = amChatbotGreetResult.getAccountId();
+                        AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()), false);
+                        if (Objects.isNull(amResume)) {
+                            log.error("复聊任务处理失败,未找到用户:{}", amChatbotGreetResult.getUserId());
+                            continue;
+                        }
+
+                        //判断简历状态
+                        if (ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus().equals(amResume.getType())
+                                || ReviewStatusEnums.OFFER_ISSUED.getStatus().equals(amResume.getType())
+                                || ReviewStatusEnums.ONBOARD.getStatus().equals(amResume.getType())
+                                || ReviewStatusEnums.ABANDON.getStatus().equals(amResume.getType())) {
+                            log.error("复聊任务处理失败,简历状态不是初筛 Uid:{}", amResume.getUid());
+                            continue;
+                        }
+
+                        AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(accountId);
+
+                        //判断是否在线
+                        if (Objects.isNull(amZpLocalAccouts) || amZpLocalAccouts.getState() == AmLocalAccountStatusEnums.OFFLINE.getStatus()) {
+                            log.error("复聊任务处理失败,未找到账号或账号已下线:{}", accountId);
+                            continue;
+                        }
+
+                        LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
+                        greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, accountId);
+                        greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getIsAllOn, 1);
+                        AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
+                        if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
+                            log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或 全部开关关闭中 或 未开启复聊 greetConfig={}", accountId, greetConfig);
+                            continue;
+                        }
+
+                        String conversationId = amZpLocalAccouts.getExtBossId() + "_" + amResume.getUid();
+
+                        // 查询用户是否已经回复消息
+                        LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
+                        chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+                        AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
+
+                        //
+                        if (Objects.nonNull(amChatMessage)) {
+                            log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage, conversationId);
+                            chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
+                            AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
+                            if (Objects.isNull(chatMessage)) {
+                                log.info("用户已经回复过消息:{}", chatMessage);
+                                continue;
+                            }
+                        }
+
+                        buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts);
+                        jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+                    } catch (Exception e) {
+                        log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", reChatTask);
+                    }
                 }
+            } catch (Exception e) {
+                log.error("复聊任务处理异常");
+            } finally {
+                lock.unlock();
+            }
+        } else {
+            log.info("处理复聊任务未执行，因锁未获取成功");
+        }
+    }
 
-                // 查询出对应的任务
-                Integer rechatItem = amChatbotGreetResult.getRechatItem();
-                AmChatbotOptionsItems amChatbotOptionsItems = amChatbotOptionsItemsService.getById(rechatItem);
-                if (Objects.isNull(amChatbotOptionsItems)) {
-                    log.error("复聊任务处理失败,未找到对应的任务:{}", rechatItem);
-                    continue;
-                }
 
-                String accountId = amChatbotGreetResult.getAccountId();
-                AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()), false);
-                if (Objects.isNull(amResume)) {
-                    log.error("复聊任务处理失败,未找到用户:{}", amChatbotGreetResult.getUserId());
-                    continue;
-                }
+    /**
+     * 处理定时打招呼任务
+     */
+    @Transactional
+    @Scheduled(cron = "0 * * * * ?")
+    public void deal_greet_timer() {
+        Lock lock = DistributedLockUtils.getLock("deal_greet_timer", 30);
+        if (lock.tryLock()) {
+            try {
+                Set<String> greetTasks = jedisClient.zrangeByScore(RedisKyeConstant.AmChatBotGreetTask, 0, Double.valueOf(System.currentTimeMillis()));
+                for (String greetTask : greetTasks) {
+                    try {
+                        jedisClient.zrem(RedisKyeConstant.AmChatBotGreetTask, greetTask);
+                        AmChatbotGreetTask amChatbotGreetTask = JSONObject.parseObject(greetTask, AmChatbotGreetTask.class);
+                        if (Objects.isNull(amChatbotGreetTask)) {
+                            log.error("打招呼任务处理失败,amChatbotGreetResult解析:{}", greetTask);
+                            continue;
+                        }
 
-                //判断简历状态
-                if (ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus().equals(amResume.getType())
-                        || ReviewStatusEnums.OFFER_ISSUED.getStatus().equals(amResume.getType())
-                        || ReviewStatusEnums.ONBOARD.getStatus().equals(amResume.getType())
-                        || ReviewStatusEnums.ABANDON.getStatus().equals(amResume.getType())) {
-                    log.error("复聊任务处理失败,简历状态不是初筛 Uid:{}", amResume.getUid());
-                    continue;
-                }
+                        AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getById(amChatbotGreetTask.getAccountId());
+                        if (Objects.isNull(zpLocalAccouts)) {
+                            log.error("打招呼任务处理失败,未找到账号:{}", amChatbotGreetTask.getAccountId());
+                            continue;
+                        }
+                        //判断用户是否在线
+                        if (zpLocalAccouts.getState().equals( AmLocalAccountStatusEnums.OFFLINE.getStatus())) {
+                            log.error("打招呼任务处理失败,账号已下线:{}", zpLocalAccouts.getId());
+                            continue;
+                        }
 
-                AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(accountId);
+                        LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
+                        greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, zpLocalAccouts.getId());
+                        AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
+                        if (Objects.isNull(amChatbotGreetConfig) || amChatbotGreetConfig.getIsAllOn() == 0 || amChatbotGreetConfig.getIsGreetOn() == 0) {
+                            log.info("打招呼任务跳过: 账号:{}, 未找到打招呼任务配置 或总开关关闭 或未开启打招呼 greetConfig={}", zpLocalAccouts.getId(), amChatbotGreetConfig);
+                            continue;
+                        }
 
-                //判断是否在线
-                if (Objects.isNull(amZpLocalAccouts) || amZpLocalAccouts.getState() == AmLocalAccountStatusEnums.OFFLINE.getStatus()) {
-                    log.error("复聊任务处理失败,未找到账号或账号已下线:{}", accountId);
-                    continue;
-                }
+                        // 执行任务
+                        AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
+                        amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
+                        amChatbotGreetMessages.setTaskType(MessageTypeEnums.daily_greet.getCode());
+                        amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
+                        amChatbotGreetMessages.setIsSystemSend(1);
+                        amChatbotGreetMessages.setContent(GREET_MESSAGE);
+                        amChatbotGreetMessages.setCreateTime(DateUtils.formatDate(new Date(), "Y-m-d"));
+                        amChatbotGreetMessagesService.save(amChatbotGreetMessages);
+                        //更新task临时status的状态
+                        amChatbotGreetTask.setStatus(1);
+                        amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
+                        amChatbotGreetTaskService.updateById(amChatbotGreetTask);
 
-                LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
-                greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, accountId);
-                greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getIsAllOn, 1);
-                AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper,false);
-                if (greetConfig == null  ||  greetConfig.getIsRechatOn() == 0) {
-                    log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或 全部开关关闭中 或 未开启复聊 greetConfig={}", accountId,greetConfig);
-                    continue;
-                }
+                        LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(AmChatbotGreetCondition::getAccountId, amChatbotGreetTask.getAccountId());
+                        queryWrapper.eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTask.getPositionId());
+                        AmChatbotGreetCondition condition = amChatbotGreetConditionService.getOne(queryWrapper, false);
 
-                String conversationId = amZpLocalAccouts.getExtBossId() + "_" + amResume.getUid();
+                        if (Objects.isNull(condition)) {
+                            // 如果为空,则默认取第一个
+                            condition = amChatbotGreetConditionService.getById(1);
+                            AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
+                            if (Objects.isNull(amPosition)) {
+                                log.error("未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
+                                continue;
+                            } else {
+                                if (amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
+                                    log.error("职位已删除: amPosition={}", amPosition);
+                                    continue;
+                                }
+                                condition.setRecruitPosition(amPosition.getName());
+                            }
+                        }
+                        // 创建 JSON 对象并根据逻辑填充数据
+                        JSONObject conditions = new JSONObject();
+                        conditions.put("曾就职单位", condition.getPreviousCompany() != null ? condition.getPreviousCompany() : "");
+                        conditions.put("招聘职位", condition.getRecruitPosition() != null ? condition.getRecruitPosition() : "不限");
+                        conditions.put("年龄", condition.getAge() != null ? condition.getAge() : "不限");
+                        conditions.put("性别", condition.getGender() != null ? condition.getGender() : "不限");
+                        conditions.put("经验要求", condition.getExperience() != null ? condition.getExperience() : "不限");
+                        conditions.put("学历要求", condition.getEducation() != null ? condition.getEducation() : "不限");
+                        conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
+                        conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
 
-                // 查询用户是否已经回复消息
-                LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
-                chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
-                AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
-
-                //
-                if (Objects.nonNull(amChatMessage)) {
-                    log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage,conversationId);
-                    chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
-                    AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
-                    if (Objects.isNull(chatMessage)) {
-                        log.info("用户已经回复过消息:{}", chatMessage);
-                        continue;
+                        // 创建任务
+                        AmClientTasks amClientTasks = new AmClientTasks();
+                        amClientTasks.setId(UUID.randomUUID().toString());
+                        amClientTasks.setBossId(zpLocalAccouts.getId());
+                        amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
+                        amClientTasks.setOrderNumber(ClientTaskTypeEnums.GREET.getOrder());
+                        amClientTasks.setStatus(0);
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("conditions", conditions);
+                        jsonObject.put("times", amChatbotGreetTask.getTaskNum());
+                        JSONObject messageObject = new JSONObject();
+                        messageObject.put("content", GREET_MESSAGE);
+                        jsonObject.put("message", messageObject);
+                        amClientTasks.setData(jsonObject.toJSONString());
+                        amClientTasks.setCreateTime(LocalDateTime.now());
+                        amClientTasks.setUpdateTime(LocalDateTime.now());
+                        amClientTasksService.save(amClientTasks);
+                    } catch (Exception e) {
+                        log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", greetTask);
                     }
                 }
 
-                buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts);
-                jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
-            } catch (Exception e) {
-                log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", reChatTask);
+            }finally {
+                lock.unlock();
             }
+        } else {
+            log.info("打招呼定时任务未执行，因锁未获取成功");
         }
+
     }
+
 
 
     private void buildReChatTask(AmResume amResume, AmChatbotOptionsItems amChatbotOptionsItems, AmChatbotGreetResult amChatbotGreetResult, AmZpLocalAccouts amZpLocalAccouts) {

@@ -1,6 +1,7 @@
 package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
@@ -11,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 
 /**
@@ -203,14 +207,23 @@ public class BuildPromptUtil {
 
 
 
+//    public static void main(String[] args) {
+//        AmNewMask amNewMask = new AmNewMask();
+//        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴\",\"industry\":\"互联网\",\"establishedTime\":\"2000-01-01\",\"scale\":\"10000人以上\",\"headquartersLocation\":\"杭州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师\",\"locationName\":\"杭州\",\"workLocation\":\"西湖区\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
+//        AmResume amResume = new AmResume();
+//        amResume.setName("张三");
+//        AmPosition amPosition = new AmPosition();
+//        amPosition.setExtendParams("{\"jobName\":\"数据标注\",\"locationName\":\"广州\",\"degreeName\":\"本科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得帅就好\"}\n");
+//        String s = buildPrompt(amResume, amNewMask);
+//        System.out.println(s);
+//    }
+
     public static void main(String[] args) {
-        AmNewMask amNewMask = new AmNewMask();
-        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴\",\"industry\":\"互联网\",\"establishedTime\":\"2000-01-01\",\"scale\":\"10000人以上\",\"headquartersLocation\":\"杭州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师\",\"locationName\":\"杭州\",\"workLocation\":\"西湖区\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
-        AmResume amResume = new AmResume();
-        amResume.setName("张三");
-        AmPosition amPosition = new AmPosition();
-        amPosition.setExtendParams("{\"jobName\":\"数据标注\",\"locationName\":\"广州\",\"degreeName\":\"本科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得帅就好\"}\n");
-        String s = buildPrompt(amResume, amNewMask);
-        System.out.println(s);
+        String inputTime = "23:56";
+        long timestamp = DateUtils.convertToTimestamp(inputTime);
+        System.out.println("今天 " + inputTime + " 的时间戳是：" + timestamp);
+        LocalDate now = LocalDate.now();
+        System.out.println("今天是：" + now);
+
     }
 }

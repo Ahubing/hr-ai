@@ -12,17 +12,17 @@ import lombok.experimental.Accessors;
 
 /**
  * <p>
- * 简历
+ * 用户自定义上传简历
  * </p>
  *
  * @author Eros-AI
- * @since 2025-01-04
+ * @since 2025-02-16
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("am_resume")
-public class AmResume implements Serializable {
+@TableName("upload_am_resume")
+public class UploadAmResume implements Serializable {
 
     private static final long serialVersionUID=1L;
 
@@ -32,23 +32,8 @@ public class AmResume implements Serializable {
     /**
      * 当前登录的总账号的id
      */
-    private Long adminId;
+    private Integer adminId;
 
-    /**
-     * 账号id  local_accounts的id
-     */
-    private String accountId;
-
-    /**
-     * 用户信息加密id
-     */
-    @TableField("encryptGeekId")
-    private String encryptGeekId;
-
-    /**
-     * 脚本返回的用户id
-     */
-    private String uid;
 
     /**
      * 类型。0初筛 1邀约跟进，2面试安排 3已发offer 4已入职  5全部
@@ -61,11 +46,6 @@ public class AmResume implements Serializable {
     private String name;
 
     /**
-     * 头像
-     */
-    private String avatar;
-
-    /**
      * 所在公司/曾就职的公司
      */
     private String company;
@@ -76,27 +56,24 @@ public class AmResume implements Serializable {
     private String city;
 
     /**
-     * 应聘职位
+     * 应聘的职位
      */
-    private String  position;
-
-    /**
-     * 期望职位
-     */
-    private String expectPosition;
+    private String position;
 
     /**
      * 0女，1男
      */
-    private Integer gender;
+    private String gender;
 
+    /**
+     * 薪资
+     */
+    private String salary;
 
     /**
      * 平台，来源
      */
     private String platform;
-
-
 
     /**
      * 教育学历
@@ -109,21 +86,14 @@ public class AmResume implements Serializable {
     private Integer age;
 
     /**
-     * 工作经验。json字符串保存
+     * 经验。json字符串保存
      */
     private String experiences;
-
-
-    /**
-     * 项目经验。json字符串保存
-     */
-    private String projects;
 
     /**
      * 绑定的岗位id
      */
     private Integer postId;
-
 
 
     /**
@@ -132,52 +102,42 @@ public class AmResume implements Serializable {
     @TableField("applyStatus")
     private String applyStatus;
 
-
-
-    /**
-     * 招聘信息
-     */
-    @TableField("zpData")
-    private String zpData;
-
-
     /**
      * 创建时间
      */
     private LocalDateTime createTime;
 
     /**
-     * 手机
+     * 手机号
      */
     private String phone;
 
     /**
-     * 微信
+     * 微信号
      */
     private String wechat;
 
-    /**
-     * 邮箱
-     */
     private String email;
-
-    private Integer lowSalary;
-
-    private Integer highSalary;
 
     /**
      * 工作年限
      */
     private Integer workYears;
 
-    private String attachmentResume;
-
-    private String skills;
+    /**
+     * 在线简历
+     */
+    private String originalUrl;
 
     /**
-     * 1、 系统自动获取
-     * 2、用户自定义上传
+     * 项目经验
      */
-    private Integer resumeType;
+    private String projects;
+
+    /**
+     * 技能
+     */
+    private String skills;
+
 
 }

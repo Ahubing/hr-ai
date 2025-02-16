@@ -1,10 +1,7 @@
-package com.open.hr.ai.bean.vo;
+package com.open.hr.ai.bean.req;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.common.util.DateUtils;
@@ -13,50 +10,30 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
  * <p>
- * 简历
+ * 用户自定义上传简历
  * </p>
  *
  * @author Eros-AI
- * @since 2025-01-04
+ * @since 2025-02-16
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
-public class AmResumeVo  {
+public class UploadAmResumeUpdateReq {
 
-    private static final long serialVersionUID=1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
+    @ApiModelProperty(value = "id", required = true)
+    @NotNull(message = "id不能为空")
     private Integer id;
 
     /**
      * 当前登录的总账号的id
      */
-    @ApiModelProperty(value = "当前登录的总账号的id")
     private Long adminId;
 
-    /**
-     * 账号id  local_accounts的id
-     */
-    @ApiModelProperty(value = "账号id  local_accounts的id")
-    private String accountId;
-
-    /**
-     * 用户信息加密id
-     */
-    @ApiModelProperty(value = "用户信息加密id")
-    private String encryptGeekId;
-
-    /**
-     * 脚本返回的用户id
-     */
-    @ApiModelProperty(value = "脚本返回的用户id")
-    private String uid;
 
     /**
      * 类型。0初筛 1邀约跟进，2面试安排 3已发offer 4已入职  5全部
@@ -69,12 +46,6 @@ public class AmResumeVo  {
      */
     @ApiModelProperty(value = "姓名")
     private String name;
-
-    /**
-     * 头像
-     */
-    @ApiModelProperty(value = "头像")
-    private String avatar;
 
     /**
      * 所在公司/曾就职的公司
@@ -91,19 +62,21 @@ public class AmResumeVo  {
     /**
      * 应聘的职位
      */
-    @ApiModelProperty(value = "应聘职位")
+    @ApiModelProperty(value = "应聘的职位")
     private String position;
 
+
     /**
-     * 期望的职位
+     * 期望职位
      */
-    @ApiModelProperty(value = "期望的职位")
+    @ApiModelProperty(value = "期望职位")
     private String expectPosition;
+
 
     /**
      * 0女，1男
      */
-    @ApiModelProperty(value = "0女，1男")
+    @ApiModelProperty(value = "女，男")
     private Integer gender;
 
     /**
@@ -118,19 +91,11 @@ public class AmResumeVo  {
     @ApiModelProperty(value = "平台，来源")
     private String platform;
 
-
     /**
      * 教育学历
      */
     @ApiModelProperty(value = "教育学历")
     private JSONArray education;
-
-
-    /**
-     * 项目经验。json字符串保存
-     */
-    @ApiModelProperty(value = "项目经验。json字符串保存")
-    private JSONArray projects;
 
     /**
      * 年龄
@@ -151,51 +116,26 @@ public class AmResumeVo  {
     private Integer postId;
 
 
-
     /**
      * 申请状态
      */
-    @ApiModelProperty(value = "申请状态")
+    @ApiModelProperty("申请状态")
     private String applyStatus;
 
     /**
-     * 招聘信息
+     * 手机号
      */
-    @ApiModelProperty(value = "招聘信息")
-    private JSONObject zpData;
-
-
-
-    /**
-     * 创建时间
-     */
-    @ApiModelProperty(value = "创建时间")
-    @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
-    private LocalDateTime createTime;
-
-    /**
-     * 手机
-     */
-    @ApiModelProperty(value = "手机")
+    @ApiModelProperty(value = "手机号")
     private String phone;
 
     /**
-     * 微信
+     * 微信号
      */
-    @ApiModelProperty(value = "微信")
+    @ApiModelProperty(value = "微信号")
     private String wechat;
 
-    /**
-     * 邮箱
-     */
     @ApiModelProperty(value = "邮箱")
     private String email;
-
-    @ApiModelProperty(value = "工资的低位")
-    private Integer lowSalary;
-
-    @ApiModelProperty(value = "工资的高位")
-    private Integer highSalary;
 
     /**
      * 工作年限
@@ -204,11 +144,16 @@ public class AmResumeVo  {
     private Integer workYears;
 
     /**
-     * 附件简历
+     * 在线简历
      */
-    @ApiModelProperty(value = "附件简历")
-    private String attachmentResume;
+    @ApiModelProperty(value = "在线简历")
+    private String originalUrl;
 
+    /**
+     * 项目经验
+     */
+    @ApiModelProperty(value = "项目经验")
+    private JSONArray projects;
 
     /**
      * 技能
@@ -216,10 +161,23 @@ public class AmResumeVo  {
     @ApiModelProperty(value = "技能")
     private String skills;
 
+    /**
+     * 低薪资
+     */
+    @ApiModelProperty(value = "低薪资位")
+    private Integer lowSalary;
 
     /**
-     * 招聘者id
+     * 高薪资
      */
-    @ApiModelProperty(value = "招聘者id")
-    private String recruiterId;
+    @ApiModelProperty(value = "高薪资位")
+    private Integer highSalary;
+
+    /**
+     * 在线简历url 或 附件简历
+     */
+    @ApiModelProperty(value = "在线简历 或 附件简历")
+    private String attachmentResume;
+
+
 }

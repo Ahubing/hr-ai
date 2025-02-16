@@ -1,31 +1,36 @@
 package com.open.hr.ai.manager;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.common.util.AIJsonUtil;
+import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
-import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
-import com.open.ai.eros.db.mysql.hr.entity.AmResume;
-import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionPostServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionSectionServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
+import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.service.impl.*;
+import com.open.hr.ai.bean.req.AddAmResumeParseReq;
+import com.open.hr.ai.bean.req.AmUploadResumeSearchReq;
 import com.open.hr.ai.bean.req.SearchAmResumeReq;
+import com.open.hr.ai.bean.req.UploadAmResumeUpdateReq;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
 import com.open.hr.ai.bean.vo.AmResumeVo;
+import com.open.hr.ai.bean.vo.UploadAmResumeVo;
 import com.open.hr.ai.constant.AmResumeEducationEnums;
 import com.open.hr.ai.constant.AmResumeWorkYearsEnums;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
 import com.open.hr.ai.convert.AmResumeConvert;
+import com.open.hr.ai.convert.AmUploadResumeConvert;
+import com.open.hr.ai.util.ResumeParseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +49,9 @@ public class ResumeManager {
     private AmResumeServiceImpl amResumeService;
 
     @Resource
+    private UploadAmResumeServiceImpl uploadAmResumeService;
+
+    @Resource
     private AmPositionSectionServiceImpl amPositionSectionService;
 
     @Resource
@@ -51,6 +59,10 @@ public class ResumeManager {
 
     @Resource
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
+
+
+    @Resource
+    private CommonAIManager commonAIManager;
 
 
     public ResultVO<AmResumeVo> resumeDetail(Integer id) {
@@ -155,7 +167,7 @@ public class ResumeManager {
     }
 
 
-    public ResultVO<List<AmResume>> resumeSearch(SearchAmResumeReq searchAmResumeReq,Long adminId) {
+    public ResultVO<List<AmResumeVo>> resumeSearch(SearchAmResumeReq searchAmResumeReq, Long adminId) {
         LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
         queryWrapper.eq(AmResume::getAdminId, adminId);
         if (Objects.nonNull(searchAmResumeReq.getPosition_id())) {
@@ -165,8 +177,8 @@ public class ResumeManager {
             AmResumeEducationEnums amResumeEducationEnums = AmResumeEducationEnums.getByCode(searchAmResumeReq.getEducation());
             if (Objects.nonNull(amResumeEducationEnums)) {
                 queryWrapper.like(AmResume::getEducation, searchAmResumeReq.getEducation());
-            }else {
-                log.error("学历类型不存在 education={}",searchAmResumeReq.getEducation());
+            } else {
+                log.error("学历类型不存在 education={}", searchAmResumeReq.getEducation());
             }
         }
         if (Objects.nonNull(searchAmResumeReq.getExperience())) {
@@ -180,8 +192,103 @@ public class ResumeManager {
             queryWrapper.like(AmResume::getSkills, searchAmResumeReq.getTec());
         }
         List<AmResume> amResumeList = amResumeService.list(queryWrapper);
-        return ResultVO.success(amResumeList);
+        List<AmResumeVo> resumeVos = amResumeList.stream().map(AmResumeConvert.I::convertAmResumeVo).collect(Collectors.toList());
+        return ResultVO.success(resumeVos);
     }
 
 
+    /**
+     * 用户上传简历解析
+     */
+    public ResultVO resumeAnalysis(AddAmResumeParseReq addAmResumeParseReq, Long adminId) {
+        String resumeUrl = addAmResumeParseReq.getResumeUrl();
+        List<ChatMessage> chatMessages = ResumeParseUtil.buildPrompt(resumeUrl);
+        if (chatMessages.isEmpty()) {
+            return ResultVO.fail("解析失败");
+        }
+        // 添加对模型空回复或者抛异常的重试，重试10次（请求模型参数异常等情况也会轮询10次）
+        int end = 3;
+        AmResume uploadAmResume = null;
+        for (int i = 0; i < end; i++) {
+            try {
+                String aiText = commonAIManager.aiNoStreamWithResume(chatMessages, "OpenAI:gpt-4o-all", 0.8);
+                log.info("AI解析结果 data={}", aiText);
+                String jsonContent = AIJsonUtil.getJsonContent(aiText);
+                if (StringUtils.isBlank(jsonContent)) {
+                    return ResultVO.fail("解析失败");
+                }
+
+                uploadAmResume = JSONObject.parseObject(jsonContent, AmResume.class);
+                if (Objects.nonNull(uploadAmResume)) {
+                    uploadAmResume.setAdminId(adminId);
+                    uploadAmResume.setAttachmentResume(resumeUrl);
+                    uploadAmResume.setCreateTime(LocalDateTime.now());
+                    uploadAmResume.setPlatform(addAmResumeParseReq.getPlatForm());
+                    uploadAmResume.setResumeType(2);
+                    // 保存解析结果
+                    boolean result = amResumeService.save(uploadAmResume);
+                    uploadAmResume.setId(uploadAmResume.getId());
+                    log.info("简历解析结果保存结果 data={},result={}", JSONObject.toJSONString(uploadAmResume), result);
+                    break;
+                }
+            } catch (Exception e) {
+                log.error("AI解析异常", e);
+            }
+        }
+        return Objects.nonNull(uploadAmResume) ? ResultVO.success(uploadAmResume) : ResultVO.fail("解析失败");
     }
+
+
+    /**
+     * 用户修改上传简历解析
+     */
+    public ResultVO updateUploadAmResume(UploadAmResumeUpdateReq uploadAmResume, Long adminId) {
+        // 添加对模型空回复或者抛异常的重试，重试10次（请求模型参数异常等情况也会轮询10次）
+        try {
+            if (Objects.nonNull(uploadAmResume)) {
+                // 保存解析结果
+                AmResume amResumeServiceById = amResumeService.getById(uploadAmResume.getId());
+                if (Objects.isNull(amResumeServiceById) || amResumeServiceById.getResumeType() == 1) {
+                    return ResultVO.fail("简历不存在 或 不允许修改");
+                }
+                uploadAmResume.setAdminId(adminId);
+                AmResume amResume = AmUploadResumeConvert.I.convertUpdateUploadAmResume(uploadAmResume);
+                boolean result = amResumeService.updateById(amResume);
+                log.info("简历解析结果修改 data={},result={}", JSONObject.toJSONString(amResume), result);
+            }
+        } catch (Exception e) {
+            log.error("简历修改异常", e);
+        }
+        return Objects.nonNull(uploadAmResume) ? ResultVO.success(uploadAmResume) : ResultVO.fail("更新失败");
+    }
+
+
+    /**
+     * 用户修改上传简历解析
+     */
+    public ResultVO<PageVO<UploadAmResumeVo>> UploadAmResumeSearch(AmUploadResumeSearchReq req, Long adminId) {
+        try {
+            Integer pageNum = req.getPage();
+            Integer pageSize = req.getPageSize();
+            String keywords = req.getKeywords();
+            String position = req.getPosition();
+            Page<UploadAmResume> page = new Page<>(pageNum, pageSize);
+            LambdaQueryWrapper<UploadAmResume> queryWrapper = new QueryWrapper<UploadAmResume>().lambda();
+            queryWrapper.eq(UploadAmResume::getAdminId, adminId);
+            if (StringUtils.isNotBlank(keywords)) {
+                queryWrapper.like(UploadAmResume::getName, keywords);
+            }
+            if (StringUtils.isNotBlank(position)) {
+                queryWrapper.like(UploadAmResume::getPosition, position);
+            }
+            Page<UploadAmResume> uploadAmResumePage = uploadAmResumeService.page(page, queryWrapper);
+            List<UploadAmResumeVo> uploadAmResumeVos = uploadAmResumePage.getRecords().stream().map(AmUploadResumeConvert.I::convertAmResumeVo).collect(Collectors.toList());
+            return ResultVO.success(PageVO.build(uploadAmResumePage.getTotal(), uploadAmResumeVos));
+        } catch (Exception e) {
+            log.error("查询异常", e);
+        }
+        return ResultVO.fail("查询失败");
+    }
+
+
+}

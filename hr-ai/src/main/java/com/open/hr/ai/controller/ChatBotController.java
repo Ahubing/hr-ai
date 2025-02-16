@@ -149,7 +149,7 @@ public class ChatBotController extends HrAIBaseController {
     }
 
 
-    @ApiOperation("修改复聊任务的状态")
+    @ApiOperation("修改总开关任务的状态")
     @VerifyUserToken
     @PostMapping("/chatbot/modify_All_on_status")
     public ResultVO modifyAllOnStatus(@RequestBody @Valid UpdateGreetConfigStatusReq req) {
@@ -177,7 +177,6 @@ public class ChatBotController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/chatbot/set_greet_condition")
     public ResultVO<AmChatbotGreetCondition> setGreetCondition(@RequestBody @Valid AddOrUpdateChatbotGreetCondition req) {
-
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }

@@ -6,6 +6,7 @@ import org.springframework.util.StringUtils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j
@@ -510,5 +511,33 @@ public class DateUtils {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
         return calendar;
+    }
+
+
+    public static long convertToTimestamp(String time) {
+        // 获取当前日期时间
+        LocalDateTime now = LocalDateTime.now();
+
+        // 解析输入的时间
+        String[] parts = time.split(":");
+        int hour = Integer.parseInt(parts[0]);
+        int minute = Integer.parseInt(parts[1]);
+
+        // 设置输入的时间
+        LocalDateTime targetTime = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0);
+
+        // 如果目标时间在当前时间之前，则表示是第二天的时间
+        if (targetTime.isBefore(now)) {
+            targetTime = targetTime.plusDays(1);
+        }
+        // 转换为时间戳并返回
+        return targetTime.toEpochSecond(ZoneOffset.ofHours(8)) * 1000;
+    }
+
+
+    public static String getTodayDate() {
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return today.format(formatter);
     }
 }

@@ -24,12 +24,12 @@ public class MybatisPlusGeneratorUtil {
         // ai   user   pay  admin    bot  creator  social permission knowledge
         String model = "hr";
         System.out.println(System.getProperty("user.dir"));
-        generateByTables(author, database,model,"am_new_mask");
+        generateByTables(author, database,model,"upload_am_resume");
     }
 
     private static void generateByTables(String author, String database,String model, String... tableNames) {
         GlobalConfig config = new GlobalConfig();
-        String dbUrl = "jdbc:mysql://43.153.41.128:7777/" + database + "?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
+        String dbUrl = "jdbc:mysql://124.156.137.182:3377/" + database + "?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
         config.setActiveRecord(false)
                 .setAuthor(author)
                 .setOutputDir(System.getProperty("user.dir")+"/eros-db" +"/src/main/java/")

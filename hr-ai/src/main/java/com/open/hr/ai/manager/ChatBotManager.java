@@ -397,6 +397,9 @@ public class ChatBotManager {
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
             }
+            if (updateGreetStatusReq.getIsRechatOn() == 1 && amChatbotGreetConfig.getIsAiOn() == 0){
+                return  ResultVO.fail("AI跟进未开启,请先开启AI跟进") ;
+            }
             amChatbotGreetConfig.setIsRechatOn(updateGreetStatusReq.getIsRechatOn());
             boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
             return result ? ResultVO.success() : ResultVO.fail("修改reChat状态失败");
@@ -434,6 +437,10 @@ public class ChatBotManager {
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
             }
+            if (updateGreetStatusReq.getIsAiOn() == 0 && amChatbotGreetConfig.getIsRechatOn() == 1){
+                return  ResultVO.fail("复聊任务未关闭,请先关闭复聊任务") ;
+            }
+
             amChatbotGreetConfig.setIsAiOn(updateGreetStatusReq.getIsGreetOn());
             boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
             return result ? ResultVO.success() : ResultVO.fail("修改AI跟进状态失败");
@@ -447,13 +454,25 @@ public class ChatBotManager {
     @Transactional
     public ResultVO<AmChatbotGreetCondition> setGreetCondition(AddOrUpdateChatbotGreetCondition req) {
         try {
-
             AmChatbotGreetCondition amChatbotGreetCondition = AmChatBotGreetConditionConvert.I.convertAddOrUpdateGreetCondition(req);
             if (Objects.nonNull(req.getId())) {
+                // 根据id 更新
                 AmChatbotGreetCondition amChatbotGreetConfig = amChatbotGreetConditionService.getById(req.getId());
                 if (Objects.isNull(amChatbotGreetConfig)) {
                     boolean updateResult = amChatbotGreetConditionService.save(amChatbotGreetCondition);
                     return updateResult ? ResultVO.success(amChatbotGreetConfig) : ResultVO.fail("添加打招呼筛选条件失败");
+                }
+            }else {
+                // 根据岗位id 更新
+                LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId());
+                queryWrapper.eq(AmChatbotGreetCondition::getPositionId, req.getPositionId());
+                AmChatbotGreetCondition one = amChatbotGreetConditionService.getOne(queryWrapper,false);
+                if (Objects.nonNull(one)) {
+                    amChatbotGreetCondition.setId(one.getId());
+                    boolean result = amChatbotGreetConditionService.updateById(amChatbotGreetCondition);
+                    log.info("setGreetCondition update amChatbotGreetCondition result={}", result);
+                    return result ? ResultVO.success(amChatbotGreetCondition) : ResultVO.fail("修改打招呼筛选条件失败");
                 }
             }
             boolean addResult = amChatbotGreetConditionService.save(amChatbotGreetCondition);
@@ -473,18 +492,19 @@ public class ChatBotManager {
         try {
             //查询打招呼条件
             if (Objects.nonNull(req.getConditionsId())) {
-                LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(AmChatbotGreetTask::getConditionsId, req.getConditionsId());
-                queryWrapper.eq(AmChatbotGreetTask::getPositionId, req.getPositionId());
-                queryWrapper.eq(AmChatbotGreetTask::getExecTime, req.getExecTime());
-                AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getOne(queryWrapper);
-                if (Objects.isNull(amChatbotGreetTask)) {
-                    AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(req.getConditionsId());
-                    condition.setId(null);
-                    amChatbotGreetConditionService.save(condition);
-                    req.setConditionsId(condition.getId());
+                AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(req.getConditionsId());
+                req.setConditionsId(condition.getId());
+            }else {
+                // 根据岗位id 和 账号id
+                LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId());
+                queryWrapper.eq(AmChatbotGreetCondition::getPositionId, req.getPositionId());
+                AmChatbotGreetCondition one = amChatbotGreetConditionService.getOne(queryWrapper,false);
+                if (Objects.nonNull(one)) {
+                    req.setConditionsId(one.getId());
                 }
             }
+
             if (Objects.nonNull(req.getId())) {
                 AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
                 amChatbotGreetTaskService.updateById(amChatbotGreetTask);
