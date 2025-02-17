@@ -1,6 +1,7 @@
 package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -41,6 +42,9 @@ public class AmGreetTaskUtil {
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
 
+    @Resource
+    private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
+
 
     private static final String GREET_MESSAGE = "你好";
 
@@ -50,6 +54,15 @@ public class AmGreetTaskUtil {
     public void dealGreetTask(AmChatbotGreetTask amChatbotGreetTask) {
         try {
             // 执行任务
+            LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
+            greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, amChatbotGreetTask.getAccountId());
+            greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getIsAllOn, 1);
+            AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
+            if (Objects.isNull(one) || one.getIsGreetOn() == 0) {
+                log.info("打招呼任务跳过: 账号:{}, 未找到打招呼任务配置 或总开关关闭 或未开启打招呼", amChatbotGreetTask.getAccountId());
+                return;
+            }
+
             AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
             amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
             amChatbotGreetMessages.setTaskType(MessageTypeEnums.temporary_greet.getCode());

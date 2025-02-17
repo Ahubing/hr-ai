@@ -13,12 +13,14 @@ import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -47,23 +49,26 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         // 从未对此用户发起本请求时请求一次
         LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
-        queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
+        queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
         queryWrapper.like(AmClientTasks::getData, req.getUser_id());
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             AmClientTasks amClientTasks = new AmClientTasks();
             amClientTasks.setBossId(amZpLocalAccouts.getId());
-            amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_ALL_INFO.getType());
-            amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_ALL_INFO.getOrder());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
             HashMap<String, Object> hashMap = new HashMap<>();
             HashMap<String, Object> searchDataMap = new HashMap<>();
             hashMap.put("user_id", req.getUser_id());
+            // 生成如下结构     "info_type":[] # "attachment_resume"，"phone"，"wechat"
+            hashMap.put("info_type", Collections.singletonList("attachment_resume"));
             if (Objects.nonNull(amResume.getEncryptGeekId())) {
                 searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
             }
             if (Objects.nonNull(amResume.getName())) {
                 searchDataMap.put("name", amResume.getName());
             }
+
             hashMap.put("search_data", searchDataMap);
             amClientTasks.setData(JSONObject.toJSONString(hashMap));
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());

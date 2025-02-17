@@ -130,10 +130,10 @@ public class ResumeManager {
             List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
             AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
             // 全部简历
-            amResumeCountDataVo.setType(5);
+            amResumeCountDataVo.setType(6);
             amResumeCountDataVo.setTotal(amResumeService.count(queryWrapper));
             amResumeCountDataVos.add(amResumeCountDataVo);
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < 6; i++) {
                 LambdaQueryWrapper<AmResume> innerQueryWrapper = new QueryWrapper<AmResume>().lambda();
                 innerQueryWrapper.eq(AmResume::getAdminId, adminId);
                 innerQueryWrapper.eq(AmResume::getType, i);

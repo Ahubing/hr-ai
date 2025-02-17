@@ -96,8 +96,8 @@ public class CompanyInfo {
     @NotEmpty(message = "专业技能不能为空")
     private String skillRequire;
 
-    @ApiModelProperty(value = "degreeName", required = true)
-    @NotEmpty(message = "degreeName不能为空")
+    @ApiModelProperty(value = "学历要求", required = true)
+    @NotEmpty(message = "学历要求不能为空")
     private String degreeName;
 
 }

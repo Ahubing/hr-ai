@@ -11,6 +11,7 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
+import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.vo.AmMaskVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
@@ -186,15 +187,15 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             }
         }
 
-
         LambdaQueryWrapper<AmChatbotPositionOption> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
         lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
         AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(lambdaQueryWrapper, false);
         List<ChatMessage> messages = new ArrayList<>();
+        AmNewMask amNewMask = null;
         if (Objects.nonNull(amChatbotPositionOption) && Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
             // 如果有绑定ai角色,则获取ai角色进行回复
-            AmNewMask amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
+             amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
                 String aiPrompt = BuildPromptUtil.buildPrompt(amResume, amNewMask);
@@ -281,12 +282,72 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
 
             // 更新简历状态
-            amResume.setType(statusCode.get());
+            int status = statusCode.get();
+            amResume.setType(status);
+            // 请求微信和手机号 todo 时机确认
+            if (status >= 3){
+                generateRequestInfo(amNewMask,amZpLocalAccouts,amResume,req);
+            }
+            // 根据状态发起request_info
             boolean updateResume = amResumeService.updateById(amResume);
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
         }
 
         return ResultVO.success();
+    }
+
+    // 生成 request_info
+    private void generateRequestInfo(AmNewMask amNewMask,AmZpLocalAccouts amZpLocalAccouts,AmResume amResume,ClientBossNewMessageReq req){
+        String aiRequestParam = amNewMask.getAiRequestParam();
+        if (StringUtils.isNotBlank(aiRequestParam)) {
+            AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
+
+            if (!amNewMaskAddReq.getOpenInterviewSwitch() && !amNewMaskAddReq.getOpenExchangePhone()) {
+                log.info("用户:{} ,请求用户信息,但是没有开启面试或者交换电话号码", req.getUser_id());
+                return;
+            }
+            LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
+            queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
+            queryWrapper.like(AmClientTasks::getData, "phone");
+            // 或者包含weixin
+            queryWrapper.or().like(AmClientTasks::getData, "wechat");
+
+            AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
+            if (Objects.isNull(tasksServiceOne)) {
+                AmClientTasks amClientTasks = new AmClientTasks();
+                amClientTasks.setBossId(amZpLocalAccouts.getId());
+                amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
+                amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
+                HashMap<String, Object> hashMap = new HashMap<>();
+                HashMap<String, Object> searchDataMap = new HashMap<>();
+                hashMap.put("user_id", req.getUser_id());
+                List<String> infoType = new ArrayList<>();
+                if (amNewMaskAddReq.getOpenExchangePhone()) {
+                    infoType.add("phone");
+                }
+                if (amNewMaskAddReq.getOpenExchangeWeChat()) {
+                    infoType.add("wechat");
+                }
+                hashMap.put("info_type", infoType);
+                if (Objects.nonNull(amResume.getEncryptGeekId())) {
+                    searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
+                }
+                if (Objects.nonNull(amResume.getName())) {
+                    searchDataMap.put("name", amResume.getName());
+                }
+                hashMap.put("search_data", searchDataMap);
+                amClientTasks.setData(JSONObject.toJSONString(hashMap));
+                amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+                amClientTasks.setCreateTime(LocalDateTime.now());
+                amClientTasks.setUpdateTime(LocalDateTime.now());
+                amClientTasksService.save(amClientTasks);
+                log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
+            }   else {
+                log.info("用户:{} 主动打招呼,请求用户信息,但是已经存在请求信息任务", req.getUser_id());
+            }
+
+        }
     }
 
 

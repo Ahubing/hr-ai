@@ -1,6 +1,7 @@
 package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @Date 2025/2/8 19:26
@@ -83,12 +85,35 @@ public class BuildPromptUtil {
             "   3. 体现DEI（多元化、公平、包容）原则\n");
 
 
-    private static String userInfoPrompt = "# 候选人信息\n" +
-            "\n" +
-            "- 候选人姓名：{userName}\n" +
-            "\n" +
-            "# 候选人沟通脚本\n" +
-            "{CommunicationScript}\n";
+    private static List<String> userInfoPrompts = Arrays.asList(
+            "# 候选人信息\n- 候选人姓名：{userName}\n" ,
+            "# 候选人简历信息\n {zpData} \n",
+            "# 候选人筛选提示词 根据下面的提示词对候选人进行筛选，如果不符合的调用工具函数标记为不符合————————————\n{filterWord}\n————————————");
+
+
+    /**
+     * 流程控制prompt
+     */
+    public static String processControlPrompt = "\n" +
+            "# 沟通进度\n" +
+            "沟通进度共有以下几种（进度必须按顺序，且不可倒退）：\n" +
+            "1. 简历初筛：等待简历初筛（因为目前系统只有自动简历初筛，会根据筛选条件自动完成筛选，所以简历会直接进入下一阶段）\n" +
+            "2. 业务筛选：使用“筛选提示词”对候选人进行筛选，如果不存在“筛选提示词”则跳过此阶段直接进入下一阶段\n" +
+            "3. 邀约跟进：进行意向确认，确认后预约面试（时间，地点）。\n" +
+            "4. 等待面试：AI只需要跟进到这个阶段，后面的阶段由人工进行操作。\n" +
+//            "5. 已发offer\n" +
+//            "6. 已入职\n" +
+            "5. 不符合：无意向或已被淘汰\n" +
+            "当前所处进度：{currentType}\n";
+
+
+    /**
+     *  示例对话
+     */
+    private static String exampleDialog = "# 示例对话数据\n" +
+            "————————————\n" +
+            "{exampleDialog}\n" +
+            "————————————";
 
 
     public static String buildPrompt(AmResume amResume, AmNewMask amNewMask) {
@@ -172,8 +197,37 @@ public class BuildPromptUtil {
                     }
                 }
                 // 候选人信息
-                String userInfoPromptStr = userInfoPrompt.replace("{userName}", amResume.getName()).replace("{CommunicationScript}", amNewMaskAddReq.getCommunicationScript());
-                stringBuilder.append(userInfoPromptStr);
+
+                for (String userInfoPrompt : userInfoPrompts) {
+                    List<String> strings = VariableUtil.regexVariable(userInfoPrompt);
+                    if (strings.isEmpty()){
+                        stringBuilder.append(userInfoPrompt);
+                        continue;
+                    }
+                    for (String string : strings) {
+                        if (string.equals("zpData")) {
+                            stringBuilder.append(userInfoPrompt.replace("{zpData}", amResume.getZpData()));
+                        }
+                        if (string.equals("filterWord")) {
+                            stringBuilder.append(userInfoPrompt.replace("{filterWord}", amNewMaskAddReq.getFilterWords().stream().collect(Collectors.joining(","))));
+                        }
+                        if (string.equals("userName")) {
+                            stringBuilder.append(userInfoPrompt.replace("{userName}", amResume.getName()));
+                        }
+
+                    }
+                }
+
+                // 流程控制
+                Integer type = amResume.getType();
+                ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
+                stringBuilder.append(processControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
+
+                // 示例对话
+                String exampleDialogs = amNewMaskAddReq.getExampleDialogues();
+                if (StringUtils.isNotBlank(exampleDialogs)) {
+                    stringBuilder.append(exampleDialog.replace("{exampleDialog}", exampleDialogs));
+                }
             }
             return stringBuilder.toString();
         } catch (Exception e) {
