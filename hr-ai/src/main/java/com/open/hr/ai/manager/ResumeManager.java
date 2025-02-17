@@ -202,40 +202,47 @@ public class ResumeManager {
      */
     public ResultVO resumeAnalysis(AddAmResumeParseReq addAmResumeParseReq, Long adminId) {
         String resumeUrl = addAmResumeParseReq.getResumeUrl();
-        List<ChatMessage> chatMessages = ResumeParseUtil.buildPrompt(resumeUrl);
-        if (chatMessages.isEmpty()) {
-            return ResultVO.fail("解析失败");
-        }
-        // 添加对模型空回复或者抛异常的重试，重试10次（请求模型参数异常等情况也会轮询10次）
-        int end = 3;
-        AmResume uploadAmResume = null;
-        for (int i = 0; i < end; i++) {
-            try {
-                String aiText = commonAIManager.aiNoStreamWithResume(chatMessages, "OpenAI:gpt-4o-all", 0.8);
-                log.info("AI解析结果 data={}", aiText);
-                String jsonContent = AIJsonUtil.getJsonContent(aiText);
-                if (StringUtils.isBlank(jsonContent)) {
-                    return ResultVO.fail("解析失败");
-                }
-
-                uploadAmResume = JSONObject.parseObject(jsonContent, AmResume.class);
-                if (Objects.nonNull(uploadAmResume)) {
-                    uploadAmResume.setAdminId(adminId);
-                    uploadAmResume.setAttachmentResume(resumeUrl);
-                    uploadAmResume.setCreateTime(LocalDateTime.now());
-                    uploadAmResume.setPlatform(addAmResumeParseReq.getPlatForm());
-                    uploadAmResume.setResumeType(2);
-                    // 保存解析结果
-                    boolean result = amResumeService.save(uploadAmResume);
-                    uploadAmResume.setId(uploadAmResume.getId());
-                    log.info("简历解析结果保存结果 data={},result={}", JSONObject.toJSONString(uploadAmResume), result);
-                    break;
-                }
-            } catch (Exception e) {
-                log.error("AI解析异常", e);
+        try {
+            List<ChatMessage> chatMessages = ResumeParseUtil.buildPrompt(resumeUrl);
+            if (chatMessages.isEmpty()) {
+                return ResultVO.fail("解析失败");
             }
+            // 添加对模型空回复或者抛异常的重试，重试10次（请求模型参数异常等情况也会轮询10次）
+            int end = 3;
+            AmResume uploadAmResume = null;
+            for (int i = 0; i < end; i++) {
+                try {
+                    String aiText = commonAIManager.aiNoStreamWithResume(chatMessages, "OpenAI:gpt-4o-all", 0.8);
+                    log.info("AI解析结果 data={}", aiText);
+                    String jsonContent = AIJsonUtil.getJsonContent(aiText);
+                    if (StringUtils.isBlank(jsonContent)) {
+                        return ResultVO.fail("解析失败");
+                    }
+
+                    uploadAmResume = JSONObject.parseObject(jsonContent, AmResume.class);
+                    if (Objects.nonNull(uploadAmResume)) {
+                        uploadAmResume.setAdminId(adminId);
+                        uploadAmResume.setAttachmentResume(resumeUrl);
+                        uploadAmResume.setCreateTime(LocalDateTime.now());
+                        uploadAmResume.setPlatform(addAmResumeParseReq.getPlatForm());
+                        uploadAmResume.setResumeType(2);
+                        // 保存解析结果
+                        boolean result = amResumeService.save(uploadAmResume);
+                        uploadAmResume.setId(uploadAmResume.getId());
+                        log.info("简历解析结果保存结果 data={},result={}", JSONObject.toJSONString(uploadAmResume), result);
+                        break;
+                    }
+                } catch (Exception e) {
+                    log.error("AI解析异常", e);
+                }
+            }
+            AmResumeVo amResumeVo = AmResumeConvert.I.convertAmResumeVo(uploadAmResume);
+            return Objects.nonNull(amResumeVo) ? ResultVO.success(amResumeVo) : ResultVO.fail("解析失败");
+        } catch (Exception e) {
+            log.error("解析异常 url={}", addAmResumeParseReq.getResumeUrl(), e);
         }
-        return Objects.nonNull(uploadAmResume) ? ResultVO.success(uploadAmResume) : ResultVO.fail("解析失败");
+        return ResultVO.fail("解析失败");
+
     }
 
 

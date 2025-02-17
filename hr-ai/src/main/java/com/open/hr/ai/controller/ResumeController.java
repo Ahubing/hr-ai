@@ -106,9 +106,7 @@ public class ResumeController extends HrAIBaseController {
      * @return
      */
     @PostMapping("/resume/upload")
-    public List<String> uploadFiles(List<MultipartFile> files, HttpServletRequest request, HttpServletResponse response) {
-        List<String> fileUrls = new ArrayList<>();
-        for (MultipartFile file : files) {
+    public ResultVO<String> uploadFiles(MultipartFile file, HttpServletRequest request, HttpServletResponse response) {
             String formatDate = formatDate(new Date(), "yyyy-MM-dd");
             String path = String.format(fileSavePath, formatDate);
             File dir = new File(path);
@@ -137,12 +135,13 @@ public class ResumeController extends HrAIBaseController {
                     outputStream.close();
                     inputStream.close();
                 }
-                fileUrls.add(domainName+formatDate + "/" + newFileName);
+                String fileUrl = domainName + formatDate + "/" + newFileName;
+                log.info("UploadController upload file success, fileUrl:{}", fileUrl);
+                return ResultVO.success(fileUrl);
             } catch (IOException e) {
                 log.error("UploadController upload file error", e);
             }
-        }
-        return fileUrls;
+        return ResultVO.fail("上传失败");
     }
 
     /**
