@@ -187,6 +187,12 @@ public class ChatBotManager {
     }
 
 
+    /**
+     * php 迁移过来的逻辑
+     * @param accountId
+     * @param adminId
+     * @return
+     */
     public ResultVO<AmChatBotGreetConfigDataVo> getGreetConfig(String accountId, Long adminId) {
         try {
             AmChatBotGreetConfigDataVo amChatBotGreetConfigDataVo = new AmChatBotGreetConfigDataVo();

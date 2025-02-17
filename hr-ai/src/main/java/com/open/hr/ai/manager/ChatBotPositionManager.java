@@ -13,6 +13,7 @@ import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.constant.PositionStatusEnums;
+import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
 import com.open.hr.ai.convert.AmPositionConvert;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,10 @@ public class ChatBotPositionManager {
 
     @Resource
     private AmClientTaskManager amClientTaskManager;
+
+
+    @Resource
+    private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
 
     /**
      * 批量删除岗位
@@ -389,7 +394,7 @@ public class ChatBotPositionManager {
     }
 
     /**
-     * todo 根据php 代码,获取职位列表 先用json 处理
+     * todo 根据php 代码,获取职位列表
      *
      * @return
      */
@@ -477,6 +482,11 @@ public class ChatBotPositionManager {
                 if (Objects.isNull(miniUniUser)) {
                     continue;
                 }
+                AmChatbotGreetCondition amChatbotGreetCondition = amChatbotGreetConditionService.getOne(new LambdaQueryWrapper<AmChatbotGreetCondition>().eq(AmChatbotGreetCondition::getPositionId, amPositionVo.getId()), false);
+                if (Objects.nonNull(amChatbotGreetCondition)) {
+                    amPositionVo.setConditionVo(AmChatBotGreetConditionConvert.I.convertGreetConditionVo(amChatbotGreetCondition));
+                }
+
                 String name = miniUniUser.getName();
                 if ( amPositionVo.getAiAssitantId() == 0L) {
                     amPositionVo.setAiAssitantId(null);

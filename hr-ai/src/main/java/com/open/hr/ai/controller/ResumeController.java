@@ -46,6 +46,11 @@ public class ResumeController extends HrAIBaseController {
     private String fileSavePath;
 
 
+
+    @Value("${domain-name}")
+    private String domainName;
+
+
     public static String formatDate(Date date, String format) {
         return new SimpleDateFormat(format).format(date);
     }
@@ -132,7 +137,7 @@ public class ResumeController extends HrAIBaseController {
                     outputStream.close();
                     inputStream.close();
                 }
-                fileUrls.add(formatDate + "/" + newFileName);
+                fileUrls.add(domainName+formatDate + "/" + newFileName);
             } catch (IOException e) {
                 log.error("UploadController upload file error", e);
             }
