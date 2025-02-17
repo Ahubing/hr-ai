@@ -80,7 +80,7 @@ privacy:
 project.name: ErosAI
 
 #  临时文件存储地址
-file-save-path: "/Users/linyous/Downloads/"
+file-save-path: "/www/wwwroot/default/dist/%s/"
 
 # 邀请好友获取的奖励 积分  0.2 刀
 invitationCode.balance : 2000000
