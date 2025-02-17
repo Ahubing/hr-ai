@@ -11,6 +11,7 @@ public enum ClientTaskTypeEnums {
     SWITCH_JOB_STATE("switch_job_state", "切换岗位开关状态",1),
     SEND_MESSAGE("send_message", "发送消息",1),
     REQUEST_ALL_INFO("request_all_info", "请求用户的所有信息",1),
+    REQUEST_INFO("request_info", "请求用户的部分信息",1),
 
     ;
 

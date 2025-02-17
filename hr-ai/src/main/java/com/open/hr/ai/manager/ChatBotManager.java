@@ -6,12 +6,10 @@ import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
+import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;
-import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import com.open.hr.ai.constant.PositionSyncTaskStatusEnums;
+import com.open.hr.ai.constant.*;
 import com.open.hr.ai.convert.*;
 import com.open.hr.ai.util.AmGreetTaskUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -79,6 +77,10 @@ public class ChatBotManager {
 
     @Resource
     private AmGreetTaskUtil amGreetTaskUtil;
+
+
+    @Resource
+    private JedisClientImpl jedisClient;
 
 
     public ResultVO<AmZmLocalAccountsListVo> getLocalAccounts(Long adminId) {
@@ -508,6 +510,11 @@ public class ChatBotManager {
             if (Objects.nonNull(req.getId())) {
                 AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
                 amChatbotGreetTaskService.updateById(amChatbotGreetTask);
+
+                // 清空缓存
+                String todayDate = RedisKyeConstant.AmChatBotGreetTask +":"+DateUtils.getTodayDate();
+                Long srem = jedisClient.srem(todayDate, amChatbotGreetTask.getId().toString());
+                log.info("setGreetTask srem todayDate={},id={},srem={}",todayDate,amChatbotGreetTask.getId(),srem);
                 return ResultVO.success(amChatbotGreetTask);
             } else {
                 // 检查同个任务时段 task_type 0
