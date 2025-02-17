@@ -80,10 +80,10 @@ public class AmChatBotGreetJob {
      * 下面是java 优化后的数据
      */
 
-    @Scheduled(cron = "0 * * * * ?")
+    @Scheduled(cron = "0/20 * * * * ?")
 //    @Scheduled(cron = "0/20 * * * * ?")
     public void run_scheduled_greet_timer() {
-        Lock lock = DistributedLockUtils.getLock("run_scheduled_greet_timer", 30);
+        Lock lock = DistributedLockUtils.getLock("run_scheduled_greet_timer", 20);
         if (lock.tryLock()) {
             try {
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.lambdaQuery()
