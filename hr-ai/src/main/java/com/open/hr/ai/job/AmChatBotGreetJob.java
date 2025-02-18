@@ -414,15 +414,18 @@ public class AmChatBotGreetJob {
                         if (Objects.isNull(condition)) {
                             // 如果为空,则默认取第一个
                             condition = amChatbotGreetConditionService.getById(1);
-                            AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
+                        }
+
+                        AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
+                        if (Objects.isNull(amPosition) || amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
+                            log.error("职位已删除: amPosition={}", amPosition);
+                            return;
+                        }
+                        if (Objects.isNull(condition)) {
+                            condition = amChatbotGreetConditionService.getById(1);
                             if (Objects.isNull(amPosition)) {
-                                log.error("未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
-                                continue;
+                                condition.setRecruitPosition("不限");
                             } else {
-                                if (amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
-                                    log.error("职位已删除: amPosition={}", amPosition);
-                                    continue;
-                                }
                                 condition.setRecruitPosition(amPosition.getName());
                             }
                         }

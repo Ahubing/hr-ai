@@ -83,16 +83,16 @@ public class AmGreetTaskUtil {
                     .one(); // 禁止抛出异常
 
 
+            AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
+            if (Objects.isNull(amPosition) || amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
+                log.error("职位已删除: amPosition={}", amPosition);
+                return;
+            }
             if (Objects.isNull(condition)) {
                 condition = amChatbotGreetConditionService.getById(1);
-                AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
                 if (Objects.isNull(amPosition)) {
                     condition.setRecruitPosition("不限");
                 } else {
-                    if (amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
-                        log.error("职位已删除: amPosition={}", amPosition);
-                        return;
-                    }
                     condition.setRecruitPosition(amPosition.getName());
                 }
             }
