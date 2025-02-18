@@ -153,5 +153,30 @@ public class AmNewMaskVo {
 
 
 
+    /**
+     * 过滤词
+     */
+    @ApiModelProperty(value = "过滤用户的词")
+    private String filterWords;
+
+    /**
+     * 示例对话
+     */
+    @ApiModelProperty(value = "示例对话")
+    private String exampleDialogues;
+
+    /**
+     * 打开交换微信
+     */
+    @ApiModelProperty(value = "是否开启交换微信")
+    private Boolean openExchangeWeChat;
+
+    /**
+     * 交换手机号
+     */
+    @ApiModelProperty(value = "是否开启交换手机号")
+    private Boolean openExchangePhone;
+
+
 
 }

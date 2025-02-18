@@ -228,6 +228,10 @@ public class AmNewMaskManager {
             amNewMaskVo.setOtherRecruitmentInfo(amNewMaskAddReq.getOtherRecruitmentInfo());
             amNewMaskVo.setOtherArgue(amNewMaskAddReq.getOtherArgue());
             amNewMaskVo.setCommunicationScript(amNewMaskAddReq.getCommunicationScript());
+            amNewMaskVo.setFilterWords(amNewMaskAddReq.getFilterWords());
+            amNewMaskVo.setOpenExchangeWeChat(amNewMaskAddReq.getOpenExchangeWeChat());
+            amNewMaskVo.setOpenExchangePhone(amNewMaskAddReq.getOpenExchangePhone());
+            amNewMaskVo.setExampleDialogues(amNewMaskAddReq.getExampleDialogues());
         }
         return amNewMaskVo;
 
