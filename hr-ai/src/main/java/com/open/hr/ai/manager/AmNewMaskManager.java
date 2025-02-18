@@ -97,7 +97,6 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-//        amNewMask.setTags(String.join(",", req.getTags()));
         amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setCreateTime(LocalDateTime.now());
@@ -132,7 +131,6 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-//        amNewMask.setTags(String.join(",", req.getTags()));
         amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setStatus(req.getStatus());
@@ -218,7 +216,6 @@ public class AmNewMaskManager {
         amNewMaskVo.setIntro(amNewMask.getIntro());
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
-        amNewMaskVo.setTags(Arrays.asList(amNewMask.getTags().split(",")));
         amNewMaskVo.setStatus(amNewMask.getStatus());
         String aiRequestParam = amNewMask.getAiRequestParam();
         if (StringUtils.isNotEmpty(aiRequestParam)) {
