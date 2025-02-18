@@ -512,39 +512,47 @@ public class ChatBotManager {
                     req.setConditionsId(one.getId());
                 }
             }
-
-            if (Objects.nonNull(req.getId())) {
-                AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
-                amChatbotGreetTaskService.updateById(amChatbotGreetTask);
-
-                // 清空缓存
-                String todayDate = RedisKyeConstant.AmChatBotGreetTask +":"+DateUtils.getTodayDate();
-                Long srem = jedisClient.srem(todayDate, amChatbotGreetTask.getId().toString());
-                log.info("setGreetTask srem todayDate={},id={},srem={}",todayDate,amChatbotGreetTask.getId(),srem);
-                return ResultVO.success(amChatbotGreetTask);
-            } else {
-                // 检查同个任务时段 task_type 0
-                if (req.getTaskType() == 0) {
-                    LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
-                    queryWrapper.eq(AmChatbotGreetTask::getExecTime, req.getExecTime());
-                    queryWrapper.eq(AmChatbotGreetTask::getTaskType, 0);
-                    queryWrapper.eq(AmChatbotGreetTask::getAccountId, req.getAccountId());
-                    queryWrapper.eq(AmChatbotGreetTask::getPositionId, req.getPositionId());
-                    AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getOne(queryWrapper);
-                    if (Objects.nonNull(amChatbotGreetTask)) {
-                        return ResultVO.fail("每日任务同个时段同个职位，不能新增多个任务，如需修改，请提交对应的任务id");
+            //有任务数的 有id就更新 没有就新增
+            //没有任务数的 有id就删除 没有就不理
+            if (Objects.nonNull(req.getTaskNum()) && req.getTaskNum() > 0) {
+                if (Objects.nonNull(req.getId())) {
+                    AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
+                    amChatbotGreetTaskService.updateById(amChatbotGreetTask);
+                    // 清空缓存
+                    String todayDate = RedisKyeConstant.AmChatBotGreetTask +":"+DateUtils.getTodayDate();
+                    Long srem = jedisClient.srem(todayDate, amChatbotGreetTask.getId().toString());
+                    log.info("setGreetTask srem todayDate={},id={},srem={}",todayDate,amChatbotGreetTask.getId(),srem);
+                    return ResultVO.success(amChatbotGreetTask);
+                } else {
+                    // 检查同个任务时段 task_type 0
+                    if (req.getTaskType() == 0) {
+                        LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(AmChatbotGreetTask::getExecTime, req.getExecTime());
+                        queryWrapper.eq(AmChatbotGreetTask::getTaskType, 0);
+                        queryWrapper.eq(AmChatbotGreetTask::getAccountId, req.getAccountId());
+                        queryWrapper.eq(AmChatbotGreetTask::getPositionId, req.getPositionId());
+                        AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getOne(queryWrapper);
+                        if (Objects.nonNull(amChatbotGreetTask)) {
+                            return ResultVO.fail("每日任务同个时段同个职位，不能新增多个任务，如需修改，请提交对应的任务id");
+                        }
                     }
+                    req.setCreateTime(LocalDateTime.now());
+                    AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
+                    boolean result = amChatbotGreetTaskService.save(amChatbotGreetTask);
+                    log.info("setGreetTask save amChatbotGreetTask amChatbotGreetTask={}, result={}",JSONObject.toJSONString(amChatbotGreetTask), result);
+                    req.setId(amChatbotGreetTask.getId());
+                    // 处理临时打招呼任务
+                    if (req.getTaskType() == 1) {
+                        amGreetTaskUtil.dealGreetTask(amChatbotGreetTask);
+                    }
+                    return ResultVO.success(amChatbotGreetTask);
                 }
-                req.setCreateTime(LocalDateTime.now());
-                AmChatbotGreetTask amChatbotGreetTask = AmChatBotGreetTaskConvert.I.convertAddOrUpdateGreetTask(req);
-                boolean result = amChatbotGreetTaskService.save(amChatbotGreetTask);
-                log.info("setGreetTask save amChatbotGreetTask amChatbotGreetTask={}, result={}",JSONObject.toJSONString(amChatbotGreetTask), result);
-                req.setId(amChatbotGreetTask.getId());
-                // 处理临时打招呼任务
-                if (req.getTaskType() == 1) {
-                    amGreetTaskUtil.dealGreetTask(amChatbotGreetTask);
+            } else {
+                if (Objects.nonNull(req.getId())) {
+                    boolean removeById = amChatbotGreetTaskService.removeById(req.getId());
+                    log.info("setGreetTask removeById id={},removeById={}",req.getId(),removeById);
+                    return ResultVO.success();
                 }
-                return ResultVO.success(amChatbotGreetTask);
             }
         } catch (Exception e) {
             log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(req), e);
