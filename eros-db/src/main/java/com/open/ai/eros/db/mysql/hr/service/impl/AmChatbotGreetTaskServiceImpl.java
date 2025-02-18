@@ -17,4 +17,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class AmChatbotGreetTaskServiceImpl extends ServiceImpl<AmChatbotGreetTaskMapper, AmChatbotGreetTask> implements IAmChatbotGreetTaskService {
 
+
+    // 根据accountId 和 positionId 删除任务
+    public Integer deleteByAccountIdAndPositionId(String accountId, Integer positionId) {
+       return baseMapper.deleteByAccountIdAndPositionId(accountId, positionId);
+    }
 }

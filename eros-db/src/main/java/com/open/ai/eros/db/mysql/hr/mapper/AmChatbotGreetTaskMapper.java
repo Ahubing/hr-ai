@@ -2,6 +2,7 @@ package com.open.ai.eros.db.mysql.hr.mapper;
 
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetTask;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Delete;
 
 /**
  * <p>
@@ -13,4 +14,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  */
 public interface AmChatbotGreetTaskMapper extends BaseMapper<AmChatbotGreetTask> {
 
+    // 根据accountId 和 positionId 删除任务
+    @Delete("delete from am_chatbot_greet_task where account_id = #{accountId} and position_id = #{positionId}")
+    int deleteByAccountIdAndPositionId(String accountId, Integer positionId);
 }

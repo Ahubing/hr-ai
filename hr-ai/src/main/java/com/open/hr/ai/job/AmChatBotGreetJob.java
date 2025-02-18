@@ -445,6 +445,7 @@ public class AmChatBotGreetJob {
                         amClientTasks.setOrderNumber(ClientTaskTypeEnums.GREET.getOrder());
                         amClientTasks.setStatus(0);
                         JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("greetId", amChatbotGreetTask.getId());
                         jsonObject.put("conditions", conditions);
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
                         JSONObject messageObject = new JSONObject();
@@ -455,7 +456,7 @@ public class AmChatBotGreetJob {
                         amClientTasks.setUpdateTime(LocalDateTime.now());
                         amClientTasksService.save(amClientTasks);
                     } catch (Exception e) {
-                        log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", greetTask);
+                        log.error("打招呼任务处理失败,未找到打招呼的任务任务:{}", greetTask);
                     }
                 }
 

@@ -415,8 +415,9 @@ public class ClientManager {
                     positionQueryWrapper.eq(AmPosition::getEncryptId,encryptId);
                     AmPosition amPosition = amPositionService.getOne(positionQueryWrapper,false);
 
+                    int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
+
                     if (Objects.nonNull(amPosition)) {
-                        int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
                         amPosition.setEncryptId(encryptId);
                         amPosition.setIsOpen(jobStatus);
                         amPosition.setName(jobName);
@@ -430,13 +431,17 @@ public class ClientManager {
                         newAmPosition.setBossId(bossId);
                         newAmPosition.setUid(0);
                         newAmPosition.setChannel(amZpPlatforms.getId());
-                        int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
                         newAmPosition.setEncryptId(encryptId);
                         newAmPosition.setIsOpen(jobStatus);
                         newAmPosition.setCreateTime(LocalDateTime.now());
                         newAmPosition.setExtendParams(jobData.toJSONString());
                         boolean saveResult = amPositionService.save(newAmPosition);
                         log.info("amPositionService save result={}, amPosition={}", saveResult, newAmPosition);
+                    }
+                    // 如果岗位为关闭状态,则实际删除打招呼任务
+                    if (jobStatus == 0) {
+                        Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId, amPosition.getId());
+                        log.info("amChatbotGreetTaskService update deleted={},bossId={},amPosition={}", deleted, bossId, amPosition);
                     }
                 } catch (Exception e) {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
@@ -450,6 +455,14 @@ public class ClientManager {
             boolean updatedResult = amPositionService.update(deleteQueryWrapper);
             log.info("amPositionService update result={},bossId={}", updatedResult,bossId);
             boolean result = amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+
+            // 查询已经删除的岗位id 用于删除打招呼任务
+            List<AmPosition> amPositions = amPositionService.lambdaQuery().eq(AmPosition::getBossId, bossId).eq(AmPosition::getIsDeleted, 1).list();
+            for (AmPosition amPosition : amPositions) {
+                Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId, amPosition.getId());
+                log.info("amChatbotGreetTaskService update deleted={},bossId={},amPosition={}", deleted, bossId, amPosition);
+            }
+
             log.info("amZpLocalAccoutsService update result={},amZpLocalAccouts={}", result, amZpLocalAccouts);
         } catch (Exception e) {
             log.error("savePosition异常 bossId={},platFormId={}", bossId, platForm, e);

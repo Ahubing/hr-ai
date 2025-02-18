@@ -89,6 +89,10 @@ public class AmGreetTaskUtil {
                 if (Objects.isNull(amPosition)) {
                     condition.setRecruitPosition("不限");
                 } else {
+                    if (amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
+                        log.error("职位已删除: amPosition={}", amPosition);
+                        return;
+                    }
                     condition.setRecruitPosition(amPosition.getName());
                 }
             }
