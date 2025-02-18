@@ -62,13 +62,6 @@ public class AmNewMaskUpdateReq {
     @ApiModelProperty(value = "面具的简单说明")
     private String intro;
 
-
-    /**
-     * 面具的标签   逗号分开  游戏,性感
-     */
-    @ApiModelProperty(value = "面具的标签")
-    private List<String> tags;
-
     /**
      * 记忆上下文条数
      */
