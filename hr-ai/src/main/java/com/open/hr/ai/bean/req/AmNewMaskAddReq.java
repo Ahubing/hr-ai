@@ -144,7 +144,7 @@ public class AmNewMaskAddReq {
      * 过滤词
      */
     @ApiModelProperty(value = "过滤用户的词")
-    private List<String> filterWords;
+    private String filterWords;
 
     /**
      * 示例对话

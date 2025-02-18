@@ -209,7 +209,7 @@ public class BuildPromptUtil {
                             stringBuilder.append(userInfoPrompt.replace("{zpData}", amResume.getZpData()));
                         }
                         if (string.equals("filterWord")) {
-                            stringBuilder.append(userInfoPrompt.replace("{filterWord}", amNewMaskAddReq.getFilterWords().stream().collect(Collectors.joining(","))));
+                            stringBuilder.append(userInfoPrompt.replace("{filterWord}", amNewMaskAddReq.getFilterWords()));
                         }
                         if (string.equals("userName")) {
                             stringBuilder.append(userInfoPrompt.replace("{userName}", amResume.getName()));
