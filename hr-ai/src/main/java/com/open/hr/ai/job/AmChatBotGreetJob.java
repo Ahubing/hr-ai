@@ -372,6 +372,11 @@ public class AmChatBotGreetJob {
                             log.error("打招呼任务处理失败,amChatbotGreetResult解析:{}", greetTask);
                             continue;
                         }
+                        AmChatbotGreetTask chatbotGreetTask = amChatbotGreetTaskService.getById(amChatbotGreetTask.getId());
+                        if (Objects.isNull(chatbotGreetTask)) {
+                            log.error("打招呼任务处理失败,未找到打招呼的任务任务:{}", amChatbotGreetTask.getId());
+                            continue;
+                        }
 
                         AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getById(amChatbotGreetTask.getAccountId());
                         if (Objects.isNull(zpLocalAccouts)) {
