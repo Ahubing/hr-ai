@@ -206,13 +206,19 @@ public class BuildPromptUtil {
                     }
                     for (String string : strings) {
                         if (string.equals("zpData")) {
-                            stringBuilder.append(userInfoPrompt.replace("{zpData}", amResume.getZpData()));
+                            if (StringUtils.isNotBlank(amResume.getZpData())) {
+                                stringBuilder.append(userInfoPrompt.replace("{zpData}", amResume.getZpData()));
+                            }
                         }
                         if (string.equals("filterWord")) {
-                            stringBuilder.append(userInfoPrompt.replace("{filterWord}", amNewMaskAddReq.getFilterWords()));
+                            if (StringUtils.isNotBlank(amNewMaskAddReq.getFilterWords())){
+                                stringBuilder.append(userInfoPrompt.replace("{filterWord}", amNewMaskAddReq.getFilterWords()));
+                            }
                         }
                         if (string.equals("userName")) {
-                            stringBuilder.append(userInfoPrompt.replace("{userName}", amResume.getName()));
+                            if (StringUtils.isNotBlank(amResume.getName())) {
+                                stringBuilder.append(userInfoPrompt.replace("{userName}", amResume.getName()));
+                            }
                         }
 
                     }
