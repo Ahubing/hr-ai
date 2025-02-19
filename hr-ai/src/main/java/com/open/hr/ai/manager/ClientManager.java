@@ -640,6 +640,7 @@ public class ClientManager {
                 String toPositionId = chatInfoJSONObject.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
                 positionQueryWrapper.eq(AmPosition::getEncryptId, toPositionId);
+                positionQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
                     positionId = amPositionServiceOne.getId();
