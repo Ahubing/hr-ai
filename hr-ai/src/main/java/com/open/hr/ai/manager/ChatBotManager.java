@@ -365,6 +365,9 @@ public class ChatBotManager {
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
             }
+            if (req.getIsRechatOn() == 1 && req.getIsAiOn() == 0){
+                return  ResultVO.fail("AI跟进未开启,请先开启AI跟进") ;
+            }
             amChatbotGreetConfig.setIsGreetOn(req.getIsGreetOn());
             amChatbotGreetConfig.setIsAiOn(req.getIsAiOn());
             amChatbotGreetConfig.setIsRechatOn(req.getIsRechatOn());
