@@ -114,7 +114,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "用户信息异常");
         }
 
-        String taskId = req.getRecruiter_id() + "_" + req.getUser_id();
+        String taskId = amZpLocalAccouts.getId() + "_" + req.getUser_id();
 
         LambdaQueryWrapper<AmChatMessage> messagesLambdaQueryWrapper = new LambdaQueryWrapper<>();
         messagesLambdaQueryWrapper.in(AmChatMessage::getConversationId, taskId);

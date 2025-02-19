@@ -319,7 +319,7 @@ public class AmChatBotGreetJob {
                             continue;
                         }
 
-                        String conversationId = amZpLocalAccouts.getExtBossId() + "_" + amResume.getUid();
+                        String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
 
                         // 查询用户是否已经回复消息
                         LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
