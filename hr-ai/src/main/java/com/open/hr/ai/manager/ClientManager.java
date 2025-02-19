@@ -860,55 +860,54 @@ public class ClientManager {
             }
         }
 
-
-        //进行简历匹配
-        // 将18-35 转化成数字
-        String age = condition.getAge();
-        if (StringUtils.isNotBlank(age) && !"不限".equals(age)) {
-            String[] split = age.split("-");
-            int minAge = Integer.parseInt(split[0]);
-            int maxAge = Integer.parseInt(split[1]);
-            int resumeAge = amResume.getAge();
-            if (resumeAge < minAge || resumeAge > maxAge) {
-                // 符合年龄条件
-                log.info("checkAmResume age={},resumeAge={}",age,resumeAge );
-                return false;
-            }
+//
+//        //进行简历匹配
+//        // 将18-35 转化成数字
+//        String age = condition.getAge();
+//        if (StringUtils.isNotBlank(age) && !"不限".equals(age)) {
+//            String[] split = age.split("-");
+//            int minAge = Integer.parseInt(split[0]);
+//            int maxAge = Integer.parseInt(split[1]);
+//            int resumeAge = amResume.getAge();
+//            if (resumeAge < minAge || resumeAge > maxAge) {
+//                // 符合年龄条件
+//                log.info("checkAmResume age={},resumeAge={}",age,resumeAge );
+//                return false;
+//            }
+//        }
+//
+//        if (result) {
+//            //进行简历匹配
+//            // 将18-35 转化成数字
+//            String workYears = condition.getExperience();
+//            if (StringUtils.isNotBlank(workYears) && !"不限".equals(workYears)) {
+//                String[] split = workYears.split("-");
+//                int minWorkYears = Integer.parseInt(split[0]);
+//                int maxWorkYears = Integer.parseInt(split[1]);
+//                int resumeWorkYears = amResume.getWorkYears();
+//                if (resumeWorkYears < minWorkYears || resumeWorkYears > maxWorkYears) {
+//                    // 符合工作年限条件
+//                    result = true;
+//                }
+//            }
+//        }
+//
+//        if (result) {
+//            //进行简历匹配
+//            // 将18-35 转化成数字
+//            String salary = condition.getSalary();
+//            if (StringUtils.isNotBlank(salary) && !"不限".equals(salary)) {
+//                String[] split = salary.split("-");
+//                int minSalary = Integer.parseInt(split[0]);
+//                int maxSalary = Integer.parseInt(split[1]);
+//                int resumeSalary = amResume.getLowSalary();
+//                if (resumeSalary < minSalary || resumeSalary > maxSalary) {
+//                    // 符合工资条件
+//                    result = true;
+//                }
+//            }
+        return true;
         }
-
-        if (result) {
-            //进行简历匹配
-            // 将18-35 转化成数字
-            String workYears = condition.getExperience();
-            if (StringUtils.isNotBlank(workYears) && !"不限".equals(workYears)) {
-                String[] split = workYears.split("-");
-                int minWorkYears = Integer.parseInt(split[0]);
-                int maxWorkYears = Integer.parseInt(split[1]);
-                int resumeWorkYears = amResume.getWorkYears();
-                if (resumeWorkYears < minWorkYears || resumeWorkYears > maxWorkYears) {
-                    // 符合工作年限条件
-                    result = true;
-                }
-            }
-        }
-
-        if (result) {
-            //进行简历匹配
-            // 将18-35 转化成数字
-            String salary = condition.getSalary();
-            if (StringUtils.isNotBlank(salary) && !"不限".equals(salary)) {
-                String[] split = salary.split("-");
-                int minSalary = Integer.parseInt(split[0]);
-                int maxSalary = Integer.parseInt(split[1]);
-                int resumeSalary = amResume.getLowSalary();
-                if (resumeSalary < minSalary || resumeSalary > maxSalary) {
-                    // 符合工资条件
-                    result = true;
-                }
-            }
-        }
-
-    }
 
 
 
