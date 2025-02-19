@@ -76,10 +76,10 @@ public class SaveMessageDataProcessor implements BossNewMessageProcessor {
 //            }
 //        }
 
-        String taskId = req.getRecruiter_id() +"_"+ req.getUser_id();
+        String conversationId = amZpLocalAccouts.getId() +"_"+ req.getUser_id();
         // 先清空mock的数据
         LambdaQueryWrapper<AmChatMessage> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AmChatMessage::getConversationId, taskId);
+        queryWrapper.eq(AmChatMessage::getConversationId, conversationId);
         queryWrapper.eq(AmChatMessage::getType,-1);
         amChatMessageService.remove(queryWrapper);
         return ResultVO.success();

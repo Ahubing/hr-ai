@@ -23,8 +23,8 @@ public class AmMessageManager {
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
-    public ResultVO<List<AmChatMessageVo>> queryChatMessage(String recruiterId,String userId){
-        String conversationId = recruiterId + "_" +userId;
+    public ResultVO<List<AmChatMessageVo>> queryChatMessage(String bossId,String userId){
+        String conversationId = bossId + "_" +userId;
         LambdaQueryWrapper<AmChatMessage> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmChatMessage::getConversationId,conversationId);
         queryWrapper.orderByAsc(AmChatMessage::getCreateTime);

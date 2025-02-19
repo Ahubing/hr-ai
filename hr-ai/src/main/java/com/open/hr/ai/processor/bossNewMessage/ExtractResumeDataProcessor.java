@@ -49,6 +49,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         // 保存用户信息
         LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmResume::getUid, userId);
+        queryWrapper.eq(AmResume::getAccountId, amZpLocalAccouts.getId());
         AmResume innerAmResume = amResumeService.getOne(queryWrapper, false);
         log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
         if (Objects.nonNull(innerAmResume)) {

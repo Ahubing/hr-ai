@@ -2,7 +2,6 @@ package com.open.hr.ai.controller;
 
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetMessages;
 import com.open.hr.ai.bean.vo.AmChatMessageVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.AmMessageManager;
@@ -31,7 +30,7 @@ public class MessageController extends HrAIBaseController {
     @ApiOperation("获取消息聊天列表")
     @VerifyUserToken
     @GetMapping("conversation/list")
-    public ResultVO<List<AmChatMessageVo>> promptList(@RequestParam(value = "recruiterId", required = true) String recruiterId, @RequestParam(value = "userId", required = true)String userId) {
-        return amMessageManager.queryChatMessage(recruiterId,userId);
+    public ResultVO<List<AmChatMessageVo>> promptList(@RequestParam(value = "bossId", required = true) String bossId, @RequestParam(value = "userId", required = true)String userId) {
+        return amMessageManager.queryChatMessage(bossId,userId);
     }
 }
