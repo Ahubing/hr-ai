@@ -554,6 +554,7 @@ public class ChatBotManager {
                     return ResultVO.success();
                 }
             }
+            return ResultVO.success();
         } catch (Exception e) {
             log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(req), e);
         }
