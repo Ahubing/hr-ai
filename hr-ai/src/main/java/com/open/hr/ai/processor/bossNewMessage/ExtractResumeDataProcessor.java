@@ -71,6 +71,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
                 positionQueryWrapper.eq(AmPosition::getEncryptId, toPositionId);
+                positionQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
                     amResume.setPostId(amPositionServiceOne.getId());
@@ -96,6 +97,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
                 positionQueryWrapper.eq(AmPosition::getEncryptId, toPositionId);
+                positionQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
                     amResume.setPostId(amPositionServiceOne.getId());
