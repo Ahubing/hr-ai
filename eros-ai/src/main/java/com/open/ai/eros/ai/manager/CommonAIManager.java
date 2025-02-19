@@ -124,22 +124,24 @@ public class CommonAIManager {
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
             List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
-            for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
-                // tool的名称
-                String name = toolExecutionRequest.name();
-                try {
-                    DefaultToolExecutor defaultToolExecutor = executorMap.get(name);
-                    if (defaultToolExecutor == null) {
-                        continue;
+            if (CollectionUtils.isNotEmpty(toolExecutionRequests)) {
+                for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
+                    // tool的名称
+                    String name = toolExecutionRequest.name();
+                    try {
+                        DefaultToolExecutor defaultToolExecutor = executorMap.get(name);
+                        if (defaultToolExecutor == null) {
+                            continue;
+                        }
+                        if (name.equals("set_status")){
+                            String status = defaultToolExecutor.execute(toolExecutionRequest, "default");
+                            ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(status);
+                            statusCode.set(enums.getStatus());
+                            log.info("useTool tool={},aDefault={},statusCode={}", name, enums.getDesc(),statusCode);
+                        }
+                    } catch (Exception e) {
+                        log.error("useTool error toolName={}", name, e);
                     }
-                    if (name.equals("set_status")){
-                        String status = defaultToolExecutor.execute(toolExecutionRequest, "default");
-                        ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(status);
-                        statusCode.set(enums.getStatus());
-                        log.info("useTool tool={},aDefault={},statusCode={}", name, enums.getDesc(),statusCode);
-                    }
-                } catch (Exception e) {
-                    log.error("useTool error toolName={}", name, e);
                 }
             }
             String text = content.text();
