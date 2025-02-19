@@ -2,6 +2,7 @@ package com.open.hr.ai.controller;
 
 import com.open.ai.eros.ai.constatns.ModelTemplateEnum;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.hr.ai.bean.req.AmMaskAddReq;
@@ -107,4 +108,19 @@ public class AmNewMaskController extends HrAIBaseController {
     }
 
 
+
+    @ApiOperation("获取流程状态")
+    @VerifyUserToken
+    @GetMapping("/amNewMask/review/status")
+    public ResultVO<List<ReviewStatusVo>> reviewStatus() {
+        List<ReviewStatusVo> reviewStatusVos = new ArrayList<>();
+        for (ReviewStatusEnums statusEnums : ReviewStatusEnums.values()) {
+            ReviewStatusVo reviewStatusVo = new ReviewStatusVo();
+            reviewStatusVo.setCode(statusEnums.getStatus());
+            reviewStatusVo.setDesc(statusEnums.getDesc());
+            reviewStatusVo.setKey(statusEnums.getKey());
+            reviewStatusVos.add(reviewStatusVo);
+        }
+        return ResultVO.success(reviewStatusVos);
+    }
 }

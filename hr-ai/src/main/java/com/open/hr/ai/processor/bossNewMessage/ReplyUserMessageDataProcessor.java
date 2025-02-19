@@ -284,10 +284,8 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 更新简历状态
             int status = statusCode.get();
             amResume.setType(status);
-            // 请求微信和手机号 todo 时机确认
-            if (status >= 3){
-                generateRequestInfo(amNewMask,amZpLocalAccouts,amResume,req);
-            }
+            // 请求微信和手机号
+            generateRequestInfo(status,amNewMask,amZpLocalAccouts,amResume,req);
             // 根据状态发起request_info
             boolean updateResume = amResumeService.updateById(amResume);
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
@@ -297,15 +295,28 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     }
 
     // 生成 request_info
-    private void generateRequestInfo(AmNewMask amNewMask,AmZpLocalAccouts amZpLocalAccouts,AmResume amResume,ClientBossNewMessageReq req){
+    private void generateRequestInfo(Integer status,AmNewMask amNewMask,AmZpLocalAccouts amZpLocalAccouts,AmResume amResume,ClientBossNewMessageReq req){
         String aiRequestParam = amNewMask.getAiRequestParam();
         if (StringUtils.isNotBlank(aiRequestParam)) {
             AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
+
+            Integer code = amNewMaskAddReq.getCode();
+            if (Objects.isNull(code)) {
+                log.info("用户:{} ,没有设置获取微信和手机号码", req.getUser_id());
+                return;
+            }
+
+            if (!code.equals(status)) {
+                log.info("用户:{} ,请求用户信息,但是状态不匹配 code={}, status={}", req.getUser_id(),code,status);
+                return;
+            }
+
 
             if (!amNewMaskAddReq.getOpenInterviewSwitch() && !amNewMaskAddReq.getOpenExchangePhone()) {
                 log.info("用户:{} ,请求用户信息,但是没有开启面试或者交换电话号码", req.getUser_id());
                 return;
             }
+
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
             queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());

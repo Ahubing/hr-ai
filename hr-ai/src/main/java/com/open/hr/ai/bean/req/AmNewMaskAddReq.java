@@ -146,6 +146,10 @@ public class AmNewMaskAddReq {
     @ApiModelProperty(value = "示例对话")
     private String exampleDialogues;
 
+
+    @ApiModelProperty("流程code")
+    private Integer code;
+
     /**
      * 打开交换微信
      */

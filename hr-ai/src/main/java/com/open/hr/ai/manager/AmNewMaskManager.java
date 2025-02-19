@@ -232,6 +232,7 @@ public class AmNewMaskManager {
             amNewMaskVo.setOpenExchangeWeChat(amNewMaskAddReq.getOpenExchangeWeChat());
             amNewMaskVo.setOpenExchangePhone(amNewMaskAddReq.getOpenExchangePhone());
             amNewMaskVo.setExampleDialogues(amNewMaskAddReq.getExampleDialogues());
+            amNewMaskVo.setCode(amNewMaskAddReq.getCode());
         }
         return amNewMaskVo;
 
