@@ -328,9 +328,9 @@ public class ClientManager {
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             } else {
                 if (tasksServiceOne.getRetryTimes() < 3) {
+                    dealErrorGreetTask(bossId,tasksServiceOne);
                     return ResultVO.success("任务要重试");
                 }
-
                 tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
                 tasksServiceOne.setReason(reason);
@@ -530,9 +530,8 @@ public class ClientManager {
                 log.info("greetHandle amChatbotGreetTask is null,bossId={},greetId={}", bossId,greetId );
                 return;
             }
-            // 增加打招呼任务的执行次数
-            amChatbotGreetTask.setDoneNum(amChatbotGreetTask.getDoneNum() + 1);
-
+            // 增加打招呼任务的执行次数统计
+            Integer doneNum = amChatbotGreetTask.getDoneNum();
             // 开始处理打招呼的简历数据
             for (int i = 0; i < resumes.size(); i++) {
                 // 开始提取简历数据, 异常捕捉,让流程继续下去
@@ -559,7 +558,7 @@ public class ClientManager {
                     amChatbotGreetResult.setTaskId(Integer.parseInt(greetId));
                     amChatbotGreetResult.setUserId(amResume.getUid());
                     boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
-
+                    doneNum++;
                     if (saveResult) {
                         // 生成聊天记录
                         AmChatMessage amChatMessage = new AmChatMessage();
@@ -617,6 +616,12 @@ public class ClientManager {
                     log.error("greetHandle resume error,bossId={},resume={}", bossId, resumes.get(i), e);
                 }
             }
+            amChatbotGreetTask.setDoneNum(doneNum);
+            if (doneNum >= amChatbotGreetTask.getTaskNum()) {
+                amChatbotGreetTask.setStatus(2);
+            }
+            amChatbotGreetTaskService.updateById(amChatbotGreetTask);
+
         } catch (Exception e) {
             log.error("greetHandle异常 bossId={},finishTaskReqData={}", bossId, finishTaskReqData, e);
         }
@@ -937,6 +942,46 @@ public class ClientManager {
 //            }
         return true;
         }
+
+
+    private void dealErrorGreetTask(String bossId, AmClientTasks tasksServiceOne) {
+        // 判断是否打招呼任务
+        if (!tasksServiceOne.getTaskType().equals(ClientTaskTypeEnums.GREET.getType())) {
+            return;
+        }
+        //提取任务里面的打招呼任务id
+        log.info("dealErrorGreetTask tasksServiceOne={}", tasksServiceOne);
+        JSONObject jsonObject = JSONObject.parseObject(tasksServiceOne.getData());
+        if (!jsonObject.containsKey("greetId")) {
+            log.info("dealErrorGreetTask greetId is null,bossId={}", bossId);
+            return;
+        }
+        //保存打招呼任务结果
+        String greetId = jsonObject.get("greetId").toString();
+        //查询打招呼任务数据
+        AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(greetId);
+        if (Objects.isNull(amChatbotGreetTask)) {
+            log.info("dealErrorGreetTask amChatbotGreetTask is null,bossId={},greetId={}", bossId, greetId);
+            return;
+        }
+        int times = amChatbotGreetTask.getTaskNum() - amChatbotGreetTask.getDoneNum();
+        if (times > 0) {
+            JSONObject parseObject = JSONObject.parseObject(tasksServiceOne.getData());
+            if (Objects.nonNull(parseObject)) {
+                JSONObject.parseObject(tasksServiceOne.getData()).put("times", times);
+                tasksServiceOne.setData(JSONObject.toJSONString(parseObject));
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
+                tasksServiceOne.setRetryTimes(0);
+                tasksServiceOne.setUpdateTime(LocalDateTime.now());
+            }else {
+                // 参数为0,则直接删除任务
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
+            }
+            boolean result = amClientTasksService.updateById(tasksServiceOne);
+            log.info("amClientTasksService update times={} result={},tasksServiceOne={}", times,result, tasksServiceOne);
+
+        }
+    }
 
 
 
