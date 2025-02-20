@@ -159,15 +159,16 @@ public class ClientManager {
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail(404, "boss_id不存在");
             }
+            HashMap<String, Object> map = new HashMap<>();
 
             LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmResume::getUid, userId);
             queryWrapper.eq(AmResume::getAccountId, bossId);
             AmResume one = amResumeService.getOne(queryWrapper, false);
             if (Objects.isNull(one)) {
-                return ResultVO.fail(404, "简历不存在");
+                map.put("exist",false);
+                return ResultVO.success(map);
             }
-            HashMap<String, Object> map = new HashMap<>();
             if (StringUtils.isNotBlank(one.getAttachmentResume())){
                 map.put("exist",true);
             }else {
