@@ -80,7 +80,7 @@ public class AmChatBotGreetJob {
      * 下面是java 优化后的数据
      */
 
-    @Scheduled(cron = "0/20 * * * * ?")
+    @Scheduled(cron = "0/5 * * * * ?")
 //    @Scheduled(cron = "0/20 * * * * ?")
     public void run_scheduled_greet_timer() {
         Lock lock = DistributedLockUtils.getLock("run_scheduled_greet_timer", 20);
