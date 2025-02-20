@@ -153,6 +153,30 @@ public class ClientManager {
     }
 
 
+    public ResultVO queryAttachmentResume(String platform,String bossId, String connectId, String userId) {
+        try {
+            AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
+            if (Objects.isNull(amZpLocalAccouts)) {
+                return ResultVO.fail(404, "boss_id不存在");
+            }
+
+            LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmResume::getUid, userId);
+            AmResume one = amResumeService.getOne(queryWrapper, false);
+            HashMap<String, Object> map = new HashMap<>();
+            if (StringUtils.isNotBlank(one.getAttachmentResume())){
+                map.put("exist",true);
+            }else {
+                map.put("exist",false);
+            }
+            return ResultVO.success(map);
+        } catch (Exception e) {
+            log.error("客户查询异常 bossId={},connectId={}", bossId, connectId, e);
+        }
+        return ResultVO.fail(409, "登录失败");
+    }
+
+
     public ResultVO updateClientStatus(String platform,String bossId, String connectId, String inputStatus) {
         try {
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);

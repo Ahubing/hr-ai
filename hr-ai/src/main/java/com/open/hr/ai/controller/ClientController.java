@@ -4,6 +4,7 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
+import com.open.hr.ai.bean.req.ClientQueryReq;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ClientManager;
 import io.swagger.annotations.ApiOperation;
@@ -72,6 +73,16 @@ public class ClientController extends HrAIBaseController {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
         return clientManager.loginClient(platform,bossId, connectId, extBossId);
+    }
+    @ApiOperation("客户端查询附件简历情况")
+    @PostMapping("/query/attachment_resume/{platform}/{boss_id}/{connect_id}/{ext_boss_id}")
+    public ResultVO queryAttachmentResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientQueryReq clientQueryReq) {
+        log.info("queryAttachmentResume bossId={},connectId={},userId={}", bossId, connectId, clientQueryReq.getUser_id());
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
+            return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
+        }
+
+        return clientManager.queryAttachmentResume(platform,bossId, connectId, clientQueryReq.getUser_id());
     }
 
     @ApiOperation("客户端获取任务")
