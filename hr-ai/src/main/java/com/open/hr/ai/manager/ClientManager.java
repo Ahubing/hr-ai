@@ -162,6 +162,7 @@ public class ClientManager {
 
             LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmResume::getUid, userId);
+            queryWrapper.eq(AmResume::getAccountId, bossId);
             AmResume one = amResumeService.getOne(queryWrapper, false);
             HashMap<String, Object> map = new HashMap<>();
             if (StringUtils.isNotBlank(one.getAttachmentResume())){
