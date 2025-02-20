@@ -365,9 +365,18 @@ public class ChatBotManager {
             if (amChatbotGreetConfig == null) {
                 return ResultVO.fail("配置信息不存在");
             }
-            if (req.getIsRechatOn() == 1 && req.getIsAiOn() == 0){
+
+            if (req.getIsRechatOn() == 1 && (req.getIsAiOn() == 0 && amChatbotGreetConfig.getIsAiOn() == 0)){
+                return  ResultVO.fail("AI跟进未开启，请先开启AI跟进") ;
+            }
+
+            if (req.getIsAiOn() == 0  &&
+                req.getIsRechatOn() == 1 &&
+                amChatbotGreetConfig.getIsAiOn() == 1 &&
+                amChatbotGreetConfig.getIsRechatOn() == 1 ){
                 return  ResultVO.fail("AI复聊未关闭，请先关闭AI复聊") ;
             }
+
             amChatbotGreetConfig.setIsGreetOn(req.getIsGreetOn());
             amChatbotGreetConfig.setIsAiOn(req.getIsAiOn());
             amChatbotGreetConfig.setIsRechatOn(req.getIsRechatOn());

@@ -72,6 +72,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     private CommonAIManager commonAIManager;
 
 
+    @Resource
+    private AmChatbotOptionsConfigServiceImpl amChatbotOptionsConfigService;
+
+
     private Map<String,DefaultToolExecutor> toolExecutorMap = new HashMap<>();
     private List<ToolSpecification> toolSpecifications = new ArrayList<>();
 
@@ -113,7 +117,6 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
-
         String taskId = amZpLocalAccouts.getId() + "_" + req.getUser_id();
 
         LambdaQueryWrapper<AmChatMessage> messagesLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -169,23 +172,32 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         Integer postId = amResume.getPostId();
 
-
         if (Objects.isNull(postId)) {
-            // 如果postId为空,则尝试通过bossId 和 encryptGeekId 查询对应的岗位
-            if (StringUtils.isNotBlank(amResume.getEncryptGeekId())) {
-                LambdaQueryWrapper<AmPosition> positionLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                positionLambdaQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
-                positionLambdaQueryWrapper.eq(AmPosition::getEncryptId, 1);
-                AmPosition amPosition = amPositionService.getOne(positionLambdaQueryWrapper, false);
-                if (Objects.nonNull(amPosition)) {
-                    postId = amPosition.getId();
-                }
-            }
-            if (Objects.isNull(postId)) {
-                log.info("postId is null,amResume={}", amResume);
-                return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
+            log.info("postId is null,amResume={}", amResume);
+            return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
+        }
+        LambdaQueryWrapper<AmPosition> positionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        positionLambdaQueryWrapper.eq(AmPosition::getId, postId);
+        AmPosition amPosition = amPositionService.getOne(positionLambdaQueryWrapper, false);
+        if (Objects.isNull(amPosition)) {
+            log.info("amPosition is null,postId={}", postId);
+            // 先注释,让流程继续下去
+//            return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
+        }
+        // 判断岗位状态
+        if (Objects.nonNull(amPosition) &&  amPosition.getIsOpen() !=0 ) {
+            // 查询岗位岗位关闭继续ai跟进
+            LambdaQueryWrapper<AmChatbotOptionsConfig> optionsConfigLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            optionsConfigLambdaQueryWrapper.eq(AmChatbotOptionsConfig::getAdminId, amZpLocalAccouts.getAdminId());
+            AmChatbotOptionsConfig optionsConfigServiceOne = amChatbotOptionsConfigService.getOne(optionsConfigLambdaQueryWrapper, false);
+            if (Objects.nonNull(optionsConfigServiceOne) && optionsConfigServiceOne.getIsContinueFollow() == 1) {
+                log.info("optionsConfigServiceOne is open,amPosition={}", amPosition);
+            } else {
+                log.info("optionsConfigServiceOne is not open,amPosition={}", amPosition);
+                return ResultVO.fail(404, "岗位未开放,且关闭岗位未开发ai继续跟进, 不继续走下一个流程");
             }
         }
+
 
         LambdaQueryWrapper<AmChatbotPositionOption> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
