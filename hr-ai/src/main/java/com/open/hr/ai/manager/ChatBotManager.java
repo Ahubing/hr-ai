@@ -366,7 +366,7 @@ public class ChatBotManager {
                 return ResultVO.fail("配置信息不存在");
             }
             if (req.getIsRechatOn() == 1 && req.getIsAiOn() == 0){
-                return  ResultVO.fail("AI跟进未开启,请先开启AI跟进") ;
+                return  ResultVO.fail("AI复聊未关闭，请先关闭AI复聊") ;
             }
             amChatbotGreetConfig.setIsGreetOn(req.getIsGreetOn());
             amChatbotGreetConfig.setIsAiOn(req.getIsAiOn());
@@ -409,7 +409,7 @@ public class ChatBotManager {
                 return ResultVO.fail("配置信息不存在");
             }
             if (updateGreetStatusReq.getIsRechatOn() == 1 && amChatbotGreetConfig.getIsAiOn() == 0){
-                return  ResultVO.fail("AI跟进未开启,请先开启AI跟进") ;
+                return  ResultVO.fail("AI复聊未关闭，请先关闭AI复聊") ;
             }
             amChatbotGreetConfig.setIsRechatOn(updateGreetStatusReq.getIsRechatOn());
             boolean result = amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
