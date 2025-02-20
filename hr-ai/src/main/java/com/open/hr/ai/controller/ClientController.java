@@ -75,7 +75,7 @@ public class ClientController extends HrAIBaseController {
         return clientManager.loginClient(platform,bossId, connectId, extBossId);
     }
     @ApiOperation("客户端查询附件简历情况")
-    @PostMapping("/query/attachment_resume/{platform}/{boss_id}/{connect_id}/{ext_boss_id}")
+    @PostMapping("/query/attachment_resume/{platform}/{boss_id}/{connect_id}")
     public ResultVO queryAttachmentResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId, @RequestBody @Valid ClientQueryReq clientQueryReq) {
         log.info("queryAttachmentResume bossId={},connectId={},userId={}", bossId, connectId, clientQueryReq.getUser_id());
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {

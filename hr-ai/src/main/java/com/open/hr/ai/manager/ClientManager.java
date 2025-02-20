@@ -164,6 +164,9 @@ public class ClientManager {
             queryWrapper.eq(AmResume::getUid, userId);
             queryWrapper.eq(AmResume::getAccountId, bossId);
             AmResume one = amResumeService.getOne(queryWrapper, false);
+            if (Objects.isNull(one)) {
+                return ResultVO.fail(404, "简历不存在");
+            }
             HashMap<String, Object> map = new HashMap<>();
             if (StringUtils.isNotBlank(one.getAttachmentResume())){
                 map.put("exist",true);
