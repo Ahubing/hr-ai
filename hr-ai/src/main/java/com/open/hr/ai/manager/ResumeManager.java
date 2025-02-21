@@ -97,7 +97,7 @@ public class ResumeManager {
             LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
             queryWrapper.eq(AmResume::getAdminId, adminId);
             if (Objects.nonNull(type)) {
-                if (type == 5) {
+                if (type == 6) {
                     queryWrapper.isNull(AmResume::getType);
                 } else {
                     queryWrapper.eq(AmResume::getType, type);
