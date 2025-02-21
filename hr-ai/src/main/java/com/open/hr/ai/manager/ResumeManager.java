@@ -98,7 +98,7 @@ public class ResumeManager {
             queryWrapper.eq(AmResume::getAdminId, adminId);
             if (Objects.nonNull(type)) {
                 if (type == 6) {
-                    queryWrapper.isNull(AmResume::getType);
+
                 } else {
                     queryWrapper.eq(AmResume::getType, type);
                 }
