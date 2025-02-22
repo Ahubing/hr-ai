@@ -60,7 +60,7 @@ public class ResumeController extends HrAIBaseController {
     @ApiOperation("获取简历列表")
     @VerifyUserToken
     @GetMapping("resume/list")
-    public ResultVO<PageVO<AmResume>> promptList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "post_id", required = false) Integer post_id, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "page", required = true) Integer page, @RequestParam(value = "size", required = true) Integer size) {
+    public ResultVO<PageVO<AmResumeVo>> promptList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "post_id", required = false) Integer post_id, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "page", required = true) Integer page, @RequestParam(value = "size", required = true) Integer size) {
         return resumeManager.resumeList(getUserId(), type, post_id, name, page, size);
     }
 

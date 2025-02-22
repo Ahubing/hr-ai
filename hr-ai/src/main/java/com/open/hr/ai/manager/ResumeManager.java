@@ -90,7 +90,7 @@ public class ResumeManager {
      * @param size
      * @return
      */
-    public ResultVO<PageVO<AmResume>> resumeList(Long adminId, Integer type, Integer post_id, String name, Integer page, Integer size) {
+    public ResultVO<PageVO<AmResumeVo>> resumeList(Long adminId, Integer type, Integer post_id, String name, Integer page, Integer size) {
         try {
             Page<AmResume> pageList = new Page<>(page, size);
 
@@ -111,7 +111,8 @@ public class ResumeManager {
             }
             queryWrapper.orderByDesc(AmResume::getCreateTime);
             Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
-            return ResultVO.success(PageVO.build(amResumePage.getTotal(), amResumePage.getRecords()));
+            List<AmResumeVo> resumeVos = amResumePage.getRecords().stream().map(AmResumeConvert.I::convertAmResumeVo).collect(Collectors.toList());
+            return ResultVO.success(PageVO.build(amResumePage.getTotal(), resumeVos));
         } catch (Exception e) {
             log.error("获取简历详情 ", e);
         }
