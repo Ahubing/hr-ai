@@ -259,12 +259,14 @@ public class ChatBotManager {
                     .map(AmChatbotGreetMessages::getFromUid) // 假设 userId 是 AmChatbotGreetMessages 的一个字段
                     .collect(Collectors.toList());
 
-            int activeCount = amChatMessageService.count(new LambdaQueryWrapper<AmChatMessage>()
-                    .in(AmChatMessage::getUserId, userIds)
-                    .select(AmChatMessage::getUserId) // 选择 userId 字段
-                    .groupBy(AmChatMessage::getUserId)); // 根据 userId 分组
-
-            accountDataVo.setToday_active(activeCount); // 将统计结果设置到 accountDataVo
+            accountDataVo.setToday_active(0);
+            if (!userIds.isEmpty()){
+                int activeCount = amChatMessageService.count(new LambdaQueryWrapper<AmChatMessage>()
+                        .in(AmChatMessage::getUserId, userIds)
+                        .select(AmChatMessage::getUserId) // 选择 userId 字段
+                        .groupBy(AmChatMessage::getUserId)); // 根据 userId 分组
+                accountDataVo.setToday_active(activeCount); // 将统计结果设置到 accountDataVo
+            }
 
 
             int todayRechat = amChatbotGreetMessagesService.count(new LambdaQueryWrapper<AmChatbotGreetMessages>().eq(AmChatbotGreetMessages::getAccountId, accountId).ge(AmChatbotGreetMessages::getCreateTime, LocalDate.now().atStartOfDay()).eq(AmChatbotGreetMessages::getTaskType, MessageTypeEnums.rechat.getCode()));
