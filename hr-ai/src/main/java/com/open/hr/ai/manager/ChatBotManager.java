@@ -37,6 +37,10 @@ public class ChatBotManager {
 
     @Resource
     private AmChatbotGreetResultServiceImpl amChatbotGreetResultService;
+    @Resource
+    private AmChatbotGreetMessagesServiceImpl amChatbotGreetMessagesService;
+    @Resource
+    private AmChatMessageServiceImpl amChatMessageService;
 
     @Resource
     private AmResumeServiceImpl amResumeService;
@@ -235,11 +239,36 @@ public class ChatBotManager {
             int amResumeCount = amResumeService.count(new LambdaQueryWrapper<AmResume>().eq(AmResume::getAccountId, accountId).ge(AmResume::getCreateTime, LocalDate.now().atStartOfDay()));
             accountDataVo.setToday_resume(amResumeCount);
 
+            int attachmentResumeCount = amResumeService.count(new LambdaQueryWrapper<AmResume>()
+                    .eq(AmResume::getAccountId, accountId)
+                    .ge(AmResume::getCreateTime, LocalDate.now().atStartOfDay())
+                    .isNotNull(AmResume::getAttachmentResume));
+            accountDataVo.setToday_attachment_resume(attachmentResumeCount);
+
+
             int today_communication = amChatbotGreetResultService.count(new LambdaQueryWrapper<AmChatbotGreetResult>().eq(AmChatbotGreetResult::getAccountId, accountId).ge(AmChatbotGreetResult::getCreateTime, LocalDate.now().atStartOfDay()).eq(AmChatbotGreetResult::getSuccess, 1));
             accountDataVo.setToday_communication(today_communication);
 
-            accountDataVo.setToday_active(0);
-            accountDataVo.setToday_rechat(0);
+            // 查询出账号今日复聊的用户id , 再根据去重的用户id, 查询是否有聊天记录
+            List<Integer> userIds = amChatbotGreetMessagesService.list(new LambdaQueryWrapper<AmChatbotGreetMessages>()
+                            .eq(AmChatbotGreetMessages::getAccountId, accountId)
+                            .ge(AmChatbotGreetMessages::getCreateTime, LocalDate.now().atStartOfDay())
+                            .eq(AmChatbotGreetMessages::getTaskType, MessageTypeEnums.rechat.getCode())
+                            .isNotNull(AmChatbotGreetMessages::getFromUid))
+                    .stream()
+                    .map(AmChatbotGreetMessages::getFromUid) // 假设 userId 是 AmChatbotGreetMessages 的一个字段
+                    .collect(Collectors.toList());
+
+            int activeCount = amChatMessageService.count(new LambdaQueryWrapper<AmChatMessage>()
+                    .in(AmChatMessage::getUserId, userIds)
+                    .select(AmChatMessage::getUserId) // 选择 userId 字段
+                    .groupBy(AmChatMessage::getUserId)); // 根据 userId 分组
+
+            accountDataVo.setToday_active(activeCount); // 将统计结果设置到 accountDataVo
+
+
+            int todayRechat = amChatbotGreetMessagesService.count(new LambdaQueryWrapper<AmChatbotGreetMessages>().eq(AmChatbotGreetMessages::getAccountId, accountId).ge(AmChatbotGreetMessages::getCreateTime, LocalDate.now().atStartOfDay()).eq(AmChatbotGreetMessages::getTaskType, MessageTypeEnums.rechat.getCode()));
+            accountDataVo.setToday_rechat(todayRechat);
 
             int t_month_resume = amResumeService.count(new LambdaQueryWrapper<AmResume>().eq(AmResume::getAccountId, accountId).ge(AmResume::getCreateTime, LocalDate.now().withDayOfMonth(1).atStartOfDay()));
             accountDataVo.setT_month_resume(t_month_resume);

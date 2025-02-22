@@ -9,6 +9,7 @@ import lombok.Data;
 @Data
 public class AccountDataVo {
     private Integer today_resume;
+    private Integer today_attachment_resume;
     private Integer today_communication;
     private Integer today_active;
     private Integer today_rechat;

@@ -404,7 +404,7 @@ public class AmChatBotGreetJob {
                         amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
                         amChatbotGreetMessages.setIsSystemSend(1);
                         amChatbotGreetMessages.setContent(GREET_MESSAGE);
-                        amChatbotGreetMessages.setCreateTime(DateUtils.formatDate(new Date(), "Y-m-d"));
+                        amChatbotGreetMessages.setCreateTime(LocalDateTime.now());
                         amChatbotGreetMessagesService.save(amChatbotGreetMessages);
                         //更新task临时status的状态
                         amChatbotGreetTask.setStatus(1);
@@ -499,6 +499,20 @@ public class AmChatBotGreetJob {
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         amClientTasks.setCreateTime(LocalDateTime.now());
         boolean result = amClientTasksService.save(amClientTasks);
+
+        // 执行任务
+        AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
+        amChatbotGreetMessages.setTaskId(amChatbotOptionsItems.getId());
+        amChatbotGreetMessages.setTaskType(MessageTypeEnums.rechat.getCode());
+        amChatbotGreetMessages.setAccountId(amZpLocalAccouts.getId());
+        amChatbotGreetMessages.setIsSystemSend(1);
+        amChatbotGreetMessages.setContent(amChatbotOptionsItems.getContent());
+        amChatbotGreetMessages.setCreateTime(LocalDateTime.now());
+        amChatbotGreetMessages.setFromUid(Integer.parseInt(amChatbotGreetResult.getUserId()));
+        amChatbotGreetMessagesService.save(amChatbotGreetMessages);
+        //更新task临时status的状态
+
+
         log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
         if (result) {
             // 生成聊天记录

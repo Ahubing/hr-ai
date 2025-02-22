@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -71,7 +72,7 @@ public class AmChatbotGreetMessages implements Serializable {
     /**
      * 创建日期
      */
-    private String createTime;
+    private LocalDateTime createTime;
 
     /**
      * 执行的时间段

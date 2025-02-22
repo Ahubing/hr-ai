@@ -69,7 +69,7 @@ public class AmGreetTaskUtil {
             amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
             amChatbotGreetMessages.setIsSystemSend(1);
             amChatbotGreetMessages.setContent(GREET_MESSAGE);
-            amChatbotGreetMessages.setCreateTime(DateUtils.formatDate(new Date(), "Y-m-d"));
+            amChatbotGreetMessages.setCreateTime(LocalDateTime.now());
             amChatbotGreetMessagesService.save(amChatbotGreetMessages);
             //更新task临时status的状态
             amChatbotGreetTask.setStatus(1);
