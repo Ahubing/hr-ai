@@ -254,10 +254,16 @@ public class ChatBotManager {
                     .isNotNull(AmResume::getAttachmentResume));
             accountDataVo.setT_month_attachment_resume(attachmentResumeMonthCount);
 
-            int today_communication = amChatMessageService.count(new LambdaQueryWrapper<AmChatMessage>().select(AmChatMessage::getUserId).ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay()).groupBy(AmChatMessage::getUserId));
-            int tMonth_communication = amChatMessageService.count(new LambdaQueryWrapper<AmChatMessage>().select(AmChatMessage::getUserId).ge(AmChatMessage::getCreateTime, LocalDate.now().withDayOfMonth(1).atStartOfDay()).groupBy(AmChatMessage::getUserId));
-            accountDataVo.setToday_communication(today_communication);
-            accountDataVo.setT_month_communication(tMonth_communication);
+            List<Map<String, Object>> today_communication = amChatMessageService.listMaps(new LambdaQueryWrapper<AmChatMessage>()
+                    .select(AmChatMessage::getUserId) // 选择userId字段
+                    .ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay()) // 大于等于今天的开始时间
+                    .groupBy(AmChatMessage::getUserId));
+            List<Map<String, Object>> tMonth_communication = amChatMessageService.listMaps(new LambdaQueryWrapper<AmChatMessage>()
+                    .select(AmChatMessage::getUserId) // 选择userId字段
+                    .ge(AmChatMessage::getCreateTime, LocalDate.now().withDayOfMonth(1).atStartOfDay()) // 大于等于今天的开始时间
+                    .groupBy(AmChatMessage::getUserId));
+            accountDataVo.setToday_communication(today_communication.size());
+            accountDataVo.setT_month_communication(tMonth_communication.size());
 
 
             int todayRechat = amChatbotGreetMessagesService.count(new LambdaQueryWrapper<AmChatbotGreetMessages>().eq(AmChatbotGreetMessages::getAccountId, accountId).ge(AmChatbotGreetMessages::getCreateTime, LocalDate.now().atStartOfDay()).eq(AmChatbotGreetMessages::getTaskType, MessageTypeEnums.rechat.getCode()));
