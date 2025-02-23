@@ -54,10 +54,6 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
         if (Objects.nonNull(innerAmResume)) {
             BeanUtils.copyProperties(innerAmResume, amResume);
-            if (Objects.isNull(chatInfo.get("phone")) && Objects.isNull(chatInfo.get("weixin"))) {
-                log.error("extractData phone and weixin is null,bossId={}", amZpLocalAccouts.getId());
-                return ResultVO.fail("phone and weixin is null");
-            }
             if (Objects.nonNull(chatInfo.get("phone"))) {
                 amResume.setPhone(chatInfo.get("phone").toString());
             }
