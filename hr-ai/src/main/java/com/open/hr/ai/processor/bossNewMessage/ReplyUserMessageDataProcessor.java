@@ -185,7 +185,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 //            return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
         }
         // 判断岗位状态
-        if (Objects.nonNull(amPosition) &&  amPosition.getIsOpen() !=0 ) {
+        if (Objects.nonNull(amPosition) &&  amPosition.getIsOpen() ==0 ) {
             // 查询岗位岗位关闭继续ai跟进
             LambdaQueryWrapper<AmChatbotOptionsConfig> optionsConfigLambdaQueryWrapper = new LambdaQueryWrapper<>();
             optionsConfigLambdaQueryWrapper.eq(AmChatbotOptionsConfig::getAdminId, amZpLocalAccouts.getAdminId());

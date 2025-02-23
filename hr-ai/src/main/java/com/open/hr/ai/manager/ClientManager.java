@@ -682,8 +682,9 @@ public class ClientManager {
             }
             String userId = resumeJSONObject.get("uid").toString();
             if (StringUtils.isNotBlank(userId)) {
-                QueryWrapper<AmResume> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("uid", userId);
+                LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmResume::getUid, userId);
+                queryWrapper.eq(AmResume::getAccountId, amZpLocalAccouts.getId());
                 AmResume amResume = amResumeService.getOne(queryWrapper, false);
                 if (Objects.isNull(amResume)) {
                     amResume = new AmResume();

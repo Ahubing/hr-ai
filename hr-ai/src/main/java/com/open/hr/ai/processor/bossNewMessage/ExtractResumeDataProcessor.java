@@ -80,7 +80,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             }
             boolean result = amResumeService.updateById(amResume);
             log.info("ExtractResumeDataProcessor dealBossNewMessage update amResume result={}", result);
-        }else {
+        }
+        else {
             if (Objects.nonNull(chatInfo.get("encryptUid"))){
             amResume.setEncryptGeekId(chatInfo.get("encryptUid").toString());
             }
