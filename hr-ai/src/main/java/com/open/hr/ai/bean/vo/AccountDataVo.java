@@ -17,4 +17,6 @@ public class AccountDataVo {
     private Integer t_month_communication;
     private Integer t_month_active;
     private Integer t_month_rechat;
+    private Integer t_month_attachment_resume;
+
 }

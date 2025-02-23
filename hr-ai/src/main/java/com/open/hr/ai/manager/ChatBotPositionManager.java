@@ -158,10 +158,13 @@ public class ChatBotPositionManager {
      * @param adminId
      * @return
      */
-    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId) {
+    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name) {
         try {
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmPositionSection::getAdminId, adminId);
+            if (StringUtils.isNotBlank(name)) {
+                queryWrapper.like(AmPositionSection::getName, name);
+            }
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
             List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
             for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos) {

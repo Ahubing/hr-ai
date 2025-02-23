@@ -71,8 +71,8 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取组织架构")
     @VerifyUserToken
     @GetMapping("position/get_structures")
-    public ResultVO<List<AmPositionSectionVo>> getStructures() {
-        return chatBotPositionManager.getStructures(getUserId());
+    public ResultVO<List<AmPositionSectionVo>> getStructures(@RequestParam(value = "name", required = false) String name) {
+        return chatBotPositionManager.getStructures(getUserId(),name);
     }
 
 
