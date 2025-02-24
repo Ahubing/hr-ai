@@ -7,40 +7,43 @@ import com.baomidou.mybatisplus.generator.config.GlobalConfig;
 import com.baomidou.mybatisplus.generator.config.PackageConfig;
 import com.baomidou.mybatisplus.generator.config.StrategyConfig;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
-import org.apache.commons.collections.ArrayStack;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.File;
 
-/**
- * @author melo
- * @date 2020/5/31
- */
 public class MybatisPlusGeneratorUtil {
     public static void main(String[] args) {
         String author = "Eros-AI";
         String database = "hr-ai";
-        // 生成的数据库表 属于 哪一个模块就填写哪个
-        // ai   user   pay  admin    bot  creator  social permission knowledge
         String model = "hr";
-        System.out.println(System.getProperty("user.dir"));
-        generateByTables(author, database,model,"upload_am_resume");
+        generateByTables(author, database, model, "ic_config", "ic_record");
     }
 
-    private static void generateByTables(String author, String database,String model, String... tableNames) {
+    private static void generateByTables(String author, String database, String model, String... tableNames) {
+        // 输出目录
+        String outputDir = System.getProperty("user.dir") + "/eros-db/src/main/java/";
+        System.out.println("Output Directory: " + outputDir);
+        File dir = new File(outputDir);
+        if (!dir.exists()) {
+            dir.mkdirs(); // 确保目录存在
+            System.out.println("Created directory: " + outputDir);
+        }
+
+        // 全局配置
         GlobalConfig config = new GlobalConfig();
-        String dbUrl = "jdbc:mysql://124.156.137.182:3377/" + database + "?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC";
+        String dbUrl = "jdbc:mysql://43.153.41.128:7777/" + database +
+                "?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai";
         config.setActiveRecord(false)
                 .setAuthor(author)
-                .setOutputDir(System.getProperty("user.dir")+"/eros-db" +"/src/main/java/")
+                .setOutputDir(outputDir)
                 .setFileOverride(true)
                 .setEnableCache(false)
                 .setEntityName("%s")
 //                .setMapperName("%sMapper")
-               // .setServiceName("%sService")
-                //.setServiceImplName("%sServiceImpl")
+//                .setServiceName("%sService")
+//                .setServiceImplName("%sServiceImpl")
                 .setOpen(false);
 
+        // 数据源配置
         DataSourceConfig dataSourceConfig = new DataSourceConfig();
         dataSourceConfig.setDbType(DbType.MYSQL)
                 .setUrl(dbUrl)
@@ -48,25 +51,31 @@ public class MybatisPlusGeneratorUtil {
                 .setPassword("blueCat666")
                 .setDriverName("com.mysql.cj.jdbc.Driver");
 
+        // 策略配置
         StrategyConfig strategyConfig = new StrategyConfig();
-        strategyConfig
-                .setCapitalMode(true)
+        strategyConfig.setCapitalMode(true)
                 .setEntityLombokModel(true)
                 .setNaming(NamingStrategy.underline_to_camel)
-//				.setSuperMapperClass("")
-                .setInclude(tableNames);//修改替换成你需要的表名，多个表名传数组
+                .setInclude(tableNames); // 指定表名
 
-        new AutoGenerator().setGlobalConfig(config)
-                .setDataSource(dataSourceConfig)
-                .setStrategy(strategyConfig)
-                .setPackageInfo(
-                        new PackageConfig()
-                                .setParent("com.open.ai.eros.db.mysql"+"."+model)
-                                .setEntity("entity")
-//                                .setMapper("mapper")
-//                                .setService("service")
-//                                .setServiceImpl("service.impl")
-                                //.setXml("mybatis.mappers")
-                ).execute();
+        // 执行生成
+        try {
+            new AutoGenerator().setGlobalConfig(config)
+                    .setDataSource(dataSourceConfig)
+                    .setStrategy(strategyConfig)
+                    .setPackageInfo(
+                            new PackageConfig()
+                                    .setParent("com.open.ai.eros.db.mysql." + model)
+                                    .setEntity("entity")
+//                                    .setMapper("mapper")
+//                                    .setService("service")
+//                                    .setServiceImpl("service.impl")
+//                                    .setXml("mybatis.mappers")
+                    ).execute();
+            System.out.println("CRUD files generated successfully!");
+        } catch (Exception e) {
+            System.err.println("Error during code generation:");
+            e.printStackTrace();
+        }
     }
 }
