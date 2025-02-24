@@ -16,6 +16,7 @@ import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
 import com.open.hr.ai.constant.*;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.DealUserFirstSendMessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.io.IntWritable;
@@ -28,6 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @Date 2025/1/6 20:00
@@ -293,8 +295,9 @@ public class ClientManager {
             }
 
             AmResume amResume = new AmResume();
+            AtomicInteger statusCode = new AtomicInteger(0);
             for (BossNewMessageProcessor bossNewMessageProcessor : bossNewMessageProcessors) {
-                bossNewMessageProcessor.dealBossNewMessage(platform,amResume, amZpLocalAccouts, req);
+                bossNewMessageProcessor.dealBossNewMessage(statusCode,platform,amResume, amZpLocalAccouts, req);
             }
             return ResultVO.success();
         } catch (Exception e) {
@@ -680,6 +683,7 @@ public class ClientManager {
                     positionId = amPositionServiceOne.getId();
                 }
             }
+
             String userId = resumeJSONObject.get("uid").toString();
             if (StringUtils.isNotBlank(userId)) {
                 LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
@@ -734,7 +738,8 @@ public class ClientManager {
 
                     boolean result = amResumeService.save(amResume);
                     log.info("dealUserAllInfoData result={},amResume={}", result, JSONObject.toJSONString(amResume));
-                } else {
+                }
+                else {
                     amResume.setPostId(positionId);
                     amResume.setZpData(resumeJSONObject.toJSONString());
 
@@ -775,7 +780,13 @@ public class ClientManager {
                     boolean result = amResumeService.updateById(amResume);
                     log.info("dealUserAllInfoData update result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
-
+                AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
+                if (Objects.nonNull(amClientTasks)) {
+                    if (amClientTasks.getData().contains("attachment_resume")) {
+                        DealUserFirstSendMessageUtil dealUserFirstSendMessageUtil = new DealUserFirstSendMessageUtil();
+                        dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
+                    }
+                }
                 // 简历匹配
             }
         } catch (Exception e) {

@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 用于分析当前用户的prompt
@@ -39,7 +40,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
      * 判断用户是否是主动打招呼,此时需要获取用户的全部数据, 需要发request_all_info任务
      */
     @Override
-    public ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+    public ResultVO dealBossNewMessage(AtomicInteger statusCode, String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
         log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(), amResume, amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             log.error("用户信息异常 amResume is null");
@@ -53,6 +54,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         queryWrapper.like(AmClientTasks::getData, req.getUser_id());
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
+            statusCode.set(1);
             AmClientTasks amClientTasks = new AmClientTasks();
             amClientTasks.setBossId(amZpLocalAccouts.getId());
             amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());

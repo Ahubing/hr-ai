@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 用于分析当前用户的prompt
@@ -37,7 +38,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
      * 根据聊天内容,用来提取用户手机和微信号
      */
     @Override
-    public ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+    public ResultVO dealBossNewMessage(AtomicInteger statusCode, String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
         log.info("ExtractResumeDataProcessor dealBossNewMessage amResume={},amZpLocalAccouts={},req={}", amResume, amZpLocalAccouts, req);
         JSONObject chatInfo = req.getChat_info();
         if (Objects.isNull(chatInfo) || chatInfo.isEmpty()) {
