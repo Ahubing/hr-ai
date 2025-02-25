@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -172,7 +173,8 @@ public class AmNewMaskUpdateReq {
     private Boolean openExchangePhone;
 
 
-
+    @ApiModelProperty(value = "面试时段配置",required = true)
+    private List<IcConfigUpdateReq> icConfigUpdateReqs = new ArrayList<>();
 
 
 }

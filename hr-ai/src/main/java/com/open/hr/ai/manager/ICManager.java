@@ -4,20 +4,31 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.open.ai.eros.common.constants.CommonConstant;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
 import com.open.ai.eros.db.mysql.hr.entity.IcConfig;
+import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmNewMaskServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcConfigServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcRecordServiceImpl;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
+import com.open.hr.ai.bean.req.IcRecordAddReq;
+import com.open.hr.ai.bean.req.IcRecordPageReq;
 import com.open.hr.ai.bean.req.IcSpareTimeReq;
+import com.open.hr.ai.bean.vo.IcGroupDaysVo;
+import com.open.hr.ai.bean.vo.IcRecordVo;
 import com.open.hr.ai.bean.vo.IcSpareTimeVo;
+import com.open.hr.ai.constant.InterviewStatusEnum;
 import com.open.hr.ai.constant.InterviewTypeEnum;
+import com.open.hr.ai.convert.IcRecordConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -111,7 +122,7 @@ public class ICManager {
                     LocalDateTime effectiveStart = startTime.isAfter(dayStart) ? startTime : dayStart;
                     LocalDateTime effectiveEnd = endTime.isBefore(dayEnd) ? endTime : dayEnd;
 
-                    if (effectiveStart.isBefore(effectiveEnd)) {
+                    if (!effectiveStart.isAfter(effectiveEnd)) {
                         // 处理上午时间段（如果存在）
                         if (icConfig.getMorningStartTime() != null && icConfig.getMorningEndTime() != null) {
                             LocalTime morningStartLocal = icConfig.getMorningStartTime().toLocalTime();
@@ -120,7 +131,7 @@ public class ICManager {
                             LocalDateTime morningEnd = date.atTime(morningEndLocal);
                             LocalDateTime intersectStart = effectiveStart.isAfter(morningStart) ? effectiveStart : morningStart;
                             LocalDateTime intersectEnd = effectiveEnd.isBefore(morningEnd) ? effectiveEnd : morningEnd;
-                            if (intersectStart.isBefore(intersectEnd)) {
+                            if (!intersectStart.isAfter(intersectEnd)) {
                                 IcSpareTimeVo.SparePeriodVo sparePeriodVo = new IcSpareTimeVo.SparePeriodVo(intersectStart, intersectEnd);
                                 sparePeriodVos.add(sparePeriodVo);
                             }
@@ -134,7 +145,7 @@ public class ICManager {
                             LocalDateTime afternoonEnd = date.atTime(afternoonEndLocal);
                             LocalDateTime intersectStart = effectiveStart.isAfter(afternoonStart) ? effectiveStart : afternoonStart;
                             LocalDateTime intersectEnd = effectiveEnd.isBefore(afternoonEnd) ? effectiveEnd : afternoonEnd;
-                            if (intersectStart.isBefore(intersectEnd)) {
+                            if (!intersectStart.isAfter(intersectEnd)) {
                                 IcSpareTimeVo.SparePeriodVo sparePeriodVo = new IcSpareTimeVo.SparePeriodVo(intersectStart, intersectEnd);
                                 sparePeriodVos.add(sparePeriodVo);
                             }
@@ -176,4 +187,90 @@ public class ICManager {
         return false;
     }
 
+    public String appointInterview(IcRecordAddReq req) {
+        IcRecord icRecord = new IcRecord();
+        AmNewMask newMask = amNewMaskService.getById(req.getMaskId());
+        if(InterviewTypeEnum.GROUP.getCode().equals(newMask.getInterviewType())){
+            IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(req.getMaskId(), req.getStartTime(), req.getStartTime());
+            IcSpareTimeVo spareTimeVo = getSpareTime(spareTimeReq);
+            if(CollectionUtil.isNotEmpty(spareTimeVo.getSpareDateVos())){
+                BeanUtils.copyProperties(req, icRecord);
+                icRecord.setInterviewType(newMask.getInterviewType());
+                icRecord.setCancelStatus(InterviewStatusEnum.NOT_CANCEL.getStatus());
+                icRecordService.save(icRecord);
+                return icRecord.getId();
+            }
+            return null;
+        }
+        //todo 单面处理逻辑
+        icRecordService.save(icRecord);
+        return icRecord.getId();
+    }
+
+    public Boolean cancelInterview(String icUuid, Integer cancelWho) {
+        LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
+                .eq(IcRecord::getId,icUuid)
+                .eq(IcRecord::getCancelStatus,InterviewStatusEnum.NOT_CANCEL.getStatus())
+                .set(IcRecord::getCancelTime, LocalDateTime.now())
+                .set(IcRecord::getCancelStatus, InterviewStatusEnum.CANCEL.getStatus())
+                .set(IcRecord::getCancelWho, cancelWho);
+        return icRecordService.update(updateWrapper);
+    }
+
+    public Boolean modifyTime(String icUuid, LocalDateTime newTime) {
+        LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
+                .eq(IcRecord::getId,icUuid)
+                .set(IcRecord::getModifyTime, LocalDateTime.now())
+                .set(IcRecord::getStartTime, newTime);
+        return icRecordService.update(updateWrapper);
+    }
+
+    public List<IcGroupDaysVo> getGroupDaysIC(Integer adminId, Integer dayNum) {
+        List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
+        LocalDate nowDate = LocalDate.now();
+        //查询出管理员在时间范围内的所有面试
+        List<IcRecord> icRecords = icRecordService.lambdaQuery()
+                .eq(IcRecord::getAdminId, adminId)
+                .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
+                .ge(IcRecord::getStartTime, nowDate.atStartOfDay())
+                .le(IcRecord::getStartTime, nowDate.plusDays(dayNum).atStartOfDay())
+                .list();
+        if(CollectionUtil.isEmpty(icRecords)){
+            icRecords = new ArrayList<>();
+        }
+
+        for (int i = 0; i < dayNum; i++) {
+            LocalDate date = nowDate.plusDays(i);
+            LocalDateTime middleTime = LocalDateTime.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), 12, 0, 0);
+            //根据record的startTime按照上午下午分组,查出今天上下午各有多少场面试
+            long morningCount = icRecords.stream().filter(record ->
+                            record.getStartTime().toLocalDate().equals(date) &&
+                            !record.getStartTime().isAfter(middleTime)).count();
+
+            long afternoonCount = icRecords.stream().filter(record ->
+                            record.getStartTime().toLocalDate().equals(date) &&
+                            record.getStartTime().isAfter(middleTime)).count();
+
+            icGroupDaysVos.add(new IcGroupDaysVo(date, (int)morningCount, (int)afternoonCount));
+        }
+
+        return icGroupDaysVos;
+    }
+
+    public PageVO<IcRecordVo> pageIcRecord(IcRecordPageReq req) {
+        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
+        Long adminId = req.getAdminId();
+        Integer status = req.getInterviewStatus();
+        Integer type = req.getInterviewType();
+        Integer pageNum = req.getPage();
+        Integer pageSize = req.getPageSize();
+        queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
+                    .eq(status != null,IcRecord::getCancelStatus,status)
+                    .eq(type != null,IcRecord::getInterviewType,type);
+        Page<IcRecord> page = new Page<>(pageNum, pageSize);
+        Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
+        List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
+
+        return PageVO.build(icRecordPage.getTotal(), icRecordVos);
+    }
 }

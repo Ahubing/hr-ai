@@ -1,5 +1,6 @@
 package com.open.hr.ai.manager;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,16 +9,22 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.MaskStatusEnum;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotPositionOption;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
+import com.open.ai.eros.db.mysql.hr.entity.IcConfig;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotPositionOptionServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmNewMaskServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.IcConfigServiceImpl;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.AmNewMaskUpdateReq;
+import com.open.hr.ai.bean.req.IcConfigAddReq;
+import com.open.hr.ai.bean.req.IcConfigUpdateReq;
 import com.open.hr.ai.bean.vo.AmMaskSearchReq;
 import com.open.hr.ai.bean.vo.AmMaskTypeVo;
 import com.open.hr.ai.bean.vo.AmNewMaskVo;
+import com.open.hr.ai.bean.vo.IcConfigVo;
 import com.open.hr.ai.constant.AmMaskTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -39,9 +46,6 @@ import java.util.stream.Collectors;
 @Component
 public class AmNewMaskManager {
 
-
-
-
     @Autowired
     private AmNewMaskServiceImpl amNewMaskService;
 
@@ -49,7 +53,8 @@ public class AmNewMaskManager {
     @Autowired
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
 
-
+    @Autowired
+    private IcConfigServiceImpl icConfigService;
 
     /**
      * 删除面具
@@ -102,11 +107,23 @@ public class AmNewMaskManager {
         amNewMask.setCreateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
         amNewMask.setStatus(MaskStatusEnum.OK.getStatus());
+        amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
+        amNewMask.setInterviewType(req.getInterviewType());
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
+            return ResultVO.fail("新增失败");
         }
-        return save ? ResultVO.success() : ResultVO.fail("新增失败");
+        //保存配置数据
+        List<IcConfigAddReq> configReqs = req.getIcConfigAddReqs();
+        List<IcConfig> configs = configReqs.stream().map(icConfigAddReq -> {
+            IcConfig icConfig = new IcConfig();
+            BeanUtils.copyProperties(icConfigAddReq, icConfig);
+            icConfig.setMaskId(amNewMask.getId());
+            return icConfig;
+        }).collect(Collectors.toList());
+        icConfigService.saveBatch(configs);
+        return ResultVO.success();
     }
 
 
@@ -139,8 +156,17 @@ public class AmNewMaskManager {
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {
             log.info("updateNewMask error mask={}", JSONObject.toJSONString(amNewMask));
+            return ResultVO.fail("修改失败");
         }
-        return updated ? ResultVO.success() : ResultVO.fail("修改失败");
+        //保存配置数据
+        List<IcConfigUpdateReq> configReqs = req.getIcConfigUpdateReqs();
+        List<IcConfig> configs = configReqs.stream().map(icConfigUpdateReq -> {
+            IcConfig icConfig = new IcConfig();
+            BeanUtils.copyProperties(icConfigUpdateReq, icConfig);
+            return icConfig;
+        }).collect(Collectors.toList());
+        icConfigService.updateBatchById(configs);
+        return ResultVO.success();
     }
 
 
@@ -217,6 +243,16 @@ public class AmNewMaskManager {
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
         amNewMaskVo.setStatus(amNewMask.getStatus());
+        List<IcConfig> configList = icConfigService
+                .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
+        if(CollectionUtil.isNotEmpty(configList)){
+            List<IcConfigVo> configVos = configList.stream().map(icConfig -> {
+                IcConfigVo configVo = new IcConfigVo();
+                BeanUtils.copyProperties(icConfig, configVo);
+                return configVo;
+            }).collect(Collectors.toList());
+            amNewMaskVo.setIcConfigVos(configVos);
+        }
         String aiRequestParam = amNewMask.getAiRequestParam();
         if (StringUtils.isNotEmpty(aiRequestParam)) {
             AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);

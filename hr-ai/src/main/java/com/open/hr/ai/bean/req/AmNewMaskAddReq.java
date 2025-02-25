@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -162,8 +163,12 @@ public class AmNewMaskAddReq {
     @ApiModelProperty(value = "是否开启交换手机号")
     private Boolean openExchangePhone;
 
+    @ApiModelProperty(value = "single-单面，group-群面",required = true)
+    private String interviewType;
 
+    @ApiModelProperty(value = "是否跳过节假日，1-是，2-否",required = true)
+    private Integer skipHolidayStatus;
 
-
-
+    @ApiModelProperty(value = "面试时段配置",required = true)
+    private List<IcConfigAddReq> icConfigAddReqs = new ArrayList<>();
 }

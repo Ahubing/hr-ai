@@ -2,6 +2,7 @@ package com.open.hr.ai.bean.req;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 
 @ApiModel("可用时间查询")
 @Data
+@AllArgsConstructor
 public class IcSpareTimeReq {
 
     @NotNull(message = "面具id不能为空")

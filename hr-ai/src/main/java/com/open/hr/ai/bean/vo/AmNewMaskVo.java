@@ -3,12 +3,14 @@ package com.open.hr.ai.bean.vo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.hr.ai.bean.req.CompanyInfo;
+import com.open.hr.ai.bean.req.IcConfigUpdateReq;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -182,6 +184,7 @@ public class AmNewMaskVo {
     @ApiModelProperty(value = "是否开启交换手机号")
     private Boolean openExchangePhone;
 
-
+    @ApiModelProperty(value = "面试时段配置",required = true)
+    private List<IcConfigVo> icConfigVos = new ArrayList<>();
 
 }
