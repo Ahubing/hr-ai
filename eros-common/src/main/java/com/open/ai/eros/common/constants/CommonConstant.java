@@ -1,5 +1,8 @@
 package com.open.ai.eros.common.constants;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @类名：UserConstant
  * @项目名：web-eros-ai
@@ -95,5 +98,11 @@ public class CommonConstant {
      *  可提现
      */
     public static final Integer drawableBalanceType = 2;
+
+    /**
+     * 判断节假日url
+     */
+    public static final String HOLIDAY_API_URL = "https://cdn.jsdelivr.net/npm/chinese-days/dist/chinese-days.json";
+
 
 }

@@ -3,6 +3,8 @@ package com.open.ai.eros.db.mysql.hr.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+
+import java.sql.Time;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 import lombok.Data;
@@ -34,39 +36,27 @@ public class IcConfig implements Serializable {
     private Long maskId;
 
     /**
-     * single-单面，group-群面
+     * 1-周一，2-周二...7周日
      */
-    private String type;
-
-    /**
-     * 1-周一，2-周二...7周日。多个用,分隔
-     */
-    private Integer dayOfWeek;
+    private String dayOfWeek;
 
     /**
      * 上午起始时间
      */
-    private LocalDateTime morningStartTime;
+    private Time morningStartTime;
 
     /**
      * 上午截止时间
      */
-    private LocalDateTime morningEndTime;
+    private Time morningEndTime;
 
     /**
      * 下午起始时间
      */
-    private LocalDateTime afternoonStartTime;
+    private Time afternoonStartTime;
 
     /**
      * 下午截止时间
      */
-    private LocalDateTime afternoonEndTime;
-
-    /**
-     * 是否跳过节假日，1-是，2-否
-     */
-    private Integer skipHolidayStatus;
-
-
+    private Time afternoonEndTime;
 }

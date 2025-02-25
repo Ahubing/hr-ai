@@ -2,7 +2,7 @@ package com.open.hr.ai.constant;
 
 public enum InterviewTypeEnum {
 
-    POSITION_CLOSE("single"),
+    SINGLE("single"),
     GROUP("group");
 
     private final String code;

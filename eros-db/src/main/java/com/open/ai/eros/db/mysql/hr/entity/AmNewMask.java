@@ -85,5 +85,14 @@ public class AmNewMask implements Serializable {
      */
     private String avatar;
 
+    /**
+     * single-单面，group-群面
+     */
+    private String interviewType;
 
+
+    /**
+     * 是否跳过节假日，1-是，2-否
+     */
+    private Integer skipHolidayStatus;
 }

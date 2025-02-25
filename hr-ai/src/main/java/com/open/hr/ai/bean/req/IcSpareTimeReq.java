@@ -13,14 +13,14 @@ import java.time.LocalDateTime;
 public class IcSpareTimeReq {
 
     @NotNull(message = "面具id不能为空")
-    @ApiModelProperty(value = "面具id")
+    @ApiModelProperty(value = "面具id",required = true)
     private Long maskId;
 
     @NotNull(message = "起始时间不能为空")
-    @ApiModelProperty(value = "起始时间")
+    @ApiModelProperty(value = "起始时间",required = true)
     private LocalDateTime startTime;
 
     @NotNull(message = "截止时间不能为空")
-    @ApiModelProperty(value = "截止时间")
+    @ApiModelProperty(value = "截止时间",required = true)
     private LocalDateTime endTime;
 }
