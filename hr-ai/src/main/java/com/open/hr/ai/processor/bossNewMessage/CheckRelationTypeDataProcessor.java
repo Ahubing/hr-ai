@@ -55,36 +55,54 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             statusCode.set(1);
-            AmClientTasks amClientTasks = new AmClientTasks();
-            amClientTasks.setBossId(amZpLocalAccouts.getId());
-            amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
-            amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
-            HashMap<String, Object> hashMap = new HashMap<>();
-            HashMap<String, Object> searchDataMap = new HashMap<>();
-            hashMap.put("user_id", req.getUser_id());
-            // 生成如下结构     "info_type":[] # "attachment_resume"，"phone"，"wechat"
-            hashMap.put("info_type", Collections.singletonList("attachment_resume"));
-            if (Objects.nonNull(amResume.getEncryptGeekId())) {
-                searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
-            }
-            if (Objects.nonNull(amResume.getName())) {
-                searchDataMap.put("name", amResume.getName());
-            }else {
-                if (Objects.nonNull(req.getChat_info().get("name"))) {
-                    log.info("用户:{} 主动打招呼,请求用户信息", req.getChat_info().get("name"));
-                    searchDataMap.put("name", req.getChat_info().get("name").toString());
-                }
-            }
-
-            hashMap.put("search_data", searchDataMap);
-            amClientTasks.setData(JSONObject.toJSONString(hashMap));
-            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
-            amClientTasks.setCreateTime(LocalDateTime.now());
-            amClientTasks.setUpdateTime(LocalDateTime.now());
-            amClientTasksService.save(amClientTasks);
+            buildRequestTask(amZpLocalAccouts, req, amResume);
             log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
         }
+        else {
+            // 判断任务的完成情况,如果非完成,也需要重新发起请求
+            if (!Objects.equals(tasksServiceOne.getStatus(), AmClientTaskStatusEnums.FINISH.getStatus())) {
+                statusCode.set(1);
+                //如果是失败,则重新发起请求
+                if (Objects.equals(tasksServiceOne.getStatus(), AmClientTaskStatusEnums.FAILURE.getStatus())) {
+                    log.info("用户:{} 之前的request_info 任务失败,重新请求请求用户信息", req.getUser_id());
+                }
+                log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
+                return ResultVO.success();
+            }
+
+        }
         return ResultVO.success();
+    }
+
+
+    private void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req, AmResume amResume) {
+        AmClientTasks amClientTasks = new AmClientTasks();
+        amClientTasks.setBossId(amZpLocalAccouts.getId());
+        amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
+        HashMap<String, Object> hashMap = new HashMap<>();
+        HashMap<String, Object> searchDataMap = new HashMap<>();
+        hashMap.put("user_id", req.getUser_id());
+        // 生成如下结构     "info_type":[] # "attachment_resume"，"phone"，"wechat"
+        hashMap.put("info_type", Collections.singletonList("attachment_resume"));
+        if (Objects.nonNull(amResume.getEncryptGeekId())) {
+            searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
+        }
+        if (Objects.nonNull(amResume.getName())) {
+            searchDataMap.put("name", amResume.getName());
+        }else {
+            if (Objects.nonNull(req.getChat_info().get("name"))) {
+                log.info("用户:{} 主动打招呼,请求用户信息", req.getChat_info().get("name"));
+                searchDataMap.put("name", req.getChat_info().get("name").toString());
+            }
+        }
+
+        hashMap.put("search_data", searchDataMap);
+        amClientTasks.setData(JSONObject.toJSONString(hashMap));
+        amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+        amClientTasks.setCreateTime(LocalDateTime.now());
+        amClientTasks.setUpdateTime(LocalDateTime.now());
+        amClientTasksService.save(amClientTasks);
     }
 
 
