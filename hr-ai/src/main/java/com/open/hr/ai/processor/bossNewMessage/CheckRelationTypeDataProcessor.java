@@ -66,7 +66,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
                 if (Objects.equals(tasksServiceOne.getStatus(), AmClientTaskStatusEnums.FAILURE.getStatus())) {
                     log.info("用户:{} 之前的request_info 任务失败,重新请求请求用户信息", req.getUser_id());
                 }
-                log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
+                log.info("用户:{} 之前的request_info 任务未完成,待完成请求", req.getUser_id());
                 return ResultVO.success();
             }
 

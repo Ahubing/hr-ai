@@ -79,6 +79,9 @@ public class ClientManager {
     @Autowired
     private List<BossNewMessageProcessor> bossNewMessageProcessors;
 
+    @Resource
+    private DealUserFirstSendMessageUtil dealUserFirstSendMessageUtil;
+
 
     public ResultVO connectClient(String platform,String bossId, String connectId) {
         try {
@@ -805,7 +808,6 @@ public class ClientManager {
                 AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
                 if (Objects.nonNull(amClientTasks)) {
                     if (amClientTasks.getData().contains("attachment_resume")) {
-                        DealUserFirstSendMessageUtil dealUserFirstSendMessageUtil = new DealUserFirstSendMessageUtil();
                         dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
                     }
                 }
