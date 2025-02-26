@@ -122,6 +122,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         messageLambdaQueryWrapper.in(AmChatMessage::getChatId, messageIds);
         List<AmChatMessage> exitAmChatMessages = amChatMessageService.list(messageLambdaQueryWrapper);
 
+        if (messageIds.size() == exitAmChatMessages.size()) {
+            log.info("ReplyUserMessageDataProcessor dealBossNewMessage messageIds.size() == exitAmChatMessages.size() messageIds={}", messageIds);
+            return ResultVO.success();
+        }
         //buildMessage 用于拼接用户的新消息
         StringBuilder buildNewUserMessage = new StringBuilder();
         StringBuilder buildSystemUserMessage = new StringBuilder();
