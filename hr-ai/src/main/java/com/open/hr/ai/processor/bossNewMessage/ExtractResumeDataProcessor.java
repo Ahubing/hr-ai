@@ -60,6 +60,9 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             if (Objects.nonNull(chatInfo.get("weixin"))) {
                 amResume.setWechat(chatInfo.get("weixin").toString());
             }
+            if (Objects.nonNull(chatInfo.get("name"))) {
+                amResume.setName(chatInfo.get("name").toString());
+            }
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
@@ -81,8 +84,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             if (Objects.nonNull(chatInfo.get("encryptUid"))){
             amResume.setEncryptGeekId(chatInfo.get("encryptUid").toString());
             }
-            if (Objects.nonNull(chatInfo.get("uid"))) {
-                amResume.setUid(chatInfo.get("uid").toString());
+            if (Objects.nonNull(chatInfo.get("name"))) {
+                amResume.setName(chatInfo.get("name").toString());
             }
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
