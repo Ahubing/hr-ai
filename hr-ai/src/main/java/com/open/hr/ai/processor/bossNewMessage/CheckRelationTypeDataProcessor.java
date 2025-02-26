@@ -67,6 +67,11 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             }
             if (Objects.nonNull(amResume.getName())) {
                 searchDataMap.put("name", amResume.getName());
+            }else {
+                if (Objects.nonNull(req.getChat_info().get("name"))) {
+                    log.info("用户:{} 主动打招呼,请求用户信息", req.getChat_info().get("name"));
+                    searchDataMap.put("name", req.getChat_info().get("name").toString());
+                }
             }
 
             hashMap.put("search_data", searchDataMap);

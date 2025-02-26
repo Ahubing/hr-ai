@@ -106,7 +106,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             }
 
             boolean result = amResumeService.save(amResume);
-            log.info("ExtractResumeDataProcessor dealBossNewMessage save amResume result={}", result);
+            log.info("ExtractResumeDataProcessor dealBossNewMessage save amResume={} result={}", amResume,result);
         }
 
         return ResultVO.success();
