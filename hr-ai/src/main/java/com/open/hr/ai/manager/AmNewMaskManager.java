@@ -3,6 +3,7 @@ package com.open.hr.ai.manager;
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -160,12 +161,18 @@ public class AmNewMaskManager {
         }
         //保存配置数据
         List<IcConfigUpdateReq> configReqs = req.getIcConfigUpdateReqs();
-        List<IcConfig> configs = configReqs.stream().map(icConfigUpdateReq -> {
-            IcConfig icConfig = new IcConfig();
-            BeanUtils.copyProperties(icConfigUpdateReq, icConfig);
-            return icConfig;
-        }).collect(Collectors.toList());
-        icConfigService.updateBatchById(configs);
+        if(CollectionUtil.isNotEmpty(configReqs)){
+            icConfigService.remove(new LambdaQueryWrapper<IcConfig>()
+                    .notIn(IcConfig::getId,configReqs.stream().map(IcConfigUpdateReq::getId).collect(Collectors.toList())));
+            List<IcConfig> configs = configReqs.stream().map(icConfigUpdateReq -> {
+                IcConfig icConfig = new IcConfig();
+                BeanUtils.copyProperties(icConfigUpdateReq, icConfig);
+                return icConfig;
+            }).collect(Collectors.toList());
+            icConfigService.updateBatchById(configs);
+        }else {
+            icConfigService.remove(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
+        }
         return ResultVO.success();
     }
 

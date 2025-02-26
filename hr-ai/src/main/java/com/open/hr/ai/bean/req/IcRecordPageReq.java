@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 public class IcRecordPageReq {
 
     @NotNull
-    @ApiModelProperty(value = "招聘员/管理员id",required = true)
+    @ApiModelProperty(value = "招聘员/管理员id",hidden = true)
     private Long adminId;
 
     @ApiModelProperty("页码")

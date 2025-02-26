@@ -11,7 +11,7 @@ public class IcRecordAddReq {
     @ApiModelProperty("面具id")
     private Long maskId;
 
-    @ApiModelProperty("管理员/受聘者id")
+    @ApiModelProperty(value = "管理员/受聘者id",hidden = true)
     private Long adminId;
 
     @ApiModelProperty("受聘者uid")

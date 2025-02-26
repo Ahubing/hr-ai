@@ -225,7 +225,7 @@ public class ICManager {
         return icRecordService.update(updateWrapper);
     }
 
-    public List<IcGroupDaysVo> getGroupDaysIC(Integer adminId, Integer dayNum) {
+    public List<IcGroupDaysVo> getGroupDaysIC(Long adminId, Integer dayNum) {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
         LocalDate nowDate = LocalDate.now();
         //查询出管理员在时间范围内的所有面试

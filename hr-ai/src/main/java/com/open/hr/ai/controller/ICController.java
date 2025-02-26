@@ -41,6 +41,7 @@ public class ICController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/appointInterview")
     public ResultVO<String> appointInterview(@RequestBody @Valid IcRecordAddReq req) {
+        req.setAdminId(getUserId());
         return ResultVO.success(icManager.appointInterview(req));
     }
 
@@ -63,15 +64,15 @@ public class ICController extends HrAIBaseController {
     @ApiOperation("获取最近n天面试日历（群面）")
     @VerifyUserToken
     @GetMapping("/getGroupDaysIC")
-    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(@RequestParam(value = "adminId") @ApiParam("管理员/招聘者id") Integer adminId,
-                                                         @RequestParam(value = "dayNum") @ApiParam("天数") Integer dayNum) {
-        return ResultVO.success(icManager.getGroupDaysIC(adminId,dayNum));
+    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(@RequestParam(value = "dayNum") @ApiParam("天数") Integer dayNum) {
+        return ResultVO.success(icManager.getGroupDaysIC(getUserId(),dayNum));
     }
 
     @ApiOperation("分页查询所有面试")
     @VerifyUserToken
     @PostMapping("/pageIcRecord")
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(@RequestBody @Valid IcRecordPageReq req) {
+        req.setAdminId(getUserId());
         return ResultVO.success(icManager.pageIcRecord(req));
     }
 }
