@@ -211,6 +211,28 @@ public class ClientManager {
                 jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
             }
+
+            // 查询返回该boss_id用户招聘中且关联好ai的职位数据。
+            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+            positionQueryWrapper.eq(AmPosition::getBossId, bossId);
+            positionQueryWrapper.eq(AmPosition::getIsOpen, 1);
+            //查询aiAssitantId 不为0
+            positionQueryWrapper.ne(AmPosition::getAiAssitantId, 0);
+            positionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
+            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
+            //   "configuredAIPosition":[{ //返回该boss_id用户招聘中且关联好ai的职位数据。
+            //            "id":"",
+            //            "name":""
+            //        }]
+
+            JSONArray jsonArray = new JSONArray();
+            for (AmPosition amPosition : amPositions) {
+                JSONObject position = new JSONObject();
+                position.put("id",amPosition.getEncryptId());
+                position.put("name",amPosition.getName());
+                jsonArray.add(position);
+            }
+            jsonObject.put("configuredAIPosition",jsonArray);
             return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("客户端状态更新异常 bossId={},connectId={},status={}", bossId, connectId, inputStatus, e);
