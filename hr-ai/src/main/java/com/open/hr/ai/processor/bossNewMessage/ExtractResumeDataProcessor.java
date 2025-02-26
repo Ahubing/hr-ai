@@ -91,6 +91,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
+            amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
             amResume.setType(0);
