@@ -266,7 +266,7 @@ public class ICManager {
         Integer pageSize = req.getPageSize();
         queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
                     .eq(status != null,IcRecord::getCancelStatus,status)
-                    .eq(type != null,IcRecord::getInterviewType,type);
+                    .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
         Page<IcRecord> page = new Page<>(pageNum, pageSize);
         Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
