@@ -159,21 +159,36 @@ public class AmNewMaskManager {
             log.info("updateNewMask error mask={}", JSONObject.toJSONString(amNewMask));
             return ResultVO.fail("修改失败");
         }
-        //保存配置数据
-        List<IcConfigUpdateReq> configReqs = req.getIcConfigUpdateReqs();
+        processConfigs(amNewMask.getId(), req.getIcConfigUpdateReqs());
+        return ResultVO.success();
+    }
+
+    private void processConfigs(Long maskId, List<IcConfigUpdateReq> configReqs) {
         if(CollectionUtil.isNotEmpty(configReqs)){
+            //删除请求体中没有而数据库中有的数据
             icConfigService.remove(new LambdaQueryWrapper<IcConfig>()
-                    .notIn(IcConfig::getId,configReqs.stream().map(IcConfigUpdateReq::getId).collect(Collectors.toList())));
+                    .eq(IcConfig::getMaskId,maskId)
+                    .notIn(IcConfig::getId,configReqs.stream()
+                            .map(IcConfigUpdateReq::getId)
+                            .filter(id -> !Objects.isNull(id)).collect(Collectors.toList())));
             List<IcConfig> configs = configReqs.stream().map(icConfigUpdateReq -> {
                 IcConfig icConfig = new IcConfig();
                 BeanUtils.copyProperties(icConfigUpdateReq, icConfig);
                 return icConfig;
             }).collect(Collectors.toList());
-            icConfigService.updateBatchById(configs);
+            //有id的数据更新
+            List<IcConfig> updateConfigs = configs.stream().filter(icConfig ->
+                    !Objects.isNull(icConfig.getId())).collect(Collectors.toList());
+            if(CollectionUtil.isNotEmpty(updateConfigs)){
+                icConfigService.updateBatchById(updateConfigs);
+            }
+            //没id的数据新增
+            List<IcConfig> insertConfigs = configs.stream().filter(icConfig ->
+                    Objects.isNull(icConfig.getId())).collect(Collectors.toList());
+            icConfigService.saveBatch(insertConfigs);
         }else {
-            icConfigService.remove(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
+            icConfigService.remove(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, maskId));
         }
-        return ResultVO.success();
     }
 
 

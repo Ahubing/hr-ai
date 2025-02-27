@@ -9,7 +9,6 @@ import javax.validation.constraints.NotNull;
 @Data
 public class IcRecordPageReq {
 
-    @NotNull
     @ApiModelProperty(value = "招聘员/管理员id",hidden = true)
     private Long adminId;
 
