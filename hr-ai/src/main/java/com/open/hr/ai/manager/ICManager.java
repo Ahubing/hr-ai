@@ -11,12 +11,8 @@ import com.google.gson.JsonParser;
 import com.open.ai.eros.common.constants.CommonConstant;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
-import com.open.ai.eros.db.mysql.hr.entity.IcConfig;
-import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmNewMaskServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.IcConfigServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.IcRecordServiceImpl;
+import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.IcRecordAddReq;
 import com.open.hr.ai.bean.req.IcRecordPageReq;
@@ -26,7 +22,9 @@ import com.open.hr.ai.bean.vo.IcRecordVo;
 import com.open.hr.ai.bean.vo.IcSpareTimeVo;
 import com.open.hr.ai.constant.InterviewStatusEnum;
 import com.open.hr.ai.constant.InterviewTypeEnum;
+import com.open.hr.ai.convert.AmPositionSetionConvertImpl;
 import com.open.hr.ai.convert.IcRecordConvert;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -56,6 +54,12 @@ public class ICManager {
 
     @Resource
     private AmNewMaskServiceImpl amNewMaskService;
+
+    @Resource
+    private AmPositionSectionServiceImpl sectionService;
+
+    @Resource
+    private AmPositionServiceImpl positionService;
 
     @Resource
     private JedisClientImpl jedisClient;
@@ -238,33 +242,77 @@ public class ICManager {
         return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
     }
 
-    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, Integer dayNum) {
+    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, LocalDate startDate, LocalDate endDate, Integer deptId, Integer postId) {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
-        LocalDate nowDate = LocalDate.now();
+
+        //所有职位
+        List<AmPosition> positions = positionService
+                .list(new LambdaQueryWrapper<AmPosition>()
+                        .eq(deptId != null, AmPosition::getSectionId,deptId)
+                        .eq(postId != null, AmPosition::getId,postId)
+                        .ne(AmPosition::getIsDeleted,0)
+                        .eq(AmPosition::getAdminId, adminId));
+        if(CollectionUtil.isEmpty(positions)){
+            return ResultVO.success(icGroupDaysVos);
+        }
+
+        List<AmPositionSection> sectionList = sectionService
+                .listByIds(positions.stream().map(AmPosition::getSectionId).collect(Collectors.toSet()));
+        if(CollectionUtil.isEmpty(sectionList)){
+            return ResultVO.success(icGroupDaysVos);
+        }
+
+        Map<Integer, String> positionMap = new HashMap<>();
+        positions.forEach(position -> sectionList.forEach(section -> {
+            if(position.getSectionId().equals(section.getId())){
+                positionMap.put(position.getId(), section.getName());
+            }
+        }));
+
         //查询出管理员在时间范围内的所有面试
         List<IcRecord> icRecords = icRecordService.lambdaQuery()
-                .eq(IcRecord::getAdminId, adminId)
+                .eq(IcRecord::getAdminId,adminId)
                 .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
-                .ge(IcRecord::getStartTime, nowDate.atStartOfDay())
-                .le(IcRecord::getStartTime, nowDate.plusDays(dayNum).atStartOfDay())
+                .ge(IcRecord::getStartTime, startDate.atStartOfDay())
+                .lt(IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay())
                 .list();
         if(CollectionUtil.isEmpty(icRecords)){
             icRecords = new ArrayList<>();
         }
 
-        for (int i = 0; i < dayNum; i++) {
-            LocalDate date = nowDate.plusDays(i);
+        while (!startDate.isAfter(endDate)){
+            LocalDate date = startDate;
             LocalDateTime middleTime = LocalDateTime.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), 12, 0, 0);
-            //根据record的startTime按照上午下午分组,查出今天上下午各有多少场面试
-            long morningCount = icRecords.stream().filter(record ->
+            //根据record的startTime按照上午下午分组,查出今天上下午各个职位各有多少场面试
+            Map<String, Integer> morningMap = new HashMap<>();
+            List<IcRecord> morningRecords = icRecords.stream().filter(record ->
                             record.getStartTime().toLocalDate().equals(date) &&
-                            !record.getStartTime().isAfter(middleTime)).count();
+                            !record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
-            long afternoonCount = icRecords.stream().filter(record ->
+            for (IcRecord morningRecord : morningRecords) {
+                String positionName = positionMap.get(morningRecord.getPositionId());
+                if(StringUtils.isEmpty(positionName)){
+                    continue;
+                }
+                morningMap.put(positionName, morningMap.getOrDefault(positionName, 0) + 1);
+            }
+
+
+            Map<String,Integer> afternoonMap = new HashMap<>();
+            List<IcRecord> afternoonRecords = icRecords.stream().filter(record ->
                             record.getStartTime().toLocalDate().equals(date) &&
-                            record.getStartTime().isAfter(middleTime)).count();
+                            record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
-            icGroupDaysVos.add(new IcGroupDaysVo(date, (int)morningCount, (int)afternoonCount));
+            for (IcRecord afternoonRecord : afternoonRecords) {
+                String positionName = positionMap.get(afternoonRecord.getPositionId());
+                if(StringUtils.isEmpty(positionName)){
+                    continue;
+                }
+                afternoonMap.put(positionName, afternoonMap.getOrDefault(positionName, 0) + 1);
+            }
+
+            icGroupDaysVos.add(new IcGroupDaysVo(date, morningMap, afternoonMap));
+            startDate = startDate.plusDays(1);
         }
 
         return ResultVO.success(icGroupDaysVos);

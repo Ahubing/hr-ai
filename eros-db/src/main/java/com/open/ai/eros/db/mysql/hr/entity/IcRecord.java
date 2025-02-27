@@ -73,5 +73,15 @@ public class IcRecord implements Serializable {
      */
     private LocalDateTime modifyTime;
 
+    /**
+     * boss_id，账号id
+     */
+    private String accountId;
+
+    /**
+     * 职位id
+     */
+    private Integer positionId;
+
 
 }

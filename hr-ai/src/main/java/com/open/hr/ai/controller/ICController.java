@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -65,8 +66,11 @@ public class ICController extends HrAIBaseController {
     @ApiOperation("获取最近n天面试日历（群面）")
     @VerifyUserToken
     @GetMapping("/getGroupDaysIC")
-    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(@RequestParam(value = "dayNum") @ApiParam("天数") Integer dayNum) {
-        return icManager.getGroupDaysIC(getUserId(),dayNum);
+    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(@RequestParam(value = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam("开始日期") LocalDate startDate,
+                                                        @RequestParam(value = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam("截止日期") LocalDate endDate,
+                                                        @RequestParam(value = "deptId",required = false) @ApiParam("部门id") Integer deptId,
+                                                        @RequestParam(value = "postId",required = false) @ApiParam("职位id") Integer postId) {
+        return icManager.getGroupDaysIC(getUserId(),startDate,endDate,deptId,postId);
     }
 
     @ApiOperation("分页查询所有面试")
