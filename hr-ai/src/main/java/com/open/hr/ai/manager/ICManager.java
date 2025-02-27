@@ -261,7 +261,7 @@ public class ICManager {
         LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
         Long adminId = req.getAdminId();
         Integer status = req.getInterviewStatus();
-        Integer type = req.getInterviewType();
+        String type = req.getInterviewType();
         Integer pageNum = req.getPage();
         Integer pageSize = req.getPageSize();
         queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
