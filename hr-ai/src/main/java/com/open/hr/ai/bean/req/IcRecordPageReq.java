@@ -28,5 +28,5 @@ public class IcRecordPageReq {
      * {@link com.open.hr.ai.constant.InterviewTypeEnum}
      */
     @ApiModelProperty("面试类型group-群面，single-单面")
-    private Integer interviewType;
+    private String interviewType;
 }
