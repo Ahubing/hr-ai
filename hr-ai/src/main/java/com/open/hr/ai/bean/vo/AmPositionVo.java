@@ -91,7 +91,7 @@ public class AmPositionVo {
     /**
      * 岗位描述
      */
-    private String describe;
+    private String amDescribe;
 
     /**
      * 创建时间

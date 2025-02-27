@@ -82,7 +82,7 @@ public class ChatBotPositionManager {
             if (Objects.isNull(positionServiceOne)) {
                 return ResultVO.fail("职位不存在");
             }
-            positionServiceOne.setDescribe(req.getDesc());
+            positionServiceOne.setAmDescribe(req.getDesc());
             boolean result = amPositionService.updateById(positionServiceOne);
             return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
         } catch (Exception e) {

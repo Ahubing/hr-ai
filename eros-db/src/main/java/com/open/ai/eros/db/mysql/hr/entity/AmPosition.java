@@ -114,7 +114,7 @@ public class AmPosition implements Serializable {
     /**
      * 岗位描述
      */
-    private String describe;
+    private String amDescribe;
 
 
 }
