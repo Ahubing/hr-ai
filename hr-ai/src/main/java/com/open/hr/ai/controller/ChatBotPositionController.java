@@ -1,6 +1,5 @@
 package com.open.hr.ai.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -10,7 +9,6 @@ import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.config.HrAIBaseController;
-import com.open.hr.ai.manager.ChatBotOptionsManager;
 import com.open.hr.ai.manager.ChatBotPositionManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,6 +31,19 @@ public class ChatBotPositionController extends HrAIBaseController {
 
     @Resource
     private ChatBotPositionManager chatBotPositionManager;
+
+
+
+    @ApiOperation("更新职位描述职位")
+    @VerifyUserToken
+    @PostMapping("position/update")
+    public ResultVO updatePosition(@RequestBody @Valid updatePositionReq rēq) {
+        if (Objects.isNull(rēq) ) {
+            return ResultVO.fail("参数不能为空");
+        }
+        return chatBotPositionManager.updatePosition(rēq, getUserId());
+    }
+
 
     @ApiOperation("批量删除职位")
     @VerifyUserToken
@@ -112,7 +123,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("新增/编辑-岗位")
     @VerifyUserToken
     @PostMapping("position/save_post")
-    public ResultVO savePost(@RequestBody @Valid AddPositionReq req) {
+    public ResultVO savePost(@RequestBody @Valid AddPositionPostReq req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }

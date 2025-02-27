@@ -111,5 +111,10 @@ public class AmPosition implements Serializable {
      */
     private Integer isDeleted;
 
+    /**
+     * 岗位描述
+     */
+    private String describe;
+
 
 }

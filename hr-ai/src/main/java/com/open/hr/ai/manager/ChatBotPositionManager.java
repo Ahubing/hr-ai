@@ -64,6 +64,34 @@ public class ChatBotPositionManager {
     @Resource
     private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
 
+
+
+    /**
+     * 更新岗位
+     *
+     * @param req
+     * @param adminId
+     * @return
+     */
+    public ResultVO updatePosition(updatePositionReq req, Long adminId) {
+        try {
+            LambdaQueryWrapper<AmPosition> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmPosition::getAdminId, adminId);
+            queryWrapper.in(AmPosition::getId, req.getId());
+            AmPosition positionServiceOne = amPositionService.getOne(queryWrapper, false);
+            if (Objects.isNull(positionServiceOne)) {
+                return ResultVO.fail("职位不存在");
+            }
+            positionServiceOne.setDescribe(req.getDesc());
+            boolean result = amPositionService.updateById(positionServiceOne);
+            return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
+        } catch (Exception e) {
+            log.error("删除失败 id={}", JSONObject.toJSONString(req), e);
+        }
+        return ResultVO.fail("系统异常,删除失败");
+    }
+
+
     /**
      * 批量删除岗位
      *
@@ -261,7 +289,7 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO savePost(AddPositionReq req) {
+    public ResultVO savePost(AddPositionPostReq req) {
         try {
             if (Objects.nonNull(req.getId())) {
                 AmPositionPost amPositionPost = amPositionPostService.getById(req.getId());
@@ -449,9 +477,9 @@ public class ChatBotPositionManager {
                 }
             }
 
-            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
-            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
-            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
+//            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
+//            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
+//            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
 
 
             LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
@@ -467,14 +495,14 @@ public class ChatBotPositionManager {
             sectionQueryWrapper.eq(AmPositionSection::getAdminId, adminId);
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(sectionQueryWrapper);
 
-            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
-            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
-            positionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
-            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
+//            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+//            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
+//            positionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
+//            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
 //
-            LambdaQueryWrapper<AmNewMask> rolesQueryWrapper = new LambdaQueryWrapper<>();
-            rolesQueryWrapper.eq(AmNewMask::getAdminId, adminId);
-            List<AmNewMask> amNewMasks = amNewMaskService.list(rolesQueryWrapper);
+//            LambdaQueryWrapper<AmNewMask> rolesQueryWrapper = new LambdaQueryWrapper<>();
+//            rolesQueryWrapper.eq(AmNewMask::getAdminId, adminId);
+//            List<AmNewMask> amNewMasks = amNewMaskService.list(rolesQueryWrapper);
 
             Page<AmPosition> page = new Page<>(req.getPage(), req.getSize());
             Page<AmPosition> amPositionPage = amPositionService.page(page, amPositionQueryWrapper);

@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
  * @Date 2025/1/4 14:27
  */
 @Data
-public class AddPositionReq {
+public class AddPositionPostReq {
 
     @ApiModelProperty(value = "岗位id，编辑时必填", required = false, notes = "岗位id，编辑时必填")
     private Integer id;
