@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.open.ai.eros.common.constants.CommonConstant;
 import com.open.ai.eros.common.vo.PageVO;
+import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
 import com.open.ai.eros.db.mysql.hr.entity.IcConfig;
 import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
@@ -61,7 +62,7 @@ public class ICManager {
 
     private static final long EXPIRE_TIME = 5 * 24 * 3600;
 
-    public IcSpareTimeVo getSpareTime(IcSpareTimeReq spareTimeReq){
+    public ResultVO<IcSpareTimeVo> getSpareTime(IcSpareTimeReq spareTimeReq){
         //开始时间参数修正
         if(spareTimeReq.getStartTime().isBefore(LocalDateTime.now())){
             spareTimeReq.setStartTime(LocalDateTime.now());
@@ -76,11 +77,11 @@ public class ICManager {
 
         if(InterviewTypeEnum.GROUP.getCode().equals(mask.getInterviewType())){
             buildGroupSpareTime(spareTimeVo,spareTimeReq,icConfigs,mask.getSkipHolidayStatus());
-            return spareTimeVo;
+            return ResultVO.success(spareTimeVo);
         }
         //todo 单面考虑时间冲突处理,并跳过节假日
         buildSingleSpareTime(spareTimeVo);
-        return spareTimeVo;
+        return ResultVO.success(spareTimeVo);
     }
 
     private void buildGroupSpareTime(IcSpareTimeVo spareTimeVo, IcSpareTimeReq spareTimeReq,
@@ -187,45 +188,57 @@ public class ICManager {
         return false;
     }
 
-    public String appointInterview(IcRecordAddReq req) {
+    public ResultVO<String> appointInterview(IcRecordAddReq req) {
         IcRecord icRecord = new IcRecord();
         AmNewMask newMask = amNewMaskService.getById(req.getMaskId());
         if(InterviewTypeEnum.GROUP.getCode().equals(newMask.getInterviewType())){
             IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(req.getMaskId(), req.getStartTime(), req.getStartTime());
-            IcSpareTimeVo spareTimeVo = getSpareTime(spareTimeReq);
+            IcSpareTimeVo spareTimeVo = getSpareTime(spareTimeReq).getData();
             if(CollectionUtil.isNotEmpty(spareTimeVo.getSpareDateVos())){
                 BeanUtils.copyProperties(req, icRecord);
                 icRecord.setInterviewType(newMask.getInterviewType());
                 icRecord.setCancelStatus(InterviewStatusEnum.NOT_CANCEL.getStatus());
                 icRecordService.save(icRecord);
-                return icRecord.getId();
+                return ResultVO.success(icRecord.getId());
             }
-            return null;
+            return ResultVO.success(null);
         }
         //todo 单面处理逻辑
         icRecordService.save(icRecord);
-        return icRecord.getId();
+        return ResultVO.success(icRecord.getId());
     }
 
-    public Boolean cancelInterview(String icUuid, Integer cancelWho) {
+    public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho) {
         LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
                 .eq(IcRecord::getId,icUuid)
                 .eq(IcRecord::getCancelStatus,InterviewStatusEnum.NOT_CANCEL.getStatus())
                 .set(IcRecord::getCancelTime, LocalDateTime.now())
                 .set(IcRecord::getCancelStatus, InterviewStatusEnum.CANCEL.getStatus())
                 .set(IcRecord::getCancelWho, cancelWho);
-        return icRecordService.update(updateWrapper);
+        boolean update = icRecordService.update(updateWrapper);
+        return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
     }
 
-    public Boolean modifyTime(String icUuid, LocalDateTime newTime) {
-        LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
-                .eq(IcRecord::getId,icUuid)
-                .set(IcRecord::getModifyTime, LocalDateTime.now())
-                .set(IcRecord::getStartTime, newTime);
-        return icRecordService.update(updateWrapper);
+    public ResultVO<Boolean> modifyTime(String icUuid, LocalDateTime newTime) {
+        IcRecord icRecord = icRecordService.getById(icUuid);
+        IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(icRecord.getMaskId(), newTime, newTime);
+        ResultVO<IcSpareTimeVo> resultVO = getSpareTime(spareTimeReq);
+        if ((200 != resultVO.getCode())) {
+            return ResultVO.fail("面试时间修改失败，无法查询到空闲时间数据");
+        }
+        IcSpareTimeVo spareTimeVo = resultVO.getData();
+        if(CollectionUtil.isNotEmpty(spareTimeVo.getSpareDateVos())){
+            LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
+                    .eq(IcRecord::getId,icUuid)
+                    .set(IcRecord::getModifyTime, LocalDateTime.now())
+                    .set(IcRecord::getStartTime, newTime);
+            boolean update = icRecordService.update(updateWrapper);
+            return update ? ResultVO.success(true) : ResultVO.fail("面试时间修改失败");
+        }
+        return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
     }
 
-    public List<IcGroupDaysVo> getGroupDaysIC(Long adminId, Integer dayNum) {
+    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, Integer dayNum) {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
         LocalDate nowDate = LocalDate.now();
         //查询出管理员在时间范围内的所有面试
@@ -254,10 +267,10 @@ public class ICManager {
             icGroupDaysVos.add(new IcGroupDaysVo(date, (int)morningCount, (int)afternoonCount));
         }
 
-        return icGroupDaysVos;
+        return ResultVO.success(icGroupDaysVos);
     }
 
-    public PageVO<IcRecordVo> pageIcRecord(IcRecordPageReq req) {
+    public ResultVO<PageVO<IcRecordVo>> pageIcRecord(IcRecordPageReq req) {
         LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
         Long adminId = req.getAdminId();
         Integer status = req.getInterviewStatus();
@@ -271,6 +284,6 @@ public class ICManager {
         Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
 
-        return PageVO.build(icRecordPage.getTotal(), icRecordVos);
+        return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
     }
 }

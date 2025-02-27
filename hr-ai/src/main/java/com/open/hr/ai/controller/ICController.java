@@ -15,6 +15,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -34,7 +35,7 @@ public class ICController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("/getSpareTime")
     public ResultVO<IcSpareTimeVo> getSpareTime(@RequestBody @Valid IcSpareTimeReq spareTimeReq) {
-        return ResultVO.success(icManager.getSpareTime(spareTimeReq));
+        return icManager.getSpareTime(spareTimeReq);
     }
 
     @ApiOperation("预约面试")
@@ -42,7 +43,7 @@ public class ICController extends HrAIBaseController {
     @PostMapping("/appointInterview")
     public ResultVO<String> appointInterview(@RequestBody @Valid IcRecordAddReq req) {
         req.setAdminId(getUserId());
-        return ResultVO.success(icManager.appointInterview(req));
+        return icManager.appointInterview(req);
     }
 
     @ApiOperation("取消面试预约")
@@ -50,22 +51,22 @@ public class ICController extends HrAIBaseController {
     @GetMapping("/cancelInterview")
     public ResultVO<Boolean> cancelInterview(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
                                              @RequestParam(value = "cancelWho") @ApiParam("谁取消了，1-招聘方，2-受聘方") Integer cancelWho) {
-        return ResultVO.success(icManager.cancelInterview(icUuid,cancelWho));
+        return icManager.cancelInterview(icUuid,cancelWho);
     }
 
     @ApiOperation("修改面试时间")
     @VerifyUserToken
     @GetMapping("/modifyTime")
     public ResultVO<Boolean> modifyTime(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
-                                        @RequestParam(value = "newTime") @ApiParam("新面试时间") LocalDateTime newTime) {
-        return ResultVO.success(icManager.modifyTime(icUuid,newTime));
+                                        @RequestParam(value = "newTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @ApiParam("新面试时间") LocalDateTime newTime) {
+        return icManager.modifyTime(icUuid,newTime);
     }
 
     @ApiOperation("获取最近n天面试日历（群面）")
     @VerifyUserToken
     @GetMapping("/getGroupDaysIC")
     public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(@RequestParam(value = "dayNum") @ApiParam("天数") Integer dayNum) {
-        return ResultVO.success(icManager.getGroupDaysIC(getUserId(),dayNum));
+        return icManager.getGroupDaysIC(getUserId(),dayNum);
     }
 
     @ApiOperation("分页查询所有面试")
@@ -73,6 +74,6 @@ public class ICController extends HrAIBaseController {
     @PostMapping("/pageIcRecord")
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(@RequestBody @Valid IcRecordPageReq req) {
         req.setAdminId(getUserId());
-        return ResultVO.success(icManager.pageIcRecord(req));
+        return icManager.pageIcRecord(req);
     }
 }
