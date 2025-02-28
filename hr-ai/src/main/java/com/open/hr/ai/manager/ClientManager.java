@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @Date 2025/1/6 20:00
@@ -216,26 +217,34 @@ public class ClientManager {
             }
 
             // 查询返回该boss_id用户招聘中且关联好ai的职位数据。
-            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
-            positionQueryWrapper.eq(AmPosition::getBossId, bossId);
-            positionQueryWrapper.eq(AmPosition::getIsOpen, 1);
+            LambdaQueryWrapper<AmChatbotPositionOption> positionQueryWrapper = new LambdaQueryWrapper<>();
+            positionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, bossId);
             //查询aiAssitantId 不为0
-            positionQueryWrapper.ne(AmPosition::getAiAssitantId, 0);
-            positionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
-            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
-            //   "configuredAIPosition":[{ //返回该boss_id用户招聘中且关联好ai的职位数据。
-            //            "id":"",
-            //            "name":""
-            //        }]
+            positionQueryWrapper.ne(AmChatbotPositionOption::getAmMaskId, 0);
+            List<AmChatbotPositionOption> list = amChatbotPositionOptionService.list(positionQueryWrapper);
+            // 提取出list id
+            if (Objects.nonNull(list) && !list.isEmpty()){
+                List<Integer> positionIds = list.stream().map(AmChatbotPositionOption::getPositionId).collect(Collectors.toList());
+                LambdaQueryWrapper<AmPosition> positionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                positionLambdaQueryWrapper.in(AmPosition::getId,positionIds);
+                List<AmPosition> amPositions = amPositionService.list(positionLambdaQueryWrapper);
+                //   "configuredAIPosition":[{ //返回该boss_id用户招聘中且关联好ai的职位数据。
+                //            "id":"",
+                //            "name":""
+                //        }]
 
-            JSONArray jsonArray = new JSONArray();
-            for (AmPosition amPosition : amPositions) {
-                JSONObject position = new JSONObject();
-                position.put("id",amPosition.getEncryptId());
-                position.put("name",amPosition.getName());
-                jsonArray.add(position);
+                JSONArray jsonArray = new JSONArray();
+                for (AmPosition amPosition : amPositions) {
+                    // 未开放和删除的不处理
+                    if (amPosition.getIsOpen() == 0 || amPosition.getIsDeleted() == 1) continue;
+                    JSONObject position = new JSONObject();
+                    position.put("id",amPosition.getEncryptId());
+                    position.put("name",amPosition.getName());
+                    jsonArray.add(position);
+                }
+                jsonObject.put("configuredAIPosition",jsonArray);
             }
-            jsonObject.put("configuredAIPosition",jsonArray);
+
             return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("客户端状态更新异常 bossId={},connectId={},status={}", bossId, connectId, inputStatus, e);
