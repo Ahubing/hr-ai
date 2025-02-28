@@ -253,12 +253,14 @@ public class ICManager {
                         .ne(AmPosition::getIsDeleted,0)
                         .eq(AmPosition::getAdminId, adminId));
         if(CollectionUtil.isEmpty(positions)){
+            buildEmptyDays(icGroupDaysVos, startDate, endDate);
             return ResultVO.success(icGroupDaysVos);
         }
 
         List<AmPositionSection> sectionList = sectionService
                 .listByIds(positions.stream().map(AmPosition::getSectionId).collect(Collectors.toSet()));
         if(CollectionUtil.isEmpty(sectionList)){
+            buildEmptyDays(icGroupDaysVos, startDate, endDate);
             return ResultVO.success(icGroupDaysVos);
         }
 
@@ -283,7 +285,7 @@ public class ICManager {
         while (!startDate.isAfter(endDate)){
             LocalDate date = startDate;
             LocalDateTime middleTime = LocalDateTime.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), 12, 0, 0);
-            //根据record的startTime按照上午下午分组,查出今天上下午各个职位各有多少场面试
+            //根据record的startTime按照上午下午分组,查出今天上下午各个部门各有多少场面试
             Map<String, Integer> morningMap = new HashMap<>();
             List<IcRecord> morningRecords = icRecords.stream().filter(record ->
                             record.getStartTime().toLocalDate().equals(date) &&
@@ -316,6 +318,14 @@ public class ICManager {
         }
 
         return ResultVO.success(icGroupDaysVos);
+    }
+
+    private void buildEmptyDays(List<IcGroupDaysVo> icGroupDaysVos, LocalDate startDate, LocalDate endDate) {
+        while (!startDate.isAfter(endDate)){
+            LocalDate date = startDate;
+            icGroupDaysVos.add(new IcGroupDaysVo(date, new HashMap<>(), new HashMap<>()));
+            startDate = startDate.plusDays(1);
+        }
     }
 
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(IcRecordPageReq req) {
