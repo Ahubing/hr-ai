@@ -1008,7 +1008,6 @@ public class ClientManager {
                 JSONObject.parseObject(tasksServiceOne.getData()).put("times", times);
                 tasksServiceOne.setData(JSONObject.toJSONString(parseObject));
                 tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
-                tasksServiceOne.setRetryTimes(0);
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             }else {
                 // 参数为0,则直接删除任务
