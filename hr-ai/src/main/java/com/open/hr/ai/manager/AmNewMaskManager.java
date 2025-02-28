@@ -3,7 +3,6 @@ package com.open.hr.ai.manager;
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -16,7 +15,6 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmNewMaskServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcConfigServiceImpl;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.AmNewMaskUpdateReq;
-import com.open.hr.ai.bean.req.IcConfigAddReq;
 import com.open.hr.ai.bean.req.IcConfigUpdateReq;
 import com.open.hr.ai.bean.vo.AmMaskSearchReq;
 import com.open.hr.ai.bean.vo.AmMaskTypeVo;
@@ -116,7 +114,7 @@ public class AmNewMaskManager {
             return ResultVO.fail("新增失败");
         }
         //保存配置数据
-        List<IcConfigAddReq> configReqs = req.getIcConfigAddReqs();
+        List<IcConfigUpdateReq> configReqs = req.getIcConfigAddReqs();
         List<IcConfig> configs = configReqs.stream().map(icConfigAddReq -> {
             IcConfig icConfig = new IcConfig();
             BeanUtils.copyProperties(icConfigAddReq, icConfig);

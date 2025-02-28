@@ -170,5 +170,5 @@ public class AmNewMaskAddReq {
     private Integer skipHolidayStatus;
 
     @ApiModelProperty(value = "面试时段配置",required = true)
-    private List<IcConfigAddReq> icConfigAddReqs = new ArrayList<>();
+    private List<IcConfigUpdateReq> icConfigAddReqs = new ArrayList<>();
 }
