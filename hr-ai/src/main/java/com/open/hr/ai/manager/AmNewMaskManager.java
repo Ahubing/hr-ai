@@ -114,7 +114,7 @@ public class AmNewMaskManager {
             return ResultVO.fail("新增失败");
         }
         //保存配置数据
-        List<IcConfigUpdateReq> configReqs = req.getIcConfigAddReqs();
+        List<IcConfigUpdateReq> configReqs = req.getIcConfigUpdateReqs();
         List<IcConfig> configs = configReqs.stream().map(icConfigAddReq -> {
             IcConfig icConfig = new IcConfig();
             BeanUtils.copyProperties(icConfigAddReq, icConfig);
