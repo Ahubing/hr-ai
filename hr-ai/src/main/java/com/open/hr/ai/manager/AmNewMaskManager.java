@@ -167,11 +167,13 @@ public class AmNewMaskManager {
             icConfigService.remove(new LambdaQueryWrapper<IcConfig>()
                     .eq(IcConfig::getMaskId,maskId)
                     .notIn(IcConfig::getId,configReqs.stream()
+                            .filter(id -> !Objects.isNull(id))
                             .map(IcConfigUpdateReq::getId)
-                            .filter(id -> !Objects.isNull(id)).collect(Collectors.toList())));
+                            .collect(Collectors.toList())));
             List<IcConfig> configs = configReqs.stream().map(icConfigUpdateReq -> {
                 IcConfig icConfig = new IcConfig();
                 BeanUtils.copyProperties(icConfigUpdateReq, icConfig);
+                icConfig.setMaskId(maskId);
                 return icConfig;
             }).collect(Collectors.toList());
             //有id的数据更新
