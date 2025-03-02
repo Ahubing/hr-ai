@@ -121,7 +121,7 @@ public class AmGreetTaskUtil {
             jsonObject.put("times", amChatbotGreetTask.getTaskNum());
             jsonObject.put("greetId", amChatbotGreetTask.getId());
             JSONObject messageObject = new JSONObject();
-            messageObject.put("content", GREET_MESSAGE);
+//            messageObject.put("content", GREET_MESSAGE);
             jsonObject.put("message", messageObject);
             amClientTasks.setData(jsonObject.toJSONString());
             amClientTasks.setCreateTime(LocalDateTime.now());

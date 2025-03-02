@@ -459,7 +459,7 @@ public class AmChatBotGreetJob {
                         jsonObject.put("conditions", conditions);
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
                         JSONObject messageObject = new JSONObject();
-                        messageObject.put("content", GREET_MESSAGE);
+//                        messageObject.put("content", GREET_MESSAGE);
                         jsonObject.put("message", messageObject);
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
