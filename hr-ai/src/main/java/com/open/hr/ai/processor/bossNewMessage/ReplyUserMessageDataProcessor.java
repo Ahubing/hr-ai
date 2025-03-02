@@ -22,6 +22,7 @@ import com.open.hr.ai.util.BuildPromptUtil;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
+import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -242,11 +243,19 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), buildNewUserMessage.toString()));
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
+        //告诉ai所有相关参数信息
+        String sbParams = "请记住下列参数，后续会用到。当前角色的面具id maskId:" + amNewMask.getId() +
+                                ",当前管理员/hr的id adminId:" + amZpLocalAccouts.getAdminId() +
+                                ",当前求职者uid employeeUid:" + amResume.getUid() +
+                                ",当前招聘的职位id positionId:" + amResume.getPostId() +
+                                ",当前角色所登录的平台账号的id accountId:" + amResume.getAccountId();
+        log.info("ai pre params:" + sbParams);
+        messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), sbParams));
         // 如果content为空 重试10次
         String content = "";
         AtomicInteger statusCode = new AtomicInteger(0);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_time"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;

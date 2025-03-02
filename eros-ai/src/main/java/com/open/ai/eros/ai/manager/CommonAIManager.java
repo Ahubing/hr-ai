@@ -1,5 +1,6 @@
 package com.open.ai.eros.ai.manager;
 
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
@@ -10,6 +11,7 @@ import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
@@ -54,7 +56,6 @@ public class CommonAIManager {
      * 非流获取ai结果
      *
      * @param messages
-     * @param toolExecutionResultMessages
      * @param templateModel
      * @param temperature
      * @return
@@ -124,35 +125,69 @@ public class CommonAIManager {
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
             List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
+            StringBuilder sb = new StringBuilder();//收集所有需要让ai回复的值
+            List<ToolExecutionResultMessage> toolResults = new ArrayList<>(); // 收集工具结果
+
             if (CollectionUtils.isNotEmpty(toolExecutionRequests)) {
                 for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
-                    // tool的名称
                     String name = toolExecutionRequest.name();
                     try {
-                        DefaultToolExecutor defaultToolExecutor = executorMap.get(name);
-                        if (defaultToolExecutor == null) {
+                        DefaultToolExecutor executor = executorMap.get(name);
+                        if (executor == null) {
                             continue;
                         }
-                        if (name.equals("set_status")){
-                            String status = defaultToolExecutor.execute(toolExecutionRequest, "default");
-                            ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(status);
-                            statusCode.set(enums.getStatus());
-                            log.info("useTool tool={},aDefault={},statusCode={}", name, enums.getDesc(),statusCode);
+
+                        // 执行工具时传递实际参数
+                        String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
+
+                        // 特殊业务逻辑
+                        switch (name) {
+                            case "set_status":
+                                ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
+                                statusCode.set(enums.getStatus());
+                                log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
+                                break;
+                            case "get_spare_time":
+                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                                sb.append(result);
+                                log.info("获取空闲时间: tool={}, spareTimeStr={}", name, result);
+                                break;
+                            case "appoint_interview":
+                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                                sb.append(result);
+                                log.info("预约面试: tool={}, appointInterviewStr={}", name, result);
+                                break;
+                            case "cancel_interview":
+                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                                sb.append(result);
+                                log.info("取消面试: tool={}, cancelInterviewStr={}", name, result);
+                                break;
+                            case "modify_time":
+                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                                sb.append(result);
+                                log.info("修改面试时间: tool={}, modifyTimeStr={}", name, result);
                         }
                     } catch (Exception e) {
-                        log.error("useTool error toolName={}", name, e);
-                    }
+                        log.error("工具执行失败: tool={}", name, e);
+                   }
                 }
             }
-            String text = content.text();
-            if (text == null) {
-                // 命中函数,重新生成回答
-                Response<AiMessage> newGenerate = modelService.generate(newMessages);
-                AiMessage aiMessage = newGenerate.content();
-                text = aiMessage.text();
-                return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), text);
+
+            // 将工具结果反馈给模型并生成最终回答
+            if (!toolResults.isEmpty()) {
+                // 将工具结果添加到对话历史
+                List<dev.langchain4j.data.message.ChatMessage> updatedMessages = new ArrayList<>(newMessages);
+                updatedMessages.addAll(toolResults);
+
+                // 生成最终回答
+                Response<AiMessage> finalResponse = modelService.generate(updatedMessages);
+                return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), finalResponse.content().text());
             }
-            return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), text);
+
+            return new ChatMessage(
+                    AIRoleEnum.ASSISTANT.getRoleName(),
+                    sb.length() > 0 ? sb.toString() : content.text()
+            );
 
         } catch (Exception e) {
             log.error("aiNoStream error templateModel={} ", templateModel, e);
@@ -160,7 +195,6 @@ public class CommonAIManager {
         return null;
 
     }
-
 
 
     /**

@@ -1,30 +1,18 @@
-package com.open.hr.ai.manager;
+package com.open.ai.eros.ai.tool.tmp;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.open.ai.eros.ai.tool.tmp.tmpbean.*;
 import com.open.ai.eros.common.constants.CommonConstant;
-import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
-import com.open.hr.ai.bean.req.IcRecordAddReq;
-import com.open.hr.ai.bean.req.IcRecordPageReq;
-import com.open.hr.ai.bean.req.IcSpareTimeReq;
-import com.open.hr.ai.bean.vo.IcGroupDaysVo;
-import com.open.hr.ai.bean.vo.IcRecordVo;
-import com.open.hr.ai.bean.vo.IcSpareTimeVo;
-import com.open.hr.ai.constant.InterviewStatusEnum;
-import com.open.hr.ai.constant.InterviewTypeEnum;
-import com.open.hr.ai.convert.AmPositionSetionConvertImpl;
-import com.open.hr.ai.convert.IcRecordConvert;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -35,7 +23,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class ICManager {
+public class ICTmpManager {
 
     @Resource
     private IcConfigServiceImpl icConfigService;
@@ -328,20 +319,4 @@ public class ICManager {
         }
     }
 
-    public ResultVO<PageVO<IcRecordVo>> pageIcRecord(IcRecordPageReq req) {
-        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
-        Long adminId = req.getAdminId();
-        Integer status = req.getInterviewStatus();
-        String type = req.getInterviewType();
-        Integer pageNum = req.getPage();
-        Integer pageSize = req.getPageSize();
-        queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
-                    .eq(status != null,IcRecord::getCancelStatus,status)
-                    .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
-        Page<IcRecord> page = new Page<>(pageNum, pageSize);
-        Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
-        List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
-
-        return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
-    }
 }
