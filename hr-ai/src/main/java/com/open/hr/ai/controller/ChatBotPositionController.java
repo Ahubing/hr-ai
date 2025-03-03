@@ -45,6 +45,15 @@ public class ChatBotPositionController extends HrAIBaseController {
     }
 
 
+    @ApiOperation("生成岗位人才画像和岗位胜任力模型的评价标准和打分权重规则")
+    @VerifyUserToken
+    @PostMapping("position/competencyModel")
+    public ResultVO competencyModel(@RequestParam(value = "id", required = true) Integer id) {
+
+        return chatBotPositionManager.updatePosition(rēq, getUserId());
+    }
+
+
     @ApiOperation("批量删除职位")
     @VerifyUserToken
     @DeleteMapping("position/batch_delete")

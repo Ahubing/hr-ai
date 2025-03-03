@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
-import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.CompanyInfo;
@@ -14,16 +13,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @Date 2025/2/8 19:26
  */
 @Slf4j
-public class BuildPromptUtil {
+public class AiReplyPromptUtil {
 
     public static List<String> basePrompt = Arrays.asList("# 核心角色设定\n",
             " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。。\n" ,
