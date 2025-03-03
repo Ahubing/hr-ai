@@ -50,7 +50,7 @@ public class ChatBotPositionController extends HrAIBaseController {
     @PostMapping("position/competencyModel")
     public ResultVO competencyModel(@RequestParam(value = "id", required = true) Integer id) {
 
-        return chatBotPositionManager.updatePosition(rēq, getUserId());
+        return chatBotPositionManager.competencyModel(id, getUserId());
     }
 
 
