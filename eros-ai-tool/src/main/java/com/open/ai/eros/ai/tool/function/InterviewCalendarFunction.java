@@ -85,7 +85,7 @@ public class InterviewCalendarFunction {
                     int startMinute = startTime.getMinute();
                     int endHour = endTime.getHour();
                     int endMinute = endTime.getMinute();
-                    sb.append(startHour).append("点").append(startMinute).append("分到").append(endHour).append("点").append(endMinute).append("分").append("\\");
+                    sb.append(startHour).append("点").append(startMinute).append("分到").append(endHour).append("点").append(endMinute).append("分").append("\n");
                 }
             }
             return sb.toString();
