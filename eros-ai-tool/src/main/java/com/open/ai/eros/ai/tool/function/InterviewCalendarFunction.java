@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
@@ -27,9 +28,9 @@ public class InterviewCalendarFunction {
     public String get_spare_time(@P("开始时间（IOS时间）") String startTime,
                                  @P("结束时间（IOS时间）") String endTime,
                                  @P("当前角色的面具ID") Long maskId) {
-        log.info("startTime:" +startTime);
-        log.info("endTime:" +endTime);
-        ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(maskId, LocalDateTime.now(), LocalDateTime.now()));
+        LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(maskId, sTime, eTime));
 
         return resultVO.getCode() == 200 ? buildSpareTimeResponse(resultVO.getData()) : "该时间段不可用";
     }

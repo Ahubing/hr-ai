@@ -63,7 +63,7 @@ public class ICTmpManager {
             spareTimeReq.setStartTime(LocalDateTime.now());
         }
         AmNewMask mask = amNewMaskService.getById(spareTimeReq.getMaskId());
-        log.info("getSpareTime mask={}", JSONObject.toJSONString(mask));
+        log.info("getSpareTime params={} mask={}", JSONObject.toJSONString(spareTimeReq), JSONObject.toJSONString(mask));
 
         //目前只做群面
         IcSpareTimeVo spareTimeVo = new IcSpareTimeVo();
