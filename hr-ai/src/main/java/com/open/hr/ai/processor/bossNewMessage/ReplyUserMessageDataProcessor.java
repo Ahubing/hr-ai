@@ -33,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -241,11 +242,12 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         //告诉ai所有相关参数信息
-        String sbParams = "请记住下列参数，后续会用到。当前角色的面具id maskId:" + amNewMask.getId() +
+        String sbParams = "请记住下列参数和数据，后续会用到。当前角色的面具id maskId:" + amNewMask.getId() +
                                 ",当前管理员/hr的id adminId:" + amZpLocalAccouts.getAdminId() +
                                 ",当前求职者uid employeeUid:" + amResume.getUid() +
                                 ",当前招聘的职位id positionId:" + amResume.getPostId() +
-                                ",当前角色所登录的平台账号的id accountId:" + amResume.getAccountId();
+                                ",当前角色所登录的平台账号的id accountId:" + amResume.getAccountId() +
+                                ",当前的时间是:" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         log.info("ai pre params:" + sbParams);
         messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), sbParams));
         // 如果content为空 重试10次

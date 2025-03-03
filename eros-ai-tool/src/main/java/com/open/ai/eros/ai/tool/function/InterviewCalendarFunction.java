@@ -21,9 +21,9 @@ public class InterviewCalendarFunction {
     @Resource
     private ICTmpManager icTmpManager;
 
-    @Tool(name = "get_spare_time", value = {"通过分析求职者的上下文,推測获取到求职者期望面试的起始时间和截止时间,比如如果用戶希望明天下午面試,格式为yyyy-MM-ddThh:mm:ss。同时获取到当前角色的面具id。返回求职者期望时间段内的所有可用时间段"})
-    public String get_spare_time(@P("推测求职者期望的面试开始时间,格式为yyyy-MM-ddThh:mm:ss") LocalDateTime startTime,
-                                 @P("求职者期望的面试截止时间,格式为yyyy-MM-ddThh:mm:ss") LocalDateTime endTime,
+    @Tool(name = "get_spare_time", value = {"通过分析求职者的上下文,推測获取到求职者期望面试的起始时间和截止时间,比如如果用戶希望明天下午面試,则时间startTime是明天中午的12点到明天晚上18点,时间格式都为yyyy-MM-ddThh:mm:ss。同时获取到当前角色的面具id。返回求职者期望时间段内的所有可用时间段"})
+    public String get_spare_time(@P("推测求职者期望的面试开始时间") LocalDateTime startTime,
+                                 @P("求职者期望的面试截止时间") LocalDateTime endTime,
                                  @P("当前角色的面具id maskId") Long maskId) {
         ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(maskId, startTime, endTime));
 
