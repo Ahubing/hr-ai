@@ -123,7 +123,7 @@ public class DealUserFirstSendMessageUtil {
             amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = BuildPromptUtil.buildPrompt(amResume, amNewMask);
+                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");

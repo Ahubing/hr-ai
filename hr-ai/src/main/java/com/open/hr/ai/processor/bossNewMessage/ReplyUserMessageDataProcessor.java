@@ -2,9 +2,7 @@ package com.open.hr.ai.processor.bossNewMessage;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.open.ai.eros.ai.manager.AIManager;
 import com.open.ai.eros.ai.manager.CommonAIManager;
-import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -13,12 +11,10 @@ import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
-import com.open.hr.ai.bean.vo.AmMaskVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import com.open.hr.ai.convert.AmMaskConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
-import com.open.hr.ai.util.BuildPromptUtil;
+import com.open.hr.ai.util.AiReplyPromptUtil;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
@@ -209,7 +205,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
              amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = BuildPromptUtil.buildPrompt(amResume, amNewMask);
+                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");

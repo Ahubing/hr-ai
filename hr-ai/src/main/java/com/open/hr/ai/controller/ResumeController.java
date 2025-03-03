@@ -184,4 +184,16 @@ public class ResumeController extends HrAIBaseController {
         return resumeManager.UploadAmResumeSearch(req,getUserId());
     }
 
+
+
+    /**
+     * 对简历进行胜任力模型生成评分细节
+     * @return
+     */
+    @ApiOperation("对简历进行胜任力模型生成评分细节")
+    @VerifyUserToken
+    @GetMapping("/resume/competencyModel")
+    public ResultVO competencyModel(@RequestParam(value = "id", required = true) Integer id) {
+        return resumeManager.competencyModel(id, getUserId());
+    }
 }
