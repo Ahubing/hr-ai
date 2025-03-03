@@ -8,6 +8,7 @@ import com.open.ai.eros.ai.tool.tmp.tmpbean.IcSpareTimeVo;
 import com.open.ai.eros.common.vo.ResultVO;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -16,18 +17,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
+@Slf4j
 public class InterviewCalendarFunction {
 
     @Resource
     private ICTmpManager icTmpManager;
 
-    @Tool(name = "get_spare_time", value = {"通过分析求职者的上下文,推測获取到求职者期望面试的起始时间和截止时间,比如如果用戶希望明天下午面試,则时间startTime是明天中午的12点到明天晚上18点,时间格式都为yyyy-MM-ddThh:mm:ss。同时获取到当前角色的面具id。返回求职者期望时间段内的所有可用时间段"})
-    public String get_spare_time(@P("推测求职者期望的面试开始时间") LocalDateTime startTime,
-                                 @P("求职者期望的面试截止时间") LocalDateTime endTime,
-                                 @P("当前角色的面具id maskId") Long maskId) {
-        ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(maskId, startTime, endTime));
+    @Tool(name = "get_spare_time", value = {"查询可用面试时间。返回时间段内所有可面试时间"})
+    public String get_spare_time(@P("开始时间（IOS时间）") String startTime,
+                                 @P("结束时间（IOS时间）") String endTime,
+                                 @P("当前角色的面具ID") Long maskId) {
+        log.info("startTime:" +startTime);
+        log.info("endTime:" +endTime);
+        ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(maskId, LocalDateTime.now(), LocalDateTime.now()));
 
-        return resultVO.getCode() == 200 ? buildSpareTimeResponse(resultVO.getData()) : "这个时间我有别的面试了，换个时间吧\n";
+        return resultVO.getCode() == 200 ? buildSpareTimeResponse(resultVO.getData()) : "该时间段不可用";
     }
 
     @Tool(name = "appoint_interview", value = {"通过分析求职者的上下文,获取到求职者期望的面试开始时间以及当前的面具id mask_id,招聘者的id admin_id,面试开始时间,格式为yyyy:MM:ddThh:mm:ss,这个职位的id positionId,以及当前boss账号的id accountId，求职者在平台的uid"})
