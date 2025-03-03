@@ -1,6 +1,7 @@
 package com.open.ai.eros.ai.tool.tmp;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,6 +16,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +65,7 @@ public class ICTmpManager {
             spareTimeReq.setStartTime(LocalDateTime.now());
         }
         AmNewMask mask = amNewMaskService.getById(spareTimeReq.getMaskId());
-        log.info("getSpareTime mask={}", JSONObject.toJSONString(mask));
+        log.info("getSpareTime params={} mask={}", JSONObject.toJSONString(spareTimeReq), JSONObject.toJSONString(mask));
 
         //目前只做群面
         IcSpareTimeVo spareTimeVo = new IcSpareTimeVo();

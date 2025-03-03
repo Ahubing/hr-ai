@@ -131,6 +131,7 @@ public class CommonAIManager {
             if (CollectionUtils.isNotEmpty(toolExecutionRequests)) {
                 for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
                     String name = toolExecutionRequest.name();
+                    log.info("正在执行工具: tool={}, arguments={}", name, toolExecutionRequest.arguments());
                     try {
                         DefaultToolExecutor executor = executorMap.get(name);
                         if (executor == null) {
@@ -139,6 +140,7 @@ public class CommonAIManager {
 
                         // 执行工具时传递实际参数
                         String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
+                        log.info("执行工具结果: tool={}, result={}", name, result);
 
                         // 特殊业务逻辑
                         switch (name) {
@@ -173,6 +175,7 @@ public class CommonAIManager {
                 }
             }
 
+            log.info("toolResults={}", toolResults.isEmpty() ? "空的toolResults" : toolResults.toString());
             // 将工具结果反馈给模型并生成最终回答
             if (!toolResults.isEmpty()) {
                 // 将工具结果添加到对话历史
@@ -181,9 +184,11 @@ public class CommonAIManager {
 
                 // 生成最终回答
                 Response<AiMessage> finalResponse = modelService.generate(updatedMessages);
+                log.info("finalResponse text={}",finalResponse.content().text());
                 return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), finalResponse.content().text());
             }
-
+            log.info("aiNoStream text={}",content.text());
+            log.info("aiNoStream sb={}",sb.length());
             return new ChatMessage(
                     AIRoleEnum.ASSISTANT.getRoleName(),
                     sb.length() > 0 ? sb.toString() : content.text()

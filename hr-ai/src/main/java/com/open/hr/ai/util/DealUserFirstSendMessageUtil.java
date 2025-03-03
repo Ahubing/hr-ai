@@ -153,7 +153,7 @@ public class DealUserFirstSendMessageUtil {
         String content = "";
         AtomicInteger statusCode = new AtomicInteger(0);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_time"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;

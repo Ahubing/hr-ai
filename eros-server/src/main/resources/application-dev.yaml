@@ -128,3 +128,8 @@ knowledge.docs.ai.token: sk-0051196c7a464cd18778e581cb3d7ca6
 knowledge.docs.ai.inferModel: gpt-4o-2024-05-13
 
 knowledge.docs.ai.checkInferModel: gpt-4o-2024-05-13
+
+# 设置MyBatis-Plus的日志实现（输出到控制台）
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

@@ -8,36 +8,42 @@ import com.open.ai.eros.ai.tool.tmp.tmpbean.IcSpareTimeVo;
 import com.open.ai.eros.common.vo.ResultVO;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Component
+@Slf4j
 public class InterviewCalendarFunction {
 
     @Resource
     private ICTmpManager icTmpManager;
 
-    @Tool(name = "get_spare_time", value = {"通过分析求职者的上下文,推測获取到求职者期望面试的起始时间和截止时间,比如如果用戶希望明天下午面試,格式为yyyy-MM-ddThh:mm:ss。同时获取到当前角色的面具id。返回求职者期望时间段内的所有可用时间段"})
-    public String get_spare_time(@P("推测求职者期望的面试开始时间,格式为yyyy-MM-ddThh:mm:ss") LocalDateTime startTime,
-                                 @P("求职者期望的面试截止时间,格式为yyyy-MM-ddThh:mm:ss") LocalDateTime endTime,
-                                 @P("当前角色的面具id maskId") Long maskId) {
-        ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(maskId, startTime, endTime));
+    @Tool(name = "get_spare_time", value = {"查询可用面试时间。返回时间段内所有可面试时间"})
+    public String get_spare_time(@P("开始时间（IOS时间）") String startTime,
+                                 @P("结束时间（IOS时间）") String endTime,
+                                 @P("当前角色的面具ID") String maskId) {
+        LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
 
-        return resultVO.getCode() == 200 ? buildSpareTimeResponse(resultVO.getData()) : "这个时间我有别的面试了，换个时间吧\n";
+        return resultVO.getCode() == 200 ? buildSpareTimeResponse(resultVO.getData()) : "该时间段不可用";
     }
 
     @Tool(name = "appoint_interview", value = {"通过分析求职者的上下文,获取到求职者期望的面试开始时间以及当前的面具id mask_id,招聘者的id admin_id,面试开始时间,格式为yyyy:MM:ddThh:mm:ss,这个职位的id positionId,以及当前boss账号的id accountId，求职者在平台的uid"})
-    public String appoint_interview(@P("当前角色的面具id maskId") Long maskId,
-                                    @P("当前管理员/hr的id adminId") Long adminId,
+    public String appoint_interview(@P("当前角色的面具id maskId") String maskId,
+                                    @P("当前管理员/hr的id adminId") String adminId,
                                     @P("当前求职者uid employeeUid") String employeeUid,
-                                    @P("求职者期望的面试开始时间,格式为yyyy-MM-ddThh:mm:ss") LocalDateTime startTime,
-                                    @P("当前招聘的职位id positionId") Long positionId,
+                                    @P("求职者期望的面试开始时间") String startTime,
+                                    @P("当前招聘的职位id positionId") String positionId,
                                     @P("当前角色所登录的平台账号的id accountId") String accountId) {
-        ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(maskId,adminId,employeeUid,startTime,positionId,accountId));
+        LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId),Long.parseLong(adminId),employeeUid,sTime,Long.parseLong(positionId),accountId));
 
         return (resultVO.getCode() == 200 && resultVO.getData() != null) ? "这边帮你约好了面试，我们面试都会有一个id，你的面试的id是" + resultVO.getData() + "后续你可以通过这个id，我这边可以帮你取消或者修改面试时间\n" : "刚刚看了一下后台系统，这个时间安排了别的面试，换个时间吧\n";
     }
@@ -51,8 +57,9 @@ public class InterviewCalendarFunction {
 
     @Tool(name = "modify_time", value = {"通过分析求职者的上下文,判断求职者想要修改面试时间,并获取到上下文中求职者面试的id和想要修改到的面试时间格式为yyyy-MM-ddThh:mm:ss"})
     public String modify_time(@P("求职者想要修改面试的id") String id,
-                              @P("求职者想要修改面试的时间,格式为yyyy-MM-ddThh:mm:ss") LocalDateTime newTime) {
-        ResultVO<Boolean> resultVO = icTmpManager.modifyTime(id,newTime);
+                              @P("求职者想要修改面试的时间") String newTime) {
+        LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        ResultVO<Boolean> resultVO = icTmpManager.modifyTime(id,sTime);
 
         return (resultVO.getCode() == 200 && resultVO.getData()) ? "OK，修改好了\n" : "后台面修改面试时间失败了，" + (resultVO.getCode() == 501 ? "系统显示这个时间我还有别的面试\n" : "你看下你之前是不是取消过面试或者提供的面试id有问题\n");
     }
