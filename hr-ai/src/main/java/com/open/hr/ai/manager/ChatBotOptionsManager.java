@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptions;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptionsItems;
+import com.open.ai.eros.db.mysql.hr.entity.AmChatbotPositionOption;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotOptionAiRoleServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotOptionsItemsServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotOptionsServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotPositionOptionServiceImpl;
 import com.open.hr.ai.bean.req.AddOrUpdateAmChatbotOptions;
 import com.open.hr.ai.bean.req.AddOrUpdateAmChatbotOptionsItems;
 import com.open.hr.ai.bean.vo.AmChatbotOptionsItemsVo;
@@ -43,6 +45,9 @@ public class ChatBotOptionsManager {
 
     @Resource
     private AmChatbotOptionAiRoleServiceImpl amChatbotOptionAiRoleService;
+
+    @Resource
+    private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
 
     public ResultVO<List<AmChatbotOptionsVo>> chatbotOptionsList(Long adminId, Integer type, String keyword) {
         try {
@@ -186,6 +191,13 @@ public class ChatBotOptionsManager {
 
     public ResultVO deleteOptions(Integer id) {
         try {
+
+            LambdaQueryWrapper<AmChatbotPositionOption> itemsQueryWrapper = new LambdaQueryWrapper<>();
+            itemsQueryWrapper.eq(AmChatbotPositionOption::getRechatOptionId, id);
+            int count = amChatbotPositionOptionService.count();
+            if (count > 0) {
+                return ResultVO.fail("该复聊方案已被引用,无法删除");
+            }
             boolean result = amChatbotOptionsService.removeById(id);
             return result ? ResultVO.success("删除成功") : ResultVO.fail("删除失败");
         } catch (Exception e) {

@@ -6,10 +6,11 @@ import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public interface BossNewMessageProcessor {
 
 
-    ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req);
+    ResultVO dealBossNewMessage(AtomicInteger statusCode, String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req);
 
 }

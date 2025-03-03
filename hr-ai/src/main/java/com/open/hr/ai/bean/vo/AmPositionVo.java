@@ -1,17 +1,13 @@
 package com.open.hr.ai.bean.vo;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -91,6 +87,11 @@ public class AmPositionVo {
      * 是否开放职位
      */
     private Integer isOpen;
+
+    /**
+     * 岗位描述
+     */
+    private String amDescribe;
 
     /**
      * 创建时间

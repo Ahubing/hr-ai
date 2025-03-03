@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 用于分析当前用户的prompt
@@ -37,7 +38,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
      * 根据聊天内容,用来提取用户手机和微信号
      */
     @Override
-    public ResultVO dealBossNewMessage(String platform,AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
+    public ResultVO dealBossNewMessage(AtomicInteger statusCode, String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
         log.info("ExtractResumeDataProcessor dealBossNewMessage amResume={},amZpLocalAccouts={},req={}", amResume, amZpLocalAccouts, req);
         JSONObject chatInfo = req.getChat_info();
         if (Objects.isNull(chatInfo) || chatInfo.isEmpty()) {
@@ -54,15 +55,14 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
         if (Objects.nonNull(innerAmResume)) {
             BeanUtils.copyProperties(innerAmResume, amResume);
-            if (Objects.isNull(chatInfo.get("phone")) && Objects.isNull(chatInfo.get("weixin"))) {
-                log.error("extractData phone and weixin is null,bossId={}", amZpLocalAccouts.getId());
-                return ResultVO.fail("phone and weixin is null");
-            }
             if (Objects.nonNull(chatInfo.get("phone"))) {
                 amResume.setPhone(chatInfo.get("phone").toString());
             }
             if (Objects.nonNull(chatInfo.get("weixin"))) {
                 amResume.setWechat(chatInfo.get("weixin").toString());
+            }
+            if (Objects.nonNull(chatInfo.get("name"))) {
+                amResume.setName(chatInfo.get("name").toString());
             }
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
@@ -80,16 +80,18 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             }
             boolean result = amResumeService.updateById(amResume);
             log.info("ExtractResumeDataProcessor dealBossNewMessage update amResume result={}", result);
-        }else {
+        }
+        else {
             if (Objects.nonNull(chatInfo.get("encryptUid"))){
             amResume.setEncryptGeekId(chatInfo.get("encryptUid").toString());
             }
-            if (Objects.nonNull(chatInfo.get("uid"))) {
-                amResume.setUid(chatInfo.get("uid").toString());
+            if (Objects.nonNull(chatInfo.get("name"))) {
+                amResume.setName(chatInfo.get("name").toString());
             }
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
+            amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
             amResume.setType(0);
@@ -106,7 +108,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             }
 
             boolean result = amResumeService.save(amResume);
-            log.info("ExtractResumeDataProcessor dealBossNewMessage save amResume result={}", result);
+            log.info("ExtractResumeDataProcessor dealBossNewMessage save amResume={} result={}", amResume,result);
         }
 
         return ResultVO.success();

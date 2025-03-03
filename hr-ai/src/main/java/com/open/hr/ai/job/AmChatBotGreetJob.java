@@ -321,9 +321,11 @@ public class AmChatBotGreetJob {
 
                         String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
 
-                        // 查询用户是否已经回复消息
+                        // 查询今天是否已经回复过消息
                         LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
                         chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+                        chatMessageQueryWrapper.ne(AmChatMessage::getType, -1);
+                        chatMessageQueryWrapper.ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay());
                         AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
 
                         //
@@ -457,7 +459,7 @@ public class AmChatBotGreetJob {
                         jsonObject.put("conditions", conditions);
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
                         JSONObject messageObject = new JSONObject();
-                        messageObject.put("content", GREET_MESSAGE);
+//                        messageObject.put("content", GREET_MESSAGE);
                         jsonObject.put("message", messageObject);
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());

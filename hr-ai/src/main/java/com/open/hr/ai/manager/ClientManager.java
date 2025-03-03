@@ -16,6 +16,7 @@ import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
 import com.open.hr.ai.constant.*;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.DealUserFirstSendMessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.io.IntWritable;
@@ -28,6 +29,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @Date 2025/1/6 20:00
@@ -76,6 +79,9 @@ public class ClientManager {
 
     @Autowired
     private List<BossNewMessageProcessor> bossNewMessageProcessors;
+
+    @Resource
+    private DealUserFirstSendMessageUtil dealUserFirstSendMessageUtil;
 
 
     public ResultVO connectClient(String platform,String bossId, String connectId) {
@@ -209,6 +215,36 @@ public class ClientManager {
                 jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
             }
+
+            // 查询返回该boss_id用户招聘中且关联好ai的职位数据。
+            LambdaQueryWrapper<AmChatbotPositionOption> positionQueryWrapper = new LambdaQueryWrapper<>();
+            positionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, bossId);
+            //查询aiAssitantId 不为0
+            positionQueryWrapper.ne(AmChatbotPositionOption::getAmMaskId, 0);
+            List<AmChatbotPositionOption> list = amChatbotPositionOptionService.list(positionQueryWrapper);
+            // 提取出list id
+            if (Objects.nonNull(list) && !list.isEmpty()){
+                List<Integer> positionIds = list.stream().map(AmChatbotPositionOption::getPositionId).collect(Collectors.toList());
+                LambdaQueryWrapper<AmPosition> positionLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                positionLambdaQueryWrapper.in(AmPosition::getId,positionIds);
+                List<AmPosition> amPositions = amPositionService.list(positionLambdaQueryWrapper);
+                //   "configuredAIPosition":[{ //返回该boss_id用户招聘中且关联好ai的职位数据。
+                //            "id":"",
+                //            "name":""
+                //        }]
+
+                JSONArray jsonArray = new JSONArray();
+                for (AmPosition amPosition : amPositions) {
+                    // 未开放和删除的不处理
+                    if (amPosition.getIsOpen() == 0 || amPosition.getIsDeleted() == 1) continue;
+                    JSONObject position = new JSONObject();
+                    position.put("id",amPosition.getEncryptId());
+                    position.put("name",amPosition.getName());
+                    jsonArray.add(position);
+                }
+                jsonObject.put("configuredAIPosition",jsonArray);
+            }
+
             return ResultVO.success(jsonObject);
         } catch (Exception e) {
             log.error("客户端状态更新异常 bossId={},connectId={},status={}", bossId, connectId, inputStatus, e);
@@ -293,8 +329,9 @@ public class ClientManager {
             }
 
             AmResume amResume = new AmResume();
+            AtomicInteger statusCode = new AtomicInteger(0);
             for (BossNewMessageProcessor bossNewMessageProcessor : bossNewMessageProcessors) {
-                bossNewMessageProcessor.dealBossNewMessage(platform,amResume, amZpLocalAccouts, req);
+                bossNewMessageProcessor.dealBossNewMessage(statusCode,platform,amResume, amZpLocalAccouts, req);
             }
             return ResultVO.success();
         } catch (Exception e) {
@@ -680,10 +717,12 @@ public class ClientManager {
                     positionId = amPositionServiceOne.getId();
                 }
             }
+
             String userId = resumeJSONObject.get("uid").toString();
             if (StringUtils.isNotBlank(userId)) {
-                QueryWrapper<AmResume> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("uid", userId);
+                LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmResume::getUid, userId);
+                queryWrapper.eq(AmResume::getAccountId, amZpLocalAccouts.getId());
                 AmResume amResume = amResumeService.getOne(queryWrapper, false);
                 if (Objects.isNull(amResume)) {
                     amResume = new AmResume();
@@ -733,7 +772,8 @@ public class ClientManager {
 
                     boolean result = amResumeService.save(amResume);
                     log.info("dealUserAllInfoData result={},amResume={}", result, JSONObject.toJSONString(amResume));
-                } else {
+                }
+                else {
                     amResume.setPostId(positionId);
                     amResume.setZpData(resumeJSONObject.toJSONString());
 
@@ -774,7 +814,12 @@ public class ClientManager {
                     boolean result = amResumeService.updateById(amResume);
                     log.info("dealUserAllInfoData update result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
-
+                AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
+                if (Objects.nonNull(amClientTasks)) {
+                    if (amClientTasks.getData().contains("attachment_resume")) {
+                        dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
+                    }
+                }
                 // 简历匹配
             }
         } catch (Exception e) {
@@ -972,7 +1017,6 @@ public class ClientManager {
                 JSONObject.parseObject(tasksServiceOne.getData()).put("times", times);
                 tasksServiceOne.setData(JSONObject.toJSONString(parseObject));
                 tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
-                tasksServiceOne.setRetryTimes(0);
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             }else {
                 // 参数为0,则直接删除任务
