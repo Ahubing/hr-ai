@@ -75,7 +75,7 @@ public class AmZpLocalAccountJob {
      * 处理定时任务 每小时根据在线的账号,生成同步岗位的任务
      */
     // 20秒检测一次
-    @Scheduled(cron = "0 0 * * * ?")
+//    @Scheduled(cron = "0 0 * * * ?")
     public void getAllPositionJob() {
         Lock lock = DistributedLockUtils.getLock("get_all_job", 10);
         if (lock.tryLock()) {
