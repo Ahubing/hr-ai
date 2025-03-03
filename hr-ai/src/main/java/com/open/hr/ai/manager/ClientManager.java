@@ -122,10 +122,10 @@ public class ClientManager {
             } else {
                 amZpLocalAccouts.setExtBossId(extBossId);
             }
+
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
             amZpLocalAccouts.setState(AmLocalAccountStatusEnums.FREE.getStatus());
-            amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new QueryWrapper<AmClientTasks>().lambda();
             lambdaQueryWrapper.eq(AmClientTasks::getBossId, bossId);
             lambdaQueryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.GET_ALL_JOB.getType());
@@ -135,22 +135,26 @@ public class ClientManager {
                 log.info("账号:{} 存在未完成的任务", bossId);
                 return ResultVO.success();
             }
+            if (amZpLocalAccouts.getLogined() == 0){
+                HashMap<String, Object> map = new HashMap<>();
+                map.put("boss_id", amZpLocalAccouts.getId());
+                map.put("browser_id", amZpLocalAccouts.getBrowserId());
+                map.put("page", 1);
+                AmClientTasks amClientTasks = new AmClientTasks();
+                amClientTasks.setId(UUID.randomUUID().toString());
+                amClientTasks.setBossId(amZpLocalAccouts.getId());
+                amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
+                amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
+                amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+                amClientTasks.setData(JSONObject.toJSONString(map));
+                amClientTasks.setCreateTime(LocalDateTime.now());
+                amClientTasks.setUpdateTime(LocalDateTime.now());
+                boolean result = amClientTasksService.save(amClientTasks);
+                log.info("amClientTasksService save result={},amClientTasks={}", result, amClientTasks);
 
-            HashMap<String, Object> map = new HashMap<>();
-            map.put("boss_id", amZpLocalAccouts.getId());
-            map.put("browser_id", amZpLocalAccouts.getBrowserId());
-            map.put("page", 1);
-            AmClientTasks amClientTasks = new AmClientTasks();
-            amClientTasks.setId(UUID.randomUUID().toString());
-            amClientTasks.setBossId(amZpLocalAccouts.getId());
-            amClientTasks.setTaskType(ClientTaskTypeEnums.GET_ALL_JOB.getType());
-            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GET_ALL_JOB.getOrder());
-            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
-            amClientTasks.setData(JSONObject.toJSONString(map));
-            amClientTasks.setCreateTime(LocalDateTime.now());
-            amClientTasks.setUpdateTime(LocalDateTime.now());
-            boolean result = amClientTasksService.save(amClientTasks);
-            log.info("amClientTasksService save result={},amClientTasks={}", result, amClientTasks);
+            }
+            amZpLocalAccouts.setLogined(1);
+            amZpLocalAccoutsService.updateById(amZpLocalAccouts);
             return ResultVO.success();
         } catch (Exception e) {
             log.error("客户端登录异常 bossId={},connectId={},extBossId={}", bossId, connectId, extBossId, e);
