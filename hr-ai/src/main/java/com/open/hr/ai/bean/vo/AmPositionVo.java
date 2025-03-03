@@ -94,6 +94,12 @@ public class AmPositionVo {
     private String amDescribe;
 
     /**
+     * 评分标准+人才画像
+     */
+    private JSONObject jobStandard;
+
+
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;

@@ -20,6 +20,7 @@ public interface AmPositionConvert {
 
 
     @Mapping(target = "extendParams",source = "extendParams",qualifiedByName="toJsonObject")
+    @Mapping(target = "jobStandard",source = "jobStandard",qualifiedByName="toJsonObject")
     AmPositionVo converAmPositionVo(AmPosition amPosition);
 
 

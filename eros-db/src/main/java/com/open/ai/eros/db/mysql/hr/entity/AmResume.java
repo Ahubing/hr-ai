@@ -180,4 +180,9 @@ public class AmResume implements Serializable {
      */
     private Integer resumeType;
 
+    /**
+     * 胜任力模型数据
+     */
+    private String competencyModel;
+
 }

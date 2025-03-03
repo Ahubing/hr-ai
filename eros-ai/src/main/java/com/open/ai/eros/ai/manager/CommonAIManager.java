@@ -247,6 +247,60 @@ public class CommonAIManager {
 
     }
 
+
+
+
+    /**
+     * 非流获取ai结果
+     *
+     * @param messages
+     * @param templateModel
+     * @param temperature
+     * @return
+     */
+    public String aiNoStreamWith(List<ChatMessage> messages,
+                                       String templateModel,
+                                       Double temperature ) {
+
+        try {
+            String[] split = templateModel.split(":");
+            List<dev.langchain4j.data.message.ChatMessage> newMessages = new ArrayList<>();
+            for (ChatMessage message : messages) {
+                if (message.getRole().equals(AIRoleEnum.SYSTEM.getRoleName())) {
+                    SystemMessage systemMessage = new SystemMessage(message.getContent().toString());
+                    newMessages.add(systemMessage);
+                    continue;
+                }
+                if (message.getRole().equals(AIRoleEnum.USER.getRoleName())) {
+                    UserMessage user = new UserMessage("user", message.getContent().toString());
+                    newMessages.add(user);
+                    continue;
+                }
+                if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
+                    AiMessage aiMessage = new AiMessage(message.getContent().toString());
+                    newMessages.add(aiMessage);
+                }
+            }
+
+
+            String url = getUrl("https://bluecatai.net/");
+            String token = "sk-7e3d932bef164aedb8f3a33a90a51e7f";
+            OpenAiChatModel modelService = OpenAiChatModel.builder()
+                    .apiKey(token)
+                    .baseUrl(url)
+                    .modelName(split[1])
+                    .temperature(temperature)
+                    .build();
+            Response<AiMessage> generate = modelService.generate(newMessages);
+            AiMessage content = generate.content();
+            return content.text();
+        } catch (Exception e) {
+            log.error("aiNoStream error templateModel={} ", templateModel, e);
+        }
+        return null;
+
+    }
+
     public static String getUrl(String cdnHost) {
         return cdnHost.endsWith("/") ? cdnHost + "v1" : cdnHost + "/v1";
     }

@@ -116,5 +116,10 @@ public class AmPosition implements Serializable {
      */
     private String amDescribe;
 
+    /**
+     * 评分标准+人才画像
+     */
+    private String jobStandard;
+
 
 }

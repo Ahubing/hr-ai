@@ -16,6 +16,7 @@ import com.open.hr.ai.constant.PositionStatusEnums;
 import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
 import com.open.hr.ai.convert.AmPositionConvert;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
+import com.open.hr.ai.util.CompetencyModelPromptUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +56,8 @@ public class ChatBotPositionManager {
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
 
     @Resource
+    private CompetencyModelPromptUtil competencyModelPromptUtil;
+    @Resource
     private AmZpPlatformsServiceImpl amZpPlatformsService;
 
     @Resource
@@ -90,6 +93,45 @@ public class ChatBotPositionManager {
         }
         return ResultVO.fail("系统异常,删除失败");
     }
+
+
+    /**
+     *生成岗位人才画像和岗位胜任力模型的评价标准和打分权重规则
+     *
+     * @param req
+     * @param adminId
+     * @return
+     */
+    public ResultVO competencyModel(Integer id, Long adminId) {
+        try {
+            LambdaQueryWrapper<AmPosition> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmPosition::getAdminId, adminId);
+            queryWrapper.in(AmPosition::getId, id);
+            AmPosition positionServiceOne = amPositionService.getOne(queryWrapper, false);
+            if (Objects.isNull(positionServiceOne)) {
+                return ResultVO.fail("职位不存在");
+            }
+            if (StringUtils.isBlank(positionServiceOne.getAmDescribe())){
+                return ResultVO.fail("岗位描述为空, 请先完善岗位描述");
+            }
+
+            if (StringUtils.isNotBlank(positionServiceOne.getJobStandard())){
+                return ResultVO.fail("已经存在人才画像和打分标准数据");
+            }
+            String dealJobDescription = competencyModelPromptUtil.dealJobDescription(positionServiceOne.getName(), positionServiceOne.getAmDescribe());
+            if (StringUtils.isBlank(dealJobDescription)){
+                return ResultVO.fail("生成失败!, 请稍后重试");
+            }
+            positionServiceOne.setJobStandard(dealJobDescription);
+            boolean result = amPositionService.updateById(positionServiceOne);
+            return result ? ResultVO.success("生成成功") : ResultVO.fail("生成失败");
+        } catch (Exception e) {
+            log.error("更新失败 id={}", id, e);
+        }
+        return ResultVO.fail("系统异常,删除失败");
+    }
+
+
 
 
     /**

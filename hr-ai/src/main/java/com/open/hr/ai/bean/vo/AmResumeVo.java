@@ -222,4 +222,17 @@ public class AmResumeVo  {
      */
     @ApiModelProperty(value = "招聘者id")
     private String recruiterId;
+
+    /**
+     * 1、 系统自动获取
+     * 2、用户自定义上传
+     */
+    private Integer resumeType;
+
+    /**
+     * 胜任力模型数据
+     */
+    private JSONObject competencyModel;
+
+
 }
