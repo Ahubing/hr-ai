@@ -164,7 +164,7 @@ public class CommonAIManager {
                                 sb.append(result);
                                 log.info("取消面试: tool={}, cancelInterviewStr={}", name, result);
                                 break;
-                            case "modify_time":
+                            case "modify_interview_time":
                                 toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
                                 sb.append(result);
                                 log.info("修改面试时间: tool={}, modifyTimeStr={}", name, result);
