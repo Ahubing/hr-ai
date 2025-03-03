@@ -1,6 +1,7 @@
 package com.open.hr.ai.util;
 
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.db.constants.AIRoleEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -38,23 +39,22 @@ public class CompetencyModelPromptUtil {
 
 
     private String BuildAiJobDescription(String positionName,String amDescribe ){
-        String replace = JobDescriptionPrompt.replace("{" + positionName + "}", positionName);
-        String buildAiJobDescriptionPrompt = replace.replace("{" + amDescribe + "}", amDescribe);
+        String replace = JobDescriptionPrompt.replace("{positionName}", positionName);
+        String buildAiJobDescriptionPrompt = replace.replace("{amDescribe}", amDescribe);
         return buildAiJobDescriptionPrompt;
     }
 
 
 
     private String BuildAmResumeCompetencyModel(String competencyModel,String amResume ){
-        String replace = amResumeCompetencyModelPrompt.replace("{" + competencyModel + "}", competencyModel);
-        String buildAmResumeCompetencyModel = replace.replace("{" + amResume + "}", amResume);
+        String replace = amResumeCompetencyModelPrompt.replace("{competencyModel}", competencyModel);
+        String buildAmResumeCompetencyModel = replace.replace("{amResume}", amResume);
         return buildAmResumeCompetencyModel;
     }
 
 
     public List<ChatMessage> buildPrompt(String prompt) {
         try {
-
             // 构造系统提示词
             List<ChatMessage> newMessages = new ArrayList<>();
             ChatMessage user = new ChatMessage(AIRoleEnum.USER.getRoleName(), prompt);
@@ -70,21 +70,33 @@ public class CompetencyModelPromptUtil {
     public String dealJobDescription(String positionName,String amDescribe ){
         String prompt = BuildAiJobDescription(positionName, amDescribe);
         List<ChatMessage> chatMessages = buildPrompt(prompt);
-        String aiResult = commonAIManager.aiNoStreamWith(chatMessages, "OpenAI:gpt-4o-2024-05-13", 0.8);
+        String aiResult = "";
+        for (int i = 0; i < 10; i++) {
+            aiResult = commonAIManager.aiNoStreamWith(chatMessages, "OpenAI:gpt-4o-2024-05-13", 0.8);
+            if (StringUtils.isNotBlank(aiResult)){
+                break;
+            }
+        }
         if (StringUtils.isBlank(aiResult)){
             return null;
         }
-        return aiResult;
+        return  AIJsonUtil.getJsonContent(aiResult);
     }
 
     public String dealAmResumeCompetencyModel(String competencyModel,String amResume ){
         String prompt = BuildAmResumeCompetencyModel(competencyModel, amResume);
         List<ChatMessage> chatMessages = buildPrompt(prompt);
-        String aiResult = commonAIManager.aiNoStreamWith(chatMessages, "OpenAI:gpt-4o-2024-05-13", 0.8);
-        if (StringUtils.isBlank(aiResult)){
+        String aiResult = "";
+        for (int i = 0; i < 10; i++) {
+            aiResult = commonAIManager.aiNoStreamWith(chatMessages, "OpenAI:gpt-4o-2024-05-13", 0.8);
+            if (StringUtils.isNotBlank(aiResult)){
+                break;
+            }
+        }
+          if (StringUtils.isBlank(aiResult)){
             return null;
         }
-        return aiResult;
+        return AIJsonUtil.getJsonContent(aiResult);
     }
 
 

@@ -96,7 +96,7 @@ public class ChatBotPositionManager {
 
 
     /**
-     * 更新岗位
+     *生成岗位人才画像和岗位胜任力模型的评价标准和打分权重规则
      *
      * @param req
      * @param adminId
@@ -114,9 +114,17 @@ public class ChatBotPositionManager {
             if (StringUtils.isBlank(positionServiceOne.getAmDescribe())){
                 return ResultVO.fail("岗位描述为空, 请先完善岗位描述");
             }
+
+            if (StringUtils.isNotBlank(positionServiceOne.getJobStandard())){
+                return ResultVO.fail("已经存在人才画像和打分标准数据");
+            }
             String dealJobDescription = competencyModelPromptUtil.dealJobDescription(positionServiceOne.getName(), positionServiceOne.getAmDescribe());
+            if (StringUtils.isBlank(dealJobDescription)){
+                return ResultVO.fail("生成失败!, 请稍后重试");
+            }
+            positionServiceOne.setJobStandard(dealJobDescription);
             boolean result = amPositionService.updateById(positionServiceOne);
-            return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
+            return result ? ResultVO.success("生成成功") : ResultVO.fail("生成失败");
         } catch (Exception e) {
             log.error("更新失败 id={}", id, e);
         }
