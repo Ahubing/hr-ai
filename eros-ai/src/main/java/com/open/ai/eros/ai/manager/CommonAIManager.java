@@ -113,8 +113,8 @@ public class CommonAIManager {
                 }
             }
 
-            String url = getUrl("https://bluecatai.net/");
-            String token = "sk-7e3d932bef164aedb8f3a33a90a51e7f";
+            String url = getUrl("https://vip.zen-ai.top/");
+            String token = "sk-hV2cfUMDd1N027qV012foenZzjmfRSKikPd4nrrwHsZa964K";
 
             OpenAiChatModel modelService = OpenAiChatModel.builder()
                     .apiKey(token)
