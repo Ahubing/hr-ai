@@ -145,6 +145,7 @@ public class CommonAIManager {
                         // 特殊业务逻辑
                         switch (name) {
                             case "set_status":
+                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
                                 ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
                                 statusCode.set(enums.getStatus());
                                 log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
