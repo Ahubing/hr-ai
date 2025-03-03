@@ -28,6 +28,7 @@ public class InterviewCalendarFunction {
     public String get_spare_time(@P("开始时间（IOS时间）") String startTime,
                                  @P("结束时间（IOS时间）") String endTime,
                                  @P("当前角色的面具ID") String maskId) {
+        log.info("get_spare_time function params startTime:{} endTime:{} maskId:{}", startTime, endTime, maskId);
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
@@ -42,6 +43,7 @@ public class InterviewCalendarFunction {
                                     @P("求职者期望的面试开始时间") String startTime,
                                     @P("当前招聘的职位id positionId") String positionId,
                                     @P("当前角色所登录的平台账号的id accountId") String accountId) {
+        log.info("appoint_interview function params maskId:{} adminId:{} employeeUid:{} startTime:{} positionId:{} accountId:{}", maskId, adminId, employeeUid, startTime, positionId, accountId);
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId),Long.parseLong(adminId),employeeUid,sTime,Long.parseLong(positionId),accountId));
 
@@ -50,6 +52,7 @@ public class InterviewCalendarFunction {
 
     @Tool(name = "cancel_interview", value = {"通过分析求职者的上下文,判断求职者想要取消面试,并获取到上下文中求职者面试的id"})
     public String cancel_interview(@P("求职者想要取消面试的id") String id) {
+        log.info("cancel_interview function params id:{}", id);
         ResultVO<Boolean> resultVO = icTmpManager.cancelInterview(id,2);
 
         return (resultVO.getCode() == 200 && resultVO.getData()) ? "OK，已经取消了\n" : "后台面试取消失败了，你看下你之前是不是取消过面试或者提供的面试id有问题\n";
@@ -58,6 +61,7 @@ public class InterviewCalendarFunction {
     @Tool(name = "modify_time", value = {"通过分析求职者的上下文,判断求职者想要修改面试时间,并获取到上下文中求职者面试的id和想要修改到的面试时间格式为yyyy-MM-ddThh:mm:ss"})
     public String modify_time(@P("求职者想要修改面试的id") String id,
                               @P("求职者想要修改面试的时间") String newTime) {
+        log.info("modify_time function params id:{} newTime:{}", id, newTime);
         LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<Boolean> resultVO = icTmpManager.modifyTime(id,sTime);
 
