@@ -180,12 +180,13 @@ public class AiReplyPromptUtil {
                     }
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("id",icRecord.getId());
-                        jsonObject.put("interviewTime", icRecord.getStartTime());
-                        stringBuilder.append(interviewPrompt
-                                .replace("{interview_info}", JSONObject.toJSONString(jsonObject))
-                                .replace("{address}", interviewAddress));
+                        if(Objects.nonNull(icRecord)){
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("id",icRecord.getId());
+                            jsonObject.put("interviewTime", icRecord.getStartTime());
+                            interviewPrompt = interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
+                        }
+                        stringBuilder.append(interviewPrompt.replace("{address}", interviewAddress));
                     }
                 }
 
