@@ -115,9 +115,6 @@ public class ChatBotPositionManager {
                 return ResultVO.fail("岗位描述为空, 请先完善岗位描述");
             }
 
-            if (StringUtils.isNotBlank(positionServiceOne.getJobStandard())){
-                return ResultVO.fail("已经存在人才画像和打分标准数据");
-            }
             String dealJobDescription = competencyModelPromptUtil.dealJobDescription(positionServiceOne.getName(), positionServiceOne.getAmDescribe());
             if (StringUtils.isBlank(dealJobDescription)){
                 return ResultVO.fail("生成失败!, 请稍后重试");
