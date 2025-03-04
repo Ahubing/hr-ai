@@ -215,6 +215,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL));
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
+                log.info("aiPrompt={}", aiPrompt);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");

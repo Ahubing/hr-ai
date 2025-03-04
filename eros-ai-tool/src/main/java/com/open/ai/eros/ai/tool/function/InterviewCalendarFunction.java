@@ -48,25 +48,23 @@ public class InterviewCalendarFunction {
         log.info("appoint_interview function params maskId:{} adminId:{} employeeUid:{} startTime:{} positionId:{} accountId:{}", maskId, adminId, employeeUid, startTime, positionId, accountId);
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId),Long.parseLong(adminId),employeeUid,sTime,Long.parseLong(positionId),accountId));
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.append("id",resultVO.getData());
-        return JSONUtil.toJsonStr(jsonObject);
+        return JSONUtil.toJsonStr(resultVO);
     }
 
     @Tool(name = "cancel_interview", value = {"取消面试"})
-    public String cancel_interview(@P("面试的id") String id) {
-        log.info("cancel_interview function params id:{}", id);
-        ResultVO<Boolean> resultVO = icTmpManager.cancelInterview(id,2);
+    public String cancel_interview(@P("面试的id") String interviewId) {
+        log.info("cancel_interview function params interviewId:{}", interviewId);
+        ResultVO<Boolean> resultVO = icTmpManager.cancelInterview(interviewId,2);
         JSONObject jsonObject = new JSONObject();
         jsonObject.append("success",resultVO.getData());
         return JSONUtil.toJsonStr(jsonObject);
     }
     @Tool(name = "modify_interview_time", value = {"修改面试时间"})
-    public String modify_interview_time(@P("原面试的id") String id,
+    public String modify_interview_time(@P("原面试的id") String interviewId,
                                         @P("修改到的新时间（格式为yyyy-MM-ddTHH:mm:ss）") String newTime) {
-        log.info("modify_interview_time function params id:{} newTime:{}", id, newTime);
+        log.info("modify_interview_time function params interviewId:{} newTime:{}", interviewId, newTime);
         LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        ResultVO<Boolean> resultVO = icTmpManager.modifyTime(id,sTime);
+        ResultVO<Boolean> resultVO = icTmpManager.modifyTime(interviewId,sTime);
         JSONObject jsonObject = new JSONObject();
         jsonObject.append("success",resultVO.getData());
         return JSONUtil.toJsonStr(jsonObject);
