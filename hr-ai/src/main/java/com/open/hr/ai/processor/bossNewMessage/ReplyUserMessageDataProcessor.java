@@ -215,6 +215,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                         .eq(IcRecord::getAccountId, amResume.getAccountId())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL));
+                log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
                 log.info("icRecord={}", JSONUtil.toJsonStr(icRecord));
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 log.info("aiPrompt={}", aiPrompt);
