@@ -15,10 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,12 +28,12 @@ public class InterviewCalendarFunction {
     private ICTmpManager icTmpManager;
 
     @Tool(name = "get_spare_time", value = {"查询可用面试时间。返回时间段内所有可面试时间"})
-    public String get_spare_time(@P("开始时间（ISO时间）") String startTime,
-                                 @P("结束时间（ISO时间）") String endTime,
+    public String get_spare_time(@P("开始时间（格式为yyyy-MM-ddTHH:mm:ss）") String startTime,
+                                 @P("结束时间（格式为yyyy-MM-ddTHH:mm:ss）") String endTime,
                                  @P("当前角色的面具ID") String maskId) {
         log.info("get_spare_time function params startTime:{} endTime:{} maskId:{}", startTime, endTime, maskId);
-        LocalDateTime sTime = Instant.parse(startTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
-        LocalDateTime eTime = Instant.parse(endTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
         return JSONUtil.toJsonStr(resultVO.getData());
     }
@@ -44,11 +42,11 @@ public class InterviewCalendarFunction {
     public String appoint_interview(@P("maskId") String maskId,
                                     @P("adminId") String adminId,
                                     @P("employeeUid") String employeeUid,
-                                    @P("求职者期望的面试开始时间（ISO时间）") String startTime,
+                                    @P("求职者期望的面试开始时间（格式为yyyy-MM-ddTHH:mm:ss）") String startTime,
                                     @P("positionId") String positionId,
                                     @P("accountId") String accountId) {
         log.info("appoint_interview function params maskId:{} adminId:{} employeeUid:{} startTime:{} positionId:{} accountId:{}", maskId, adminId, employeeUid, startTime, positionId, accountId);
-        LocalDateTime sTime = Instant.parse(startTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId),Long.parseLong(adminId),employeeUid,sTime,Long.parseLong(positionId),accountId));
         JSONObject jsonObject = new JSONObject();
         jsonObject.append("id",resultVO.getData());
@@ -65,9 +63,9 @@ public class InterviewCalendarFunction {
     }
     @Tool(name = "modify_interview_time", value = {"修改面试时间"})
     public String modify_interview_time(@P("原面试的id") String id,
-                                        @P("修改到的新时间（ISO时间）") String newTime) {
+                                        @P("修改到的新时间（格式为yyyy-MM-ddTHH:mm:ss）") String newTime) {
         log.info("modify_interview_time function params id:{} newTime:{}", id, newTime);
-        LocalDateTime sTime = Instant.parse(newTime).atZone(ZoneId.systemDefault()).toLocalDateTime();
+        LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<Boolean> resultVO = icTmpManager.modifyTime(id,sTime);
         JSONObject jsonObject = new JSONObject();
         jsonObject.append("success",resultVO.getData());
