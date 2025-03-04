@@ -116,6 +116,7 @@ public class AmNewMaskController extends HrAIBaseController {
         List<ReviewStatusVo> reviewStatusVos = new ArrayList<>();
         for (ReviewStatusEnums statusEnums : ReviewStatusEnums.values()) {
             if (statusEnums.getStatus() == ReviewStatusEnums.ABANDON.getStatus()
+            || statusEnums.getStatus() == ReviewStatusEnums.RESUME_SCREENING.getStatus()
             || statusEnums.getStatus() == ReviewStatusEnums.OFFER_ISSUED.getStatus()
             || statusEnums.getStatus() == ReviewStatusEnums.ONBOARD.getStatus()
             ) {
