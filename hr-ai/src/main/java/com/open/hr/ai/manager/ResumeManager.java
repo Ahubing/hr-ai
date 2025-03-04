@@ -24,6 +24,7 @@ import com.open.hr.ai.constant.AmResumeWorkYearsEnums;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
 import com.open.hr.ai.convert.AmResumeConvert;
 import com.open.hr.ai.convert.AmUploadResumeConvert;
+import com.open.hr.ai.util.CompetencyModelPromptUtil;
 import com.open.hr.ai.util.ResumeParseUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +57,8 @@ public class ResumeManager {
 
     @Resource
     private AmPositionPostServiceImpl amPositionPostService;
+    @Resource
+    private AmPositionServiceImpl amPositionService;
 
     @Resource
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
@@ -63,6 +66,10 @@ public class ResumeManager {
 
     @Resource
     private CommonAIManager commonAIManager;
+
+
+    @Resource
+    private CompetencyModelPromptUtil competencyModelPromptUtil;
 
 
     public ResultVO<AmResumeVo> resumeDetail(Integer id) {
@@ -297,6 +304,51 @@ public class ResumeManager {
         }
         return ResultVO.fail("查询失败");
     }
+
+
+
+    /**
+     * 执行胜任力模型
+     */
+    public ResultVO competencyModel(Integer id, Long adminId) {
+        // 添加对模型空回复或者抛异常的重试，重试10次（请求模型参数异常等情况也会轮询10次）
+        try {
+                // 保存解析结果
+            AmResume amResume = amResumeService.getById(id);
+            if (Objects.isNull(amResume)) {
+                return ResultVO.fail("简历不存在");
+            }
+            if (StringUtils.isNotBlank(amResume.getCompetencyModel())){
+                return ResultVO.fail("已经存在胜任力模型评估数据");
+            }
+            Integer postId = amResume.getPostId();
+            AmPosition amPosition = amPositionService.getById(postId);
+            if (Objects.isNull(amPosition)){
+                return ResultVO.fail("岗位不存在");
+            }
+            String jobStandard = amPosition.getJobStandard();
+            if (StringUtils.isBlank(jobStandard)) {
+                return ResultVO.fail("人才画像和评分标准不存在,请先生成");
+            }
+            if (StringUtils.isBlank(amResume.getZpData())){
+                return ResultVO.fail("缺少相关简历数据");
+            }
+            String amResumeCompetencyModel = competencyModelPromptUtil.dealAmResumeCompetencyModel(jobStandard, amResume.getZpData());
+
+            if (StringUtils.isBlank(amResumeCompetencyModel)){
+                return ResultVO.fail("生成失败!, 请稍后重试");
+            }
+            amResume.setCompetencyModel(amResumeCompetencyModel);
+            boolean result = amResumeService.updateById(amResume);
+            log.info("执行胜任力模型 data={},result={}", JSONObject.toJSONString(amResume), result);
+            return result ? ResultVO.success("执行成功") : ResultVO.fail("执行失败");
+        } catch (Exception e) {
+            log.error("执行胜任力模型异常", e);
+        }
+        return ResultVO.fail("执行胜任力模型异常");
+    }
+
+
 
 
 }
