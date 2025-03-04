@@ -1,5 +1,6 @@
 package com.open.hr.ai.processor.bossNewMessage;
 
+import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
@@ -214,6 +215,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                         .eq(IcRecord::getAccountId, amResume.getAccountId())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL));
+                log.info("icRecord={}", JSONUtil.toJsonStr(icRecord));
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 log.info("aiPrompt={}", aiPrompt);
                 if (StringUtils.isBlank(aiPrompt)) {

@@ -181,14 +181,19 @@ public class AiReplyPromptUtil {
                     }
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
-                        if(Objects.nonNull(icRecord)){
-                            JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("interviewId",icRecord.getId());
-                            jsonObject.put("interviewTime", icRecord.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                            interviewPrompt = interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
-                        }
-                        stringBuilder.append(interviewPrompt.replace("{address}", interviewAddress));
+                        interviewPrompt = interviewPrompt.replace("{address}", interviewAddress);
+                    }else {
+                        interviewPrompt = interviewPrompt.replace("{address}", "");
                     }
+                    if(Objects.nonNull(icRecord)){
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("interviewId",icRecord.getId());
+                        jsonObject.put("interviewTime", icRecord.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                        interviewPrompt = interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
+                    }else {
+                        interviewPrompt = interviewPrompt.replace("{interview_info}", "");
+                    }
+                    stringBuilder.append(interviewPrompt);
                 }
 
                 // #其他招聘信息
