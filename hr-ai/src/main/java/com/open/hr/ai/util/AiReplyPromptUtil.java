@@ -5,6 +5,7 @@ import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
+import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.CompanyInfo;
 import com.open.hr.ai.bean.req.DifferentiationAdvantage;
@@ -65,7 +66,10 @@ public class AiReplyPromptUtil {
             "- 工作环境：{workEnvironment}\n" ,
             "- 特别福利：{welfare}\n" );
 
-    public static String interviewPrompt = "# 面试信息\n - 面试方式：线下\n - 面试地址：{address}\n";
+    public static String interviewPrompt = "# 面试信息\n" +
+            "已预约的面试：{interview_info}\n"+
+            " - 面试方式：线下\n" +
+            " - 面试地址：{address}\n";
 
     public static String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
@@ -124,7 +128,7 @@ public class AiReplyPromptUtil {
             "————————————";
 
 
-    public static String buildPrompt(AmResume amResume, AmNewMask amNewMask) {
+    public static String buildPrompt(AmResume amResume, AmNewMask amNewMask, IcRecord icRecord) {
         try {
             StringBuilder stringBuilder = new StringBuilder();
             String aiRequestParam = amNewMask.getAiRequestParam();
@@ -176,7 +180,12 @@ public class AiReplyPromptUtil {
                     }
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
-                        stringBuilder.append(interviewPrompt.replace("{address}", interviewAddress));
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("id",icRecord.getId());
+                        jsonObject.put("interviewTime", icRecord.getStartTime());
+                        stringBuilder.append(interviewPrompt
+                                .replace("{interview_info}", JSONObject.toJSONString(jsonObject))
+                                .replace("{address}", interviewAddress));
                     }
                 }
 
@@ -294,6 +303,12 @@ public class AiReplyPromptUtil {
         System.out.println("今天 " + inputTime + " 的时间戳是：" + timestamp);
         LocalDate now = LocalDate.now();
         System.out.println("今天是：" + now);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", "张三");
+        jsonObject.put("age", 18);
+        jsonObject.put("address", "广州");
+        System.out.println(JSONObject.toJSONString(jsonObject));
 
     }
 }

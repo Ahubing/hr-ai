@@ -41,6 +41,9 @@ public class DealUserFirstSendMessageUtil {
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
+    @Resource
+    private IcRecordServiceImpl recordService;
+
 
     @Resource
     private AmNewMaskServiceImpl amNewMaskService;
@@ -123,7 +126,13 @@ public class DealUserFirstSendMessageUtil {
             amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask);
+                IcRecord icRecord = recordService.getOne(new LambdaQueryWrapper<IcRecord>()
+                        .eq(IcRecord::getAdminId, amZpLocalAccouts.getAdminId())
+                        .eq(IcRecord::getPositionId, amResume.getPostId())
+                        .eq(IcRecord::getAccountId, amResume.getAccountId())
+                        .eq(IcRecord::getEmployeeUid, amResume.getUid())
+                        .eq(IcRecord::getCancelStatus, 1));
+                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
