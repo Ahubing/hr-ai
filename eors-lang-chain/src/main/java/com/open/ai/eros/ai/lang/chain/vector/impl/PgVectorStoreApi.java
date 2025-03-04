@@ -26,7 +26,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Order(-1)
-@Configuration
+//@Configuration
 @Slf4j
 public class PgVectorStoreApi implements VectorStoreApi {
 
