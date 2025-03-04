@@ -38,7 +38,7 @@ public class InitModelConfigJob {
     /**
      * 初始化渠道
      */
-    @Scheduled(fixedDelay = 200000  )
+//    @Scheduled(fixedDelay = 200000  )
     public void initModelConfig(){
         log.info("initModelConfig 开始检测渠道缓存。。。。。");
         List<ModelConfig> modelConfigs = modelConfigService.list();
