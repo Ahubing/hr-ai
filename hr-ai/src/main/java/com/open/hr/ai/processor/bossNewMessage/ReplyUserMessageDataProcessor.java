@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
+import com.open.ai.eros.ai.tool.tmp.tmpbean.InterviewStatusEnum;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -212,7 +213,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                         .eq(IcRecord::getPositionId, amResume.getPostId())
                         .eq(IcRecord::getAccountId, amResume.getAccountId())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
-                        .eq(IcRecord::getCancelStatus, 1));
+                        .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL));
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));

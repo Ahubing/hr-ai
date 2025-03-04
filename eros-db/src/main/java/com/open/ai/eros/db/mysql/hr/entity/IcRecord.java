@@ -81,7 +81,7 @@ public class IcRecord implements Serializable {
     /**
      * 职位id
      */
-    private Integer positionId;
+    private Long positionId;
 
 
 }
