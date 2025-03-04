@@ -56,7 +56,7 @@ public class InterviewCalendarFunction {
         log.info("cancel_interview function params interviewId:{}", interviewId);
         ResultVO<Boolean> resultVO = icTmpManager.cancelInterview(interviewId,2);
         JSONObject jsonObject = new JSONObject();
-        jsonObject.append("success",resultVO.getData());
+        jsonObject.append("result",200 == resultVO.getCode() ? "success":resultVO.getMsg());
         return JSONUtil.toJsonStr(jsonObject);
     }
     @Tool(name = "modify_interview_time", value = {"修改面试时间"})
@@ -66,7 +66,7 @@ public class InterviewCalendarFunction {
         LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<Boolean> resultVO = icTmpManager.modifyTime(interviewId,sTime);
         JSONObject jsonObject = new JSONObject();
-        jsonObject.append("success",resultVO.getData());
+        jsonObject.append("result",200 == resultVO.getCode() ? "success":resultVO.getMsg());
         return JSONUtil.toJsonStr(jsonObject);
     }
     private String buildSpareTimeResponse(IcSpareTimeVo data) {
