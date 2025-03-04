@@ -125,6 +125,7 @@ public class CommonAIManager {
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
             List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
+            newMessages.add(content);
             StringBuilder sb = new StringBuilder();//收集所有需要让ai回复的值
             List<ToolExecutionResultMessage> toolResults = new ArrayList<>(); // 收集工具结果
 
