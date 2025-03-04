@@ -38,7 +38,7 @@ public class InterviewCalendarFunction {
         return JSONUtil.toJsonStr(resultVO.getData());
     }
 
-    @Tool(name = "appoint_interview", value = {"在系统中预约面试时间。预约面试id应该告知求职者。"})
+    @Tool(name = "appoint_interview", value = {"为求职者预约面试时间。并告知求职者面试id，方便后续进行修改面试时间或取消面试。"})
     public String appoint_interview(@P("maskId") String maskId,
                                     @P("adminId") String adminId,
                                     @P("employeeUid") String employeeUid,

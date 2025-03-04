@@ -106,6 +106,14 @@ public class AiReplyPromptUtil {
             "5. 不符合：无意向或已被淘汰\n\n" +
             "当前所处进度：{currentType}\n";
 
+    /**
+     * 工具调用prompt
+     */
+
+    public static final  String toolPrompt = "\n" +
+            "# 工具调用说明\n" +
+            "你只能选择一个工具进行调用，在上下文双方已经确认面试时间后应调用appoint_interview函数直接预约面试，而不要调用get_spare_time再次查询，因为你一次只能调用一个函数，调用get_spare_time你将无法在系统预约面试时间。\n";
+
 
     /**
      *  示例对话
@@ -234,6 +242,8 @@ public class AiReplyPromptUtil {
                 if (StringUtils.isNotBlank(exampleDialogs)) {
                     stringBuilder.append(exampleDialog.replace("{exampleDialog}", exampleDialogs));
                 }
+                //工具调用
+                stringBuilder.append(toolPrompt);
             }
             return stringBuilder.toString();
         } catch (Exception e) {
