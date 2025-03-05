@@ -179,6 +179,11 @@ public class AiReplyPromptUtil {
                             }
                         }
                     }
+
+                }
+
+                //面试信息
+                if(amNewMaskAddReq.getOpenInterviewSwitch()){
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
                         interviewPrompt = interviewPrompt.replace("{address}", interviewAddress);
