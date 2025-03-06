@@ -131,6 +131,7 @@ public class DealUserFirstSendMessageUtil {
                         .eq(IcRecord::getAdminId, amZpLocalAccouts.getAdminId())
                         .eq(IcRecord::getPositionId, amResume.getPostId())
                         .eq(IcRecord::getAccountId, amResume.getAccountId())
+                        .ge(IcRecord::getStartTime, LocalDateTime.now())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
                 log.info("icRecord={}", icRecord.toString());
