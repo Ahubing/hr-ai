@@ -192,7 +192,7 @@ public class AiReplyPromptUtil {
                     }else {
                         interviewPrompt = interviewPrompt.replace("{address}", "");
                     }
-                    log.info("buildPrompt icRecord={}", JSONObject.toJSONString(icRecord));
+                    log.info("buildPrompt icRecord={} isnull?:{}", JSONObject.toJSONString(icRecord),icRecord == null);
                     if(Objects.nonNull(icRecord)){
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("interviewId",icRecord.getId());
