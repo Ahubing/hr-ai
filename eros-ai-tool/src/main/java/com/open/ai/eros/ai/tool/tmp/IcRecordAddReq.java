@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.tool.tmp.tmpbean;
+package com.open.ai.eros.ai.tool.tmp;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

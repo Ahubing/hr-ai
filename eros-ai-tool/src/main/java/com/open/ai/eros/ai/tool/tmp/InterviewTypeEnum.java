@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.tool.tmp.tmpbean;
+package com.open.ai.eros.ai.tool.tmp;
 
 public enum InterviewTypeEnum {
 

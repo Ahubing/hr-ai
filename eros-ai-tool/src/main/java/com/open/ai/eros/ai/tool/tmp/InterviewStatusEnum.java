@@ -1,9 +1,10 @@
-package com.open.hr.ai.constant;
+package com.open.ai.eros.ai.tool.tmp;
 
 public enum InterviewStatusEnum {
 
     NOT_CANCEL(1, "未取消"),
-    CANCEL(2, "已取消");
+    CANCEL(2, "已取消"),
+    DEPRECATED(3, "已过期");
 
     private Integer status;
     private String desc;

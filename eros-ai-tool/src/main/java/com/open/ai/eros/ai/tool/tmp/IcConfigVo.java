@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.tool.tmp.tmpbean;
+package com.open.ai.eros.ai.tool.tmp;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -6,9 +6,9 @@ import lombok.Data;
 import java.sql.Time;
 
 @Data
-public class IcConfigUpdateReq {
+public class IcConfigVo {
 
-    @ApiModelProperty(value = "id",required = true)
+    @ApiModelProperty(value = "id")
     private String id;
 
     /**

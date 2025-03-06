@@ -1,4 +1,4 @@
-package com.open.hr.ai.bean.vo;
+package com.open.ai.eros.ai.tool.tmp;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -23,7 +23,6 @@ public class IcSpareTimeVo {
 
     @Data
     public static class SpareDateVo{
-
         @ApiModelProperty("日期")
         private LocalDate localDate;
 

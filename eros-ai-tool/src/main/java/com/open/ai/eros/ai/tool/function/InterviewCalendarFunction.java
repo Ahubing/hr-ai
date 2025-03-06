@@ -1,13 +1,11 @@
 package com.open.ai.eros.ai.tool.function;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.JsonObject;
-import com.open.ai.eros.ai.tool.tmp.ICTmpManager;
-import com.open.ai.eros.ai.tool.tmp.tmpbean.IcRecordAddReq;
-import com.open.ai.eros.ai.tool.tmp.tmpbean.IcSpareTimeReq;
-import com.open.ai.eros.ai.tool.tmp.tmpbean.IcSpareTimeVo;
+import com.open.ai.eros.ai.tool.tmp.ICManager;
+import com.open.ai.eros.ai.tool.tmp.IcRecordAddReq;
+import com.open.ai.eros.ai.tool.tmp.IcSpareTimeReq;
+import com.open.ai.eros.ai.tool.tmp.IcSpareTimeVo;
 import com.open.ai.eros.common.vo.ResultVO;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
@@ -25,7 +23,7 @@ import java.util.List;
 public class InterviewCalendarFunction {
 
     @Resource
-    private ICTmpManager icTmpManager;
+    private ICManager icTmpManager;
 
     @Tool(name = "get_spare_time", value = {"查询可用面试时间。返回时间段内所有可面试时间"})
     public String get_spare_time(@P("开始时间（格式为yyyy-MM-ddTHH:mm:ss）") String startTime,
@@ -70,30 +68,4 @@ public class InterviewCalendarFunction {
         return JSONObject.toJSONString(resultVO);
     }
 
-
-    private String buildSpareTimeResponse(IcSpareTimeVo data) {
-        List<IcSpareTimeVo.SpareDateVo> dateVos = data.getSpareDateVos();
-        if (CollectionUtil.isNotEmpty(dateVos)) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("我大概看了一下，我在这几个时间段是空闲的:\n");
-            for (IcSpareTimeVo.SpareDateVo dateVo : dateVos) {
-                LocalDate date = dateVo.getLocalDate();
-                int monthValue = date.getMonthValue();
-                int dayOfMonth = date.getDayOfMonth();
-                sb.append(monthValue).append("月").append(dayOfMonth).append("日").append(":\n");
-                for (IcSpareTimeVo.SparePeriodVo sparePeriodVo : dateVo.getSparePeriodVos()) {
-                    LocalDateTime startTime = sparePeriodVo.getStartTime();
-                    LocalDateTime endTime = sparePeriodVo.getEndTime();
-                    int startHour = startTime.getHour();
-                    int startMinute = startTime.getMinute();
-                    int endHour = endTime.getHour();
-                    int endMinute = endTime.getMinute();
-                    sb.append(startHour).append("点").append(startMinute).append("分到").append(endHour).append("点").append(endMinute).append("分").append("\n");
-                }
-            }
-            return sb.toString();
-        }
-        // TODO: 改成json描述
-        return "抱歉，这个时间我有别的面试了，换个时间吧";
-    }
 }

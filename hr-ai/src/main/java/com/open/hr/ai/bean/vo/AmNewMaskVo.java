@@ -1,6 +1,7 @@
 package com.open.hr.ai.bean.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.open.ai.eros.ai.tool.tmp.IcConfigVo;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.hr.ai.bean.req.CompanyInfo;
 import com.open.hr.ai.bean.req.IcConfigUpdateReq;

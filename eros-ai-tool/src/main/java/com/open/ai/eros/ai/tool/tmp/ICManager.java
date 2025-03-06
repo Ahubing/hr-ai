@@ -1,30 +1,18 @@
-package com.open.hr.ai.manager;
+package com.open.ai.eros.ai.tool.tmp;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.open.ai.eros.common.constants.CommonConstant;
-import com.open.ai.eros.common.vo.PageVO;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
-import com.open.hr.ai.bean.req.IcRecordAddReq;
-import com.open.hr.ai.bean.req.IcRecordPageReq;
-import com.open.hr.ai.bean.req.IcSpareTimeReq;
-import com.open.hr.ai.bean.vo.IcGroupDaysVo;
-import com.open.hr.ai.bean.vo.IcRecordVo;
-import com.open.hr.ai.bean.vo.IcSpareTimeVo;
-import com.open.hr.ai.constant.InterviewStatusEnum;
-import com.open.hr.ai.constant.InterviewTypeEnum;
-import com.open.hr.ai.convert.AmPositionSetionConvertImpl;
-import com.open.hr.ai.convert.IcRecordConvert;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -35,7 +23,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -64,6 +55,9 @@ public class ICManager {
     @Resource
     private JedisClientImpl jedisClient;
 
+    @Resource
+    private AmResumeServiceImpl resumeService;
+
     private static final long EXPIRE_TIME = 5 * 24 * 3600;
 
     public ResultVO<IcSpareTimeVo> getSpareTime(IcSpareTimeReq spareTimeReq){
@@ -72,7 +66,7 @@ public class ICManager {
             spareTimeReq.setStartTime(LocalDateTime.now());
         }
         AmNewMask mask = amNewMaskService.getById(spareTimeReq.getMaskId());
-        log.info("getSpareTime mask={}", JSONObject.toJSONString(mask));
+        log.info("getSpareTime params={} mask={}", JSONObject.toJSONString(spareTimeReq), JSONObject.toJSONString(mask));
 
         //目前只做群面
         IcSpareTimeVo spareTimeVo = new IcSpareTimeVo();
@@ -193,6 +187,16 @@ public class ICManager {
     }
 
     public ResultVO<String> appointInterview(IcRecordAddReq req) {
+         long count = icRecordService.count(new LambdaQueryWrapper<IcRecord>()
+                .eq(IcRecord::getAdminId, req.getAdminId())
+                .eq(IcRecord::getPositionId, req.getPositionId())
+                .eq(IcRecord::getAccountId, req.getAccountId())
+                .eq(IcRecord::getEmployeeUid, req.getEmployeeUid())
+                .ge(IcRecord::getStartTime, LocalDateTime.now())
+                .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
+        if(count > 0){
+            return ResultVO.fail("已经预约了面试,无法再次预约");
+        }
         IcRecord icRecord = new IcRecord();
         AmNewMask newMask = amNewMaskService.getById(req.getMaskId());
         if(InterviewTypeEnum.GROUP.getCode().equals(newMask.getInterviewType())){
@@ -205,11 +209,20 @@ public class ICManager {
                 icRecordService.save(icRecord);
                 return ResultVO.success(icRecord.getId());
             }
-            return ResultVO.success(null);
+            return ResultVO.fail("无空闲时间");
         }
         //todo 单面处理逻辑
-        icRecordService.save(icRecord);
-        return ResultVO.success(icRecord.getId());
+        if(icRecordService.save(icRecord)){
+            //修改简历状态
+            resumeService.update(new LambdaUpdateWrapper<AmResume>()
+                    .eq(AmResume::getAccountId, req.getAccountId())
+                    .eq(AmResume::getPostId, req.getPositionId())
+                    .eq(AmResume::getUid, req.getEmployeeUid())
+                    .set(AmResume::getType, ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus()));
+            return ResultVO.success(icRecord.getId());
+        }
+        return ResultVO.fail("预约失败");
+
     }
 
     public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho) {
@@ -227,6 +240,7 @@ public class ICManager {
         IcRecord icRecord = icRecordService.getById(icUuid);
         IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(icRecord.getMaskId(), newTime, newTime);
         ResultVO<IcSpareTimeVo> resultVO = getSpareTime(spareTimeReq);
+        log.info("modifyTime getSpareTime:{}",resultVO.toString());
         if ((200 != resultVO.getCode())) {
             return ResultVO.fail(501,"面试时间修改失败，无法查询到空闲时间数据");
         }
@@ -264,10 +278,10 @@ public class ICManager {
             return ResultVO.success(icGroupDaysVos);
         }
 
-        Map<Integer, String> positionMap = new HashMap<>();
+        Map<Long, String> positionMap = new HashMap<>();
         positions.forEach(position -> sectionList.forEach(section -> {
             if(position.getSectionId().equals(section.getId())){
-                positionMap.put(position.getId(), section.getName());
+                positionMap.put((long)position.getId(), section.getName());
             }
         }));
 
@@ -328,20 +342,4 @@ public class ICManager {
         }
     }
 
-    public ResultVO<PageVO<IcRecordVo>> pageIcRecord(IcRecordPageReq req) {
-        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
-        Long adminId = req.getAdminId();
-        Integer status = req.getInterviewStatus();
-        String type = req.getInterviewType();
-        Integer pageNum = req.getPage();
-        Integer pageSize = req.getPageSize();
-        queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
-                    .eq(status != null,IcRecord::getCancelStatus,status)
-                    .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
-        Page<IcRecord> page = new Page<>(pageNum, pageSize);
-        Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
-        List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
-
-        return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
-    }
 }
