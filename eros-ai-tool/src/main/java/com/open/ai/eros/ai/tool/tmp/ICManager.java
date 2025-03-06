@@ -213,12 +213,6 @@ public class ICManager {
         }
         //todo 单面处理逻辑
         if(icRecordService.save(icRecord)){
-            //修改简历状态
-            resumeService.update(new LambdaUpdateWrapper<AmResume>()
-                    .eq(AmResume::getAccountId, req.getAccountId())
-                    .eq(AmResume::getPostId, req.getPositionId())
-                    .eq(AmResume::getUid, req.getEmployeeUid())
-                    .set(AmResume::getType, ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus()));
             return ResultVO.success(icRecord.getId());
         }
         return ResultVO.fail("预约失败");

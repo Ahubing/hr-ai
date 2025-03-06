@@ -158,12 +158,14 @@ public class CommonAIManager {
                                 break;
                             case "appoint_interview":
                                 toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                                statusCode.set(ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus());
                                 sb.append(result);
                                 log.info("预约面试: tool={}, appointInterviewStr={}", name, result);
                                 break;
                             case "cancel_interview":
                                 toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
                                 sb.append(result);
+                                statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
                                 log.info("取消面试: tool={}, cancelInterviewStr={}", name, result);
                                 break;
                             case "modify_interview_time":

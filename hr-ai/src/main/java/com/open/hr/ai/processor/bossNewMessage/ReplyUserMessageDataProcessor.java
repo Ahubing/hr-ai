@@ -251,11 +251,11 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         //告诉ai所有相关参数信息
-        String preParams = "请记住下列参数和数据，后续会用到。当前角色的面具id maskId:" + amNewMask.getId() +
-                                ",当前管理员/hr的id adminId:" + amZpLocalAccouts.getAdminId() +
-                                ",当前求职者uid employeeUid:" + amResume.getUid() +
-                                ",当前招聘的职位id positionId:" + amResume.getPostId() +
-                                ",当前角色所登录的平台账号的id accountId:" + amResume.getAccountId() +
+        String preParams = "请记住下列参数和数据，后续会用到。当前角色的面具id maskId(String类型):" + amNewMask.getId() +
+                                ",当前管理员/hr的id adminId(String类型):" + amZpLocalAccouts.getAdminId() +
+                                ",当前求职者uid employeeUid(String类型):" + amResume.getUid() +
+                                ",当前招聘的职位id positionId(String类型):" + amResume.getPostId() +
+                                ",当前角色所登录的平台账号的id accountId:(String类型)" + amResume.getAccountId() +
                                 ",当前的时间是:" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         log.info("ai pre params:" + preParams);
         messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), preParams));
