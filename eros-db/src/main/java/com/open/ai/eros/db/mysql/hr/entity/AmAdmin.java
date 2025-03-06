@@ -78,7 +78,21 @@ public class AmAdmin implements Serializable {
     /**
      * 创建时间
      */
-    private Integer createTime;
+    private LocalDateTime createTime;
+
+    /**
+     * 创建人
+     * @return
+     */
+    private Long creatorId;
+
+    /**
+     * 角色
+     * @return
+     */
+    private String role;
+
+    private String slackOff;
 
 
     public User convertToUser() {

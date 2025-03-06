@@ -1,5 +1,7 @@
 package com.open.hr.ai.manager;
 
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.constants.CommonConstant;
 import com.open.ai.eros.common.service.RedisClient;
@@ -12,6 +14,8 @@ import com.open.ai.eros.db.mysql.user.entity.User;
 import com.open.ai.eros.db.privacy.utils.AESUtil;
 import com.open.ai.eros.user.manager.UserManager;
 import com.open.hr.ai.bean.req.HrAddUserReq;
+import com.open.hr.ai.bean.vo.AmAdminVo;
+import com.open.hr.ai.bean.vo.SlackOffVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -87,5 +91,32 @@ public class LoginManager {
         int addUserResult = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(), req.getMobile());
         return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
 
+    }
+    public ResultVO updateSlack(SlackOffVo req,Long adminId) {
+        // 1、查询是否存在该用户
+        AmAdmin amAdmin = amAdminService.getById(adminId);
+        if (amAdmin == null) {
+            return ResultVO.fail("当前账号已存在");
+        }
+        amAdmin.setSlackOff(JSONObject.toJSONString(req));
+        boolean result = amAdminService.updateById(amAdmin);
+        return result?  ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
+    }
+
+
+    public ResultVO getByToken(Long adminId) {
+        // 1、查询是否存在该用户
+        AmAdmin amAdmin = amAdminService.getById(adminId);
+        if (amAdmin == null) {
+            return ResultVO.fail("当前账号已存在");
+        }
+        AmAdminVo amAdminVo = new AmAdminVo();
+        amAdminVo.setId(amAdmin.getId());
+        amAdminVo.setMobile(amAdmin.getMobile());
+        amAdminVo.setStatus(amAdmin.getStatus());
+        amAdminVo.setCreateTime(amAdmin.getCreateTime());
+        amAdminVo.setSlackOff(JSONObject.parseObject(amAdmin.getSlackOff(),SlackOffVo.class));
+        amAdminVo.setEmail(amAdminVo.getEmail());
+        return ResultVO.success(amAdminVo);
     }
 }

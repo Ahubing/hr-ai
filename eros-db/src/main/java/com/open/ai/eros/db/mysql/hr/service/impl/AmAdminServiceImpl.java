@@ -1,5 +1,7 @@
 package com.open.ai.eros.db.mysql.hr.service.impl;
 
+import com.open.ai.eros.common.constants.AmAdminRoleEnum;
+import com.open.ai.eros.common.constants.AmAdminStatusEnums;
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
 import com.open.ai.eros.db.mysql.hr.mapper.AmAdminMapper;
 import com.open.ai.eros.db.mysql.hr.service.IAmAdminService;
@@ -37,18 +39,39 @@ public class AmAdminServiceImpl extends ServiceImpl<AmAdminMapper, AmAdmin> impl
     }
 
     public int addUser(String email, String password, String username, String company, String mobile) {
-
         AmAdmin users = new AmAdmin();
         users.setEmail(email);
         users.setPassword(password);
         users.setUsername(username);
         users.setCompany(company);
-        users.setCreateTime((int) (System.currentTimeMillis() / 1000));
+        users.setCreateTime(LocalDateTime.now());
         users.setLastLoginTime(LocalDateTime.now());
         users.setMobile(mobile);
         users.setSalt(generateSalt());// 自动生成的
-        users.setStatus(2);
+        users.setStatus(AmAdminStatusEnums.OPEN.getStatus());
         users.setSpecialPermission(null);
+        users.setRole(AmAdminRoleEnum.COMMON.getType());
+        users.setLastLoginClientIp(getClientIpAddress());//获取id
+        // 新增加的是 普通用户
+        return this.getBaseMapper().insert(users);
+    }
+
+
+
+    public int createUser(Long adminId,String email, String password, String username, String company, String mobile) {
+        AmAdmin users = new AmAdmin();
+        users.setEmail(email);
+        users.setPassword(password);
+        users.setUsername(username);
+        users.setCompany(company);
+        users.setCreateTime(LocalDateTime.now());
+        users.setLastLoginTime(LocalDateTime.now());
+        users.setMobile(mobile);
+        users.setSalt(generateSalt());// 自动生成的
+        users.setStatus(AmAdminStatusEnums.OPEN.getStatus());
+        users.setSpecialPermission(null);
+        users.setRole(AmAdminRoleEnum.COMMON.getType());
+        users.setCreatorId(adminId);
         users.setLastLoginClientIp(getClientIpAddress());//获取id
         // 新增加的是 普通用户
         return this.getBaseMapper().insert(users);
