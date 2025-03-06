@@ -10,6 +10,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.open.ai.eros.ai.tool.tmp.tmpbean.*;
 import com.open.ai.eros.common.constants.CommonConstant;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -56,6 +57,9 @@ public class ICTmpManager {
 
     @Resource
     private JedisClientImpl jedisClient;
+
+    @Resource
+    private AmResumeServiceImpl resumeService;
 
     private static final long EXPIRE_TIME = 5 * 24 * 3600;
 
@@ -186,6 +190,16 @@ public class ICTmpManager {
     }
 
     public ResultVO<String> appointInterview(IcRecordAddReq req) {
+         long count = icRecordService.count(new LambdaQueryWrapper<IcRecord>()
+                .eq(IcRecord::getAdminId, req.getAdminId())
+                .eq(IcRecord::getPositionId, req.getPositionId())
+                .eq(IcRecord::getAccountId, req.getAccountId())
+                .eq(IcRecord::getEmployeeUid, req.getEmployeeUid())
+                .ge(IcRecord::getStartTime, LocalDateTime.now())
+                .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
+        if(count > 0){
+            return ResultVO.fail("已经预约了面试,无法再次预约");
+        }
         IcRecord icRecord = new IcRecord();
         AmNewMask newMask = amNewMaskService.getById(req.getMaskId());
         if(InterviewTypeEnum.GROUP.getCode().equals(newMask.getInterviewType())){
@@ -198,11 +212,20 @@ public class ICTmpManager {
                 icRecordService.save(icRecord);
                 return ResultVO.success(icRecord.getId());
             }
-            return ResultVO.success(null);
+            return ResultVO.fail("无空闲时间");
         }
         //todo 单面处理逻辑
-        icRecordService.save(icRecord);
-        return ResultVO.success(icRecord.getId());
+        if(icRecordService.save(icRecord)){
+            //修改简历状态
+            resumeService.update(new LambdaUpdateWrapper<AmResume>()
+                    .eq(AmResume::getAccountId, req.getAccountId())
+                    .eq(AmResume::getPostId, req.getPositionId())
+                    .eq(AmResume::getUid, req.getEmployeeUid())
+                    .set(AmResume::getType, ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus()));
+            return ResultVO.success(icRecord.getId());
+        }
+        return ResultVO.fail("预约失败");
+
     }
 
     public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho) {
@@ -258,10 +281,10 @@ public class ICTmpManager {
             return ResultVO.success(icGroupDaysVos);
         }
 
-        Map<Integer, String> positionMap = new HashMap<>();
+        Map<Long, String> positionMap = new HashMap<>();
         positions.forEach(position -> sectionList.forEach(section -> {
             if(position.getSectionId().equals(section.getId())){
-                positionMap.put(position.getId(), section.getName());
+                positionMap.put((long)position.getId(), section.getName());
             }
         }));
 

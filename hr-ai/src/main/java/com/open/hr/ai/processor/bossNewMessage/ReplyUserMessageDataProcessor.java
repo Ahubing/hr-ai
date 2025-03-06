@@ -214,6 +214,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                         .eq(IcRecord::getPositionId, amResume.getPostId())
                         .eq(IcRecord::getAccountId, amResume.getAccountId())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
+                        .ge(IcRecord::getStartTime, LocalDateTime.now())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
                 log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
                 log.info("icRecord={}", JSONUtil.toJsonStr(icRecord));
