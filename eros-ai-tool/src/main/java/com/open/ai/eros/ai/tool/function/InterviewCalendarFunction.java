@@ -1,8 +1,8 @@
 package com.open.ai.eros.ai.tool.function;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.google.gson.JsonObject;
 import com.open.ai.eros.ai.tool.tmp.ICTmpManager;
 import com.open.ai.eros.ai.tool.tmp.tmpbean.IcRecordAddReq;
@@ -35,8 +35,8 @@ public class InterviewCalendarFunction {
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
-        log.info("get_spare_time result:" + JSONUtil.toJsonStr(resultVO));
-        return JSONUtil.toJsonStr(resultVO.getData());
+        log.info("get_spare_time result:" + JSONObject.toJSONString(resultVO));
+        return JSONObject.toJSONString(resultVO.getData());
     }
 
     @Tool(name = "appoint_interview", value = {"为求职者预约面试时间。"})
@@ -49,16 +49,16 @@ public class InterviewCalendarFunction {
         log.info("appoint_interview function params maskId:{} adminId:{} employeeUid:{} startTime:{} positionId:{} accountId:{}", maskId, adminId, employeeUid, startTime, positionId, accountId);
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId),Long.parseLong(adminId),employeeUid,sTime,Long.parseLong(positionId),accountId));
-        log.info("appoint_interview result:" + JSONUtil.toJsonStr(resultVO));
-        return JSONUtil.toJsonStr(resultVO);
+        log.info("appoint_interview result:" + JSONObject.toJSONString(resultVO));
+        return JSONObject.toJSONString(resultVO);
     }
 
     @Tool(name = "cancel_interview", value = {"取消面试"})
     public String cancel_interview(@P("面试的id") String interviewId) {
         log.info("cancel_interview function params interviewId:{}", interviewId);
         ResultVO<Boolean> resultVO = icTmpManager.cancelInterview(interviewId,2);
-        log.info("cancel_interview result:" + JSONUtil.toJsonStr(resultVO));
-        return JSONUtil.toJsonStr(resultVO);
+        log.info("cancel_interview result:" + JSONObject.toJSONString(resultVO));
+        return JSONObject.toJSONString(resultVO);
     }
     @Tool(name = "modify_interview_time", value = {"修改面试时间"})
     public String modify_interview_time(@P("原面试的id") String interviewId,
@@ -66,9 +66,11 @@ public class InterviewCalendarFunction {
         log.info("modify_interview_time function params interviewId:{} newTime:{}", interviewId, newTime);
         LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<Boolean> resultVO = icTmpManager.modifyTime(interviewId,sTime);
-        log.info("modify_interview_time result:" + JSONUtil.toJsonStr(resultVO));
-        return JSONUtil.toJsonStr(resultVO);
+        log.info("modify_interview_time result:" + JSONObject.toJSONString(resultVO));
+        return JSONObject.toJSONString(resultVO);
     }
+
+
     private String buildSpareTimeResponse(IcSpareTimeVo data) {
         List<IcSpareTimeVo.SpareDateVo> dateVos = data.getSpareDateVos();
         if (CollectionUtil.isNotEmpty(dateVos)) {

@@ -23,6 +23,7 @@ public class IcSpareTimeVo {
 
     @Data
     public static class SpareDateVo{
+
         @ApiModelProperty("日期")
         private LocalDate localDate;
 
