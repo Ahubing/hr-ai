@@ -35,7 +35,7 @@ public class LoginController extends HrAIBaseController {
 
 
     @ApiOperation(value = "用户登录", notes = "用户登录", httpMethod = "POST", response = ResultVO.class)
-    @PostMapping("/login")
+//    @PostMapping("/login")
     public ResultVO login(@Valid @RequestBody HrLoginReq loginReq) {
         try {
             log.info("用户登录，账号:{}", loginReq.getUsername());
@@ -61,7 +61,7 @@ public class LoginController extends HrAIBaseController {
      * @param req
      * @return
      */
-    @PostMapping("/register")
+//    @PostMapping("/register")
     @ApiOperation(value = "用户注册", notes = "用户注册", httpMethod = "POST", response = ResultVO.class)
     public ResultVO register(@RequestBody @Valid HrAddUserReq req) {
         try {
