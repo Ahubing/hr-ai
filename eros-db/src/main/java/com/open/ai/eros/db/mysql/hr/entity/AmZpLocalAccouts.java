@@ -110,5 +110,12 @@ public class AmZpLocalAccouts implements Serializable {
      */
     private String extra;
 
+    /**
+     * 是否是第一次登录
+     * 0 未登录
+     * 1 已登录过
+     */
+    private Integer logined;
+
 
 }
