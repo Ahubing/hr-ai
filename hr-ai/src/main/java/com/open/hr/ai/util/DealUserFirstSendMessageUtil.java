@@ -163,7 +163,7 @@ public class DealUserFirstSendMessageUtil {
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         // 如果content为空 重试10次
         String content = "";
-        AtomicInteger statusCode = new AtomicInteger(0);
+        AtomicInteger statusCode = new AtomicInteger(-2);
         for (int i = 0; i < 10; i++) {
             ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
             content = chatMessage.getContent().toString();
@@ -214,7 +214,9 @@ public class DealUserFirstSendMessageUtil {
 
             // 更新简历状态
             int status = statusCode.get();
-            amResume.setType(status);
+            if(status != -2){
+                amResume.setType(status);
+            }
 
             // 根据状态发起request_info
             boolean updateResume = amResumeService.updateById(amResume);
