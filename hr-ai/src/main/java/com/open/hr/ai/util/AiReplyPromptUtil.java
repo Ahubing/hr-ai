@@ -69,8 +69,7 @@ public class AiReplyPromptUtil {
 
     public static String interviewPrompt = "# 面试信息\n" +
             "已预约的面试：{interview_info}\n"+
-            " - 面试方式：线下\n" +
-            " - 面试地址：{address}\n";
+            " - 面试方式及地址：{address}\n";
 
     public static String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 

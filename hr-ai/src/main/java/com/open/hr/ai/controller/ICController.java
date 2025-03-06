@@ -103,9 +103,8 @@ public class ICController extends HrAIBaseController {
         Page<IcRecord> icRecordPage = recordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
         if(CollectionUtil.isNotEmpty(icRecordVos)){
-            icRecordVos.forEach(item->{
-                item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? InterviewStatusEnum.DEPRECATED.getStatus() : item.getCancelStatus());
-            });
+            icRecordVos.forEach(item->
+                    item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus()));
         }
         return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
     }
