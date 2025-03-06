@@ -35,6 +35,7 @@ public class InterviewCalendarFunction {
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<IcSpareTimeVo> resultVO = icTmpManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
+        log.info("get_spare_time result:" + resultVO.toString());
         return JSONUtil.toJsonStr(resultVO.getData());
     }
 
@@ -48,6 +49,7 @@ public class InterviewCalendarFunction {
         log.info("appoint_interview function params maskId:{} adminId:{} employeeUid:{} startTime:{} positionId:{} accountId:{}", maskId, adminId, employeeUid, startTime, positionId, accountId);
         LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<String> resultVO = icTmpManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId),Long.parseLong(adminId),employeeUid,sTime,Long.parseLong(positionId),accountId));
+        log.info("appoint_interview result:" + resultVO.toString());
         return JSONUtil.toJsonStr(resultVO);
     }
 
@@ -55,6 +57,7 @@ public class InterviewCalendarFunction {
     public String cancel_interview(@P("面试的id") String interviewId) {
         log.info("cancel_interview function params interviewId:{}", interviewId);
         ResultVO<Boolean> resultVO = icTmpManager.cancelInterview(interviewId,2);
+        log.info("cancel_interview result:" + resultVO.toString());
         return JSONUtil.toJsonStr(resultVO);
     }
     @Tool(name = "modify_interview_time", value = {"修改面试时间"})
@@ -63,6 +66,7 @@ public class InterviewCalendarFunction {
         log.info("modify_interview_time function params interviewId:{} newTime:{}", interviewId, newTime);
         LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         ResultVO<Boolean> resultVO = icTmpManager.modifyTime(interviewId,sTime);
+        log.info("modify_interview_time result:" + resultVO.toString());
         return JSONUtil.toJsonStr(resultVO);
     }
     private String buildSpareTimeResponse(IcSpareTimeVo data) {
