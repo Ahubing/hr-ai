@@ -134,7 +134,8 @@ public class DealUserFirstSendMessageUtil {
                         .ge(IcRecord::getStartTime, LocalDateTime.now())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
-                log.info("icRecord={}", icRecord.toString());
+                log.info("icRecord={}", JSONObject.toJSONString(icRecord));
+                log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
