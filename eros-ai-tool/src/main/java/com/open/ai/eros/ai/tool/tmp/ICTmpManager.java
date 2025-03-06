@@ -220,6 +220,7 @@ public class ICTmpManager {
         IcRecord icRecord = icRecordService.getById(icUuid);
         IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(icRecord.getMaskId(), newTime, newTime);
         ResultVO<IcSpareTimeVo> resultVO = getSpareTime(spareTimeReq);
+        log.info("modifyTime getSpareTime:{}",resultVO.toString());
         if ((200 != resultVO.getCode())) {
             return ResultVO.fail(501,"面试时间修改失败，无法查询到空闲时间数据");
         }
