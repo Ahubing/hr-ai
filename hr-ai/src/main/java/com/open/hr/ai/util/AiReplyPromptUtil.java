@@ -136,6 +136,7 @@ public class AiReplyPromptUtil {
                 return null;
             } else {
                 AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
+                log.info("amNewMaskAddReq:{}", JSONObject.toJSONString(aiRequestParam));
 
                 // 提取基本的数据
                 CompanyInfo companyInfo = amNewMaskAddReq.getCompanyInfo();
