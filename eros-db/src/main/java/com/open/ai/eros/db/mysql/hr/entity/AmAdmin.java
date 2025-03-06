@@ -92,6 +92,9 @@ public class AmAdmin implements Serializable {
      */
     private String role;
 
+    private String slackOff;
+
+
     public User convertToUser() {
         User user = new User();
         user.setId(id);

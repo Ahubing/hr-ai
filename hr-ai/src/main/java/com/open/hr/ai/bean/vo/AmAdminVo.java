@@ -2,11 +2,15 @@ package com.open.hr.ai.bean.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.common.util.DateUtils;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -18,7 +22,10 @@ import java.time.LocalDateTime;
  * @since 2025-01-04
  */
 @Data
-public class AmAdminVo {
+@EqualsAndHashCode(callSuper = false)
+@Accessors(chain = true)
+@TableName("am_admin")
+public class AmAdminVo implements Serializable {
 
 
     @TableId(value = "id", type = IdType.AUTO)
@@ -76,4 +83,7 @@ public class AmAdminVo {
     @ApiModelProperty(value = "角色", required = false, notes = "角色")
     private String role;
 
+
+
+    private SlackOffVo slackOff;
 }

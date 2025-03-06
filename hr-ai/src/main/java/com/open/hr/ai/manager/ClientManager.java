@@ -14,9 +14,11 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
+import com.open.hr.ai.bean.vo.SlackOffVo;
 import com.open.hr.ai.constant.*;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.DealUserFirstSendMessageUtil;
+import com.open.hr.ai.util.TimeToDecimalConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.io.IntWritable;
@@ -52,6 +54,8 @@ public class ClientManager {
     private AmPositionSyncTaskServiceImpl amPositionSyncTaskService;
     @Resource
     private AmResumeServiceImpl amResumeService;
+    @Resource
+    private AmAdminServiceImpl amAdminService;
 
     @Resource
     private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
@@ -216,6 +220,11 @@ public class ClientManager {
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
             }
 
+            Long adminId = amZpLocalAccouts.getAdminId();
+            AmAdmin admin = amAdminService.getById(adminId);
+            String slackOff = admin.getSlackOff();
+            SlackOffVo slackOffVo = JSONObject.parseObject(slackOff, SlackOffVo.class);
+            TimeToDecimalConverter.convertSlack(slackOffVo,jsonObject);
             // 查询返回该boss_id用户招聘中且关联好ai的职位数据。
             LambdaQueryWrapper<AmChatbotPositionOption> positionQueryWrapper = new LambdaQueryWrapper<>();
             positionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, bossId);
