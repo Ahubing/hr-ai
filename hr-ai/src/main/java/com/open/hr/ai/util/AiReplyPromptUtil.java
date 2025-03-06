@@ -130,6 +130,7 @@ public class AiReplyPromptUtil {
 
     public static String buildPrompt(AmResume amResume, AmNewMask amNewMask, IcRecord icRecord) {
         try {
+            log.info("buildPrompt icRecord={}", JSONObject.toJSONString(icRecord));
             StringBuilder stringBuilder = new StringBuilder();
             String aiRequestParam = amNewMask.getAiRequestParam();
             if (StringUtils.isBlank(aiRequestParam)) {
@@ -191,6 +192,7 @@ public class AiReplyPromptUtil {
                     }else {
                         interviewPrompt = interviewPrompt.replace("{address}", "");
                     }
+                    log.info("buildPrompt icRecord={}", JSONObject.toJSONString(icRecord));
                     if(Objects.nonNull(icRecord)){
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("interviewId",icRecord.getId());
