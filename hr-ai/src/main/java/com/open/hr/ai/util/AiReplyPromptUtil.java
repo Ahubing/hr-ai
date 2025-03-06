@@ -184,6 +184,7 @@ public class AiReplyPromptUtil {
 
                 //面试信息
                 if(amNewMaskAddReq.getOpenInterviewSwitch()){
+                    log.info("before interview_info：{}",stringBuilder);
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
                         interviewPrompt = interviewPrompt.replace("{address}", interviewAddress);
@@ -199,6 +200,7 @@ public class AiReplyPromptUtil {
                         interviewPrompt = interviewPrompt.replace("{interview_info}", "");
                     }
                     stringBuilder.append(interviewPrompt);
+                    log.info("after interview_info：{}",stringBuilder);
                 }
 
                 // #其他招聘信息
