@@ -67,9 +67,13 @@ public class AiReplyPromptUtil {
             "- 工作环境：{workEnvironment}\n" ,
             "- 特别福利：{welfare}\n" );
 
-    public static String interviewPrompt = "# 面试信息\n" +
-            "已预约的面试：{interview_info}\n"+
-            " - 面试方式：{address}\n";
+    public static String interviewPrompt = buildInterviewPrompt();
+
+    private static String buildInterviewPrompt() {
+        return "# 面试信息\n" +
+                "已预约的面试：{interview_info}\n"+
+                " - 面试方式：{address}\n";
+    }
 
     public static String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
@@ -185,6 +189,7 @@ public class AiReplyPromptUtil {
 
                 //面试信息
                 if(amNewMaskAddReq.getOpenInterviewSwitch()){
+                    interviewPrompt = buildInterviewPrompt();
                     log.info("before interview_info：{}",stringBuilder);
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
