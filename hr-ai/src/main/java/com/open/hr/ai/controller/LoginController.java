@@ -10,6 +10,7 @@ import com.open.hr.ai.bean.req.HrLoginReq;
 import com.open.hr.ai.bean.vo.SlackOffVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.LoginManager;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import java.util.Base64;
  */
 @Slf4j
 @RestController
+@Api(tags = "用户模块功能")
 public class LoginController extends HrAIBaseController {
 
     @Autowired
