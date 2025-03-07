@@ -59,8 +59,30 @@ public class IcRecordVo {
     private LocalDateTime cancelTime;
 
     /**
+     * 职位id
+     */
+    @ApiModelProperty("职位id")
+    private Long positionId;
+
+    /**
      * 修改时间
      */
     @ApiModelProperty("修改时间")
     private LocalDateTime modifyTime;
+
+    @ApiModelProperty("应聘者姓名")
+    private String employeeName;
+
+    @ApiModelProperty("职位名称")
+    private String positionName;
+
+    @ApiModelProperty("部门名称")
+    private String deptName;
+
+    /**
+     * 平台
+     */
+    @ApiModelProperty("平台")
+    private String platform;
+
 }

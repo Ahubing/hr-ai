@@ -206,6 +206,18 @@ public class ICManager {
                 BeanUtils.copyProperties(req, icRecord);
                 icRecord.setInterviewType(newMask.getInterviewType());
                 icRecord.setCancelStatus(InterviewStatusEnum.NOT_CANCEL.getStatus());
+                AmPosition position = positionService.getById(req.getPositionId());
+                icRecord.setPositionName(position == null ? "" : position.getName());
+                if(position != null){
+                    AmPositionSection section = sectionService.getById(position.getSectionId());
+                    icRecord.setPositionName(section == null ? "" : section.getName());
+                }
+                List<AmResume> resumes = resumeService.list(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, req.getEmployeeUid()));
+                if(CollectionUtil.isNotEmpty(resumes)){
+                    AmResume amResume = resumes.get(0);
+                    icRecord.setEmployeeName(amResume.getName());
+                    icRecord.setPlatform(amResume.getPlatform());
+                }
                 icRecordService.save(icRecord);
                 return ResultVO.success(icRecord.getId());
             }
