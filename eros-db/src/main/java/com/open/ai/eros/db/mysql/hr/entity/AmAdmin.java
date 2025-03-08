@@ -95,6 +95,17 @@ public class AmAdmin implements Serializable {
     private String slackOff;
 
 
+    /**
+     * 创建时间
+     */
+    private LocalDateTime expireTime;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime updateTime;
+
+
     public User convertToUser() {
         User user = new User();
         user.setId(id);

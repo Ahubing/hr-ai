@@ -9,8 +9,10 @@ import com.open.ai.eros.db.privacy.utils.CryptoUtil;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.AmAdminRoleVo;
 import com.open.hr.ai.bean.vo.AmAdminVo;
+import com.open.hr.ai.bean.vo.SlackOffVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.AmAdminManager;
+import com.open.hr.ai.manager.LoginManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,10 @@ public class AmAdminController extends HrAIBaseController {
     @Autowired
     AmAdminManager amAdminManager;
 
+    @Autowired
+    LoginManager loginManager;
+
+
     @ApiOperation("查询用户列表")
     @VerifyUserToken
     @PostMapping("admin/list")
@@ -55,6 +61,18 @@ public class AmAdminController extends HrAIBaseController {
         return amAdminManager.createUser(req, adminId);
     }
 
+    /**
+     * 删除账号
+     * @param id
+     * @return
+     */
+    @ApiOperation("删除用户")
+    @VerifyUserToken
+    @DeleteMapping("admin/delete")
+    public ResultVO deleteAdmin(@RequestParam(value = "id", required = true) Long id) {
+        Long adminId = getUserId();
+        return amAdminManager.deleteUser(id, adminId);
+    }
 
     @ApiOperation("禁用用户")
     @VerifyUserToken
@@ -149,12 +167,53 @@ public class AmAdminController extends HrAIBaseController {
     public ResultVO<List<AmAdminRoleVo>> adminRole() {
         List<AmAdminRoleVo> amAdminRoleVos = new ArrayList<>();
         for (AmAdminRoleEnum amAdminRoleEnum : AmAdminRoleEnum.values()) {
+            if (amAdminRoleEnum == AmAdminRoleEnum.SYSTEM){
+                continue;
+            }
             AmAdminRoleVo amAdminRoleVo = new AmAdminRoleVo();
             amAdminRoleVo.setType(amAdminRoleEnum.getType());
             amAdminRoleVo.setDesc(amAdminRoleEnum.getDesc());
             amAdminRoleVos.add(amAdminRoleVo);
         }
         return ResultVO.success(amAdminRoleVos);
+    }
+
+
+
+
+    /**
+     * 更新智能摸鱼
+     *
+     * @param req
+     * @return
+     */
+    @PostMapping("/update/slack")
+    @VerifyUserToken
+    @ApiOperation(value = "更新智能摸鱼", notes = "更新智能摸鱼", httpMethod = "POST", response = ResultVO.class)
+    public ResultVO updateSlack(@RequestBody @Valid SlackOffVo req) {
+        try {
+            return loginManager.updateSlack(req,getUserId());
+        } catch (Exception e) {
+            log.error("register error  req={}", req, e);
+        }
+        return ResultVO.fail("注册失败!");
+    }
+
+
+    /**
+     * 获取登录账号
+     * @return
+     */
+    @GetMapping("/getAdmin/slack")
+    @VerifyUserToken
+    @ApiOperation(value = "获取登录账号", notes = "获取登录账号", httpMethod = "GET", response = ResultVO.class)
+    public ResultVO getAdmin() {
+        try {
+            return loginManager.getByToken(getUserId());
+        } catch (Exception e) {
+            log.error("getAdmin error id={}",getUserId(), e);
+        }
+        return ResultVO.fail("获取失败!");
     }
 
 }

@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -104,6 +105,7 @@ public class AmAdminManager {
         if (Objects.isNull(admin)) {
             return ResultVO.fail("账号不存在,不能查询用户!");
         }
+        // 如果不是管理员,则只允许查询自己创建的用户
         if (!AmAdminRoleEnum.SYSTEM.getType().equals(admin.getRole())) {
             queryWrapper.eq(AmAdmin::getCreatorId, adminId);
         }
@@ -132,7 +134,6 @@ public class AmAdminManager {
 
 
     public ResultVO createUser(HrAddUserReq req, Long adminId) {
-
         try {
             AmAdmin admin = amAdminService.getById(adminId);
             if (Objects.isNull(admin)) {
@@ -159,6 +160,23 @@ public class AmAdminManager {
         }
         return ResultVO.fail("注册失败！请联系管理员");
     }
+
+    /**
+     *  删除账号
+     */
+    public ResultVO deleteUser(Long userId, Long adminId) {
+        AmAdmin admin = amAdminService.getById(adminId);
+        if (Objects.isNull(admin)) {
+            return ResultVO.fail("账号不存在,不能操作用户!");
+        }
+        AmAdmin user = amAdminService.getById(userId);
+        if ((admin.getRole().equals(AmAdminRoleEnum.COMMON.getType()) || !Objects.equals(user.getCreatorId(), adminId)) && !admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+            return ResultVO.fail("没有权限删除用户");
+        }
+        boolean result = amAdminService.removeById(userId);
+        return result ? ResultVO.success() : ResultVO.fail("删除失败");
+    }
+
 
 
     public ResultVO banAdmin(Long userId, Long adminId) {
@@ -198,9 +216,11 @@ public class AmAdminManager {
                 return ResultVO.fail("账号不存在,不能操作用户!");
             }
             AmAdmin user = amAdminService.getById(req.getId());
-            if (!Objects.equals(user.getCreatorId(), adminId) && !admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+            if (!Objects.equals(user.getCreatorId(), adminId) &&
+                    (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType()) || !admin.getRole().equals(AmAdminRoleEnum.ADMIN.getType()))) {
                 return ResultVO.fail("没有权限更新");
             }
+
             String password = req.getPassword();
             String encodePassWord = Base64.getEncoder().encodeToString(CryptoUtil.encryptMD5(password.getBytes("UTF-8")));
             user.setPassword(encodePassWord);
@@ -216,18 +236,39 @@ public class AmAdminManager {
     public ResultVO updateRole(UpdateAmAdminRoleReq req, Long adminId) {
         try {
             Boolean isExit = AmAdminRoleEnum.getByType(req.getRole());
-            if (!isExit){
+            if (!isExit) {
                 return ResultVO.fail("角色不存在");
+            }
+            if (req.getRole().equals(AmAdminRoleEnum.VIP.getType()) && Objects.isNull(req.getExpireTime())) {
+                return ResultVO.fail("会员到期时间不能为空");
+            }
+
+            if (req.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+                return ResultVO.fail("不能更新用户角色为系统管理员");
             }
             AmAdmin admin = amAdminService.getById(adminId);
             if (Objects.isNull(admin)) {
                 return ResultVO.fail("账号不存在,不能操作用户!");
             }
-            AmAdmin user = amAdminService.getById(req.getId());
-            if (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+
+            // 判断用户是否为管理员或者系统管理员
+            if (!admin.getRole().equals(AmAdminRoleEnum.ADMIN.getType()) && !admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
                 return ResultVO.fail("没有权限更新");
             }
+
+            //如果更新角色为管理员,则用户角色必须为系统管理员
+            if (req.getRole().equals(AmAdminRoleEnum.ADMIN.getType())) {
+                if (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+                    return ResultVO.fail("没有权限更新");
+                }
+            }
+            AmAdmin user = amAdminService.getById(req.getId());
+            if (Objects.isNull(user)) {
+                return ResultVO.fail("账号不存在,不能操作用户!");
+            }
             user.setRole(req.getRole());
+            user.setExpireTime(req.getExpireTime());
+            user.setUpdateTime(LocalDateTime.now());
             boolean result = amAdminService.updateById(user);
             return result ? ResultVO.success() : ResultVO.fail("更新失败");
         } catch (Exception e) {
@@ -244,16 +285,16 @@ public class AmAdminManager {
             if (Objects.isNull(admin) || Objects.isNull(user)) {
                 return ResultVO.fail("账号不存在,不能操作用户!");
             }
-            if (!Objects.equals(user.getCreatorId(), adminId) && !admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+            if (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType()) && !admin.getRole().equals(AmAdminRoleEnum.ADMIN.getType())) {
                 return ResultVO.fail("没有权限更新");
             }
-            if (StringUtils.isNotBlank(req.getCompany())){
+            if (StringUtils.isNotBlank(req.getCompany())) {
                 user.setCompany(req.getCompany());
             }
-            if (StringUtils.isNotBlank(req.getEmail())){
+            if (StringUtils.isNotBlank(req.getEmail())) {
                 user.setEmail(req.getEmail());
             }
-            if (StringUtils.isNotBlank(req.getMobile())){
+            if (StringUtils.isNotBlank(req.getMobile())) {
                 user.setMobile(req.getMobile());
             }
             boolean result = amAdminService.updateById(user);

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -25,6 +26,9 @@ public class UpdateAmAdminRoleReq {
     @ApiModelProperty("权限")
     @NotEmpty(message = "权限不能为空")
     private String role;
+
+    @ApiModelProperty("到期时间")
+    private LocalDateTime expireTime;
 
 
 }

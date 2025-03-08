@@ -2,7 +2,8 @@ package com.open.ai.eros.common.constants;
 
 public enum AmAdminRoleEnum {
     SYSTEM("system", "系统管理员"),
-    MANAGER("manager", "管理员"),
+    ADMIN("admin", "管理员"),
+    VIP("vip", "付费用户"),
     COMMON("common","普通用户");
 
     private final String type;

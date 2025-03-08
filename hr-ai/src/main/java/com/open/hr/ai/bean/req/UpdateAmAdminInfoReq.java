@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 /**
  * <p>
@@ -29,5 +30,13 @@ public class UpdateAmAdminInfoReq {
 
     @ApiModelProperty("邮箱")
     private String email;
+
+
+
+    @ApiModelProperty("邮箱")
+    private String role;
+
+    @ApiModelProperty("到期时间")
+    private LocalDateTime expireTime;
 
 }
