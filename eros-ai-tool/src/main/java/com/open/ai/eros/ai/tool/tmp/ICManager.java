@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.open.ai.eros.common.constants.CommonConstant;
-import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -19,14 +18,12 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -203,6 +200,10 @@ public class ICManager {
             IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(req.getMaskId(), req.getStartTime(), req.getStartTime());
             IcSpareTimeVo spareTimeVo = getSpareTime(spareTimeReq).getData();
             if(CollectionUtil.isNotEmpty(spareTimeVo.getSpareDateVos())){
+                //如果截止时间十分钟内，则不让预约面试
+                if(!notInLimitTenMinutes(req.getStartTime(),req.getMaskId())){
+                    return ResultVO.fail("不能在截止时间的十分钟内预约面试");
+                }
                 BeanUtils.copyProperties(req, icRecord);
                 icRecord.setInterviewType(newMask.getInterviewType());
                 icRecord.setCancelStatus(InterviewStatusEnum.NOT_CANCEL.getStatus());
@@ -210,7 +211,7 @@ public class ICManager {
                 icRecord.setPositionName(position == null ? "" : position.getName());
                 if(position != null){
                     AmPositionSection section = sectionService.getById(position.getSectionId());
-                    icRecord.setPositionName(section == null ? "" : section.getName());
+                    icRecord.setDeptName(section == null ? "" : section.getName());
                 }
                 List<AmResume> resumes = resumeService.list(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, req.getEmployeeUid()));
                 if(CollectionUtil.isNotEmpty(resumes)){
@@ -229,6 +230,36 @@ public class ICManager {
         }
         return ResultVO.fail("预约失败");
 
+    }
+
+    private boolean notInLimitTenMinutes(LocalDateTime startTime, Long maskId) {
+        int dayOfWeek = startTime.getDayOfWeek().getValue();
+        IcConfig icConfig = icConfigService.getOne(new LambdaQueryWrapper<IcConfig>()
+                .eq(IcConfig::getMaskId, maskId)
+                .eq(IcConfig::getDayOfWeek, dayOfWeek));
+        boolean flag = true;
+        Time morningEndTime = icConfig.getMorningEndTime();
+        Time morningStartTime = icConfig.getMorningStartTime();
+        if(Objects.nonNull(morningEndTime) & Objects.nonNull(morningStartTime)){
+            LocalTime meLocalTime = morningEndTime.toLocalTime();
+            LocalTime msLocalTime = morningStartTime.toLocalTime();
+            LocalTime startLocalTime = startTime.toLocalTime();
+            if(!startLocalTime.isBefore(msLocalTime) && !startLocalTime.isAfter(meLocalTime)){
+                flag = !startLocalTime.isAfter(meLocalTime.minusMinutes(10));
+            }
+        }
+
+        Time afternoonEndTime = icConfig.getAfternoonEndTime();
+        Time afternoonStartTime = icConfig.getAfternoonStartTime();
+        if(Objects.nonNull(afternoonEndTime) & Objects.nonNull(afternoonStartTime)){
+            LocalTime aeLocalTime = afternoonEndTime.toLocalTime();
+            LocalTime asLocalTime = afternoonStartTime.toLocalTime();
+            LocalTime startLocalTime = startTime.toLocalTime();
+            if(!startLocalTime.isBefore(asLocalTime) && !startLocalTime.isAfter(aeLocalTime)){
+                flag = !startLocalTime.isAfter(aeLocalTime.minusMinutes(10));
+            }
+        }
+        return flag;
     }
 
     public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho) {
