@@ -114,6 +114,7 @@ public class LoginManager {
         amAdminVo.setId(amAdmin.getId());
         amAdminVo.setMobile(amAdmin.getMobile());
         amAdminVo.setStatus(amAdmin.getStatus());
+        amAdminVo.setRole(amAdmin.getRole());
         amAdminVo.setCreateTime(amAdmin.getCreateTime());
         amAdminVo.setSlackOff(JSONObject.parseObject(amAdmin.getSlackOff(),SlackOffVo.class));
         amAdminVo.setEmail(amAdminVo.getEmail());
