@@ -23,13 +23,13 @@ public class CompetencyModelPromptUtil {
     @Resource
     private CommonAIManager commonAIManager;
 
-    private static String JobDescriptionPrompt =  "{positionName}, 这个岗位对描述{amDescribe}, 请根据以上信息，帮我精准分析企业的人才需求，然后生成人才画像的详细标签，" +
+    private static final String JobDescriptionPrompt =  "{positionName}, 这个岗位对描述{amDescribe}, 请根据以上信息，帮我精准分析企业的人才需求，然后生成人才画像的详细标签，" +
             "以及岗位胜任力模型的评价标准和打分权重规则，用 json 的结构化信息输出给我，方便我在前端进行标准渲染,注意只需要输出json结构给我,不需要其他数据" +
             "参考结构如下: \n" +
             "{\"企业人才需求\":{\"岗位\":\"数据标注/AI训练师\",\"需求\":\"对图片和文本数据进行打标注\"},\"人才画像\":{\"详细标签\":{\"技能要求\":[\"数据标注\",\"AI训练\",\"图片处理\",\"文本处理\"],\"学历要求\":\"本科及以上\",\"工作经验要求\":\"1年及以上相关经验\",\"其他要求\":\"具备耐心细致的工作态度\"},\"岗位胜任力模型\":{\"评价标准\":{\"技能匹配度\":\"能否熟练进行数据标注和AI训练\",\"学历匹配度\":\"是否符合本科及以上学历要求\",\"工作经验匹配度\":\"是否有1年及以上相关经验\",\"工作态度匹配度\":\"是否具备耐心细致的工作态度\"},\"打分权重规则\":{\"技能匹配度\":0.4,\"学历匹配度\":0.2,\"工作经验匹配度\":0.3,\"工作态度匹配度\":0.1}}}}";
 
 
-    private static String amResumeCompetencyModelPrompt = "人才画像的详细标签和以及岗位胜任力模型\n" +
+    private static final String amResumeCompetencyModelPrompt = "人才画像的详细标签和以及岗位胜任力模型\n" +
             "{competencyModel} \n" +
             "用户简历如下: \n"+
             "{amResume} \n"+
@@ -39,8 +39,7 @@ public class CompetencyModelPromptUtil {
 
 
     private String BuildAiJobDescription(String positionName,String amDescribe ){
-        String LocalJobDescriptionPrompt = JobDescriptionPrompt;
-        String replace = LocalJobDescriptionPrompt.replace("{positionName}", positionName);
+        String replace = JobDescriptionPrompt.replace("{positionName}", positionName);
         String buildAiJobDescriptionPrompt = replace.replace("{amDescribe}", amDescribe);
         return buildAiJobDescriptionPrompt;
     }
@@ -48,8 +47,7 @@ public class CompetencyModelPromptUtil {
 
 
     private String BuildAmResumeCompetencyModel(String competencyModel,String amResume ){
-        String LocalAmResumeCompetencyModelPrompt = amResumeCompetencyModelPrompt;
-        String replace = LocalAmResumeCompetencyModelPrompt.replace("{competencyModel}", competencyModel);
+        String replace = amResumeCompetencyModelPrompt.replace("{competencyModel}", competencyModel);
         String buildAmResumeCompetencyModel = replace.replace("{amResume}", amResume);
         return buildAmResumeCompetencyModel;
     }

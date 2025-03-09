@@ -24,7 +24,7 @@ import java.util.*;
 @Slf4j
 public class AiReplyPromptUtil {
 
-    public static List<String> basePrompt = Arrays.asList("# 核心角色设定\n",
+    public static final List<String> basePrompt = Arrays.asList("# 核心角色设定\n",
             " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。。\n" ,
             "# 沟通注意事项\n" ,
             "1. 不要暴露你是AI助手，尽量模仿人类发送消息的风格，尽量简短，不要过于礼貌。\n" ,
@@ -60,7 +60,7 @@ public class AiReplyPromptUtil {
     );
 
 
-    public static List<String> providePrompt =  Arrays.asList(
+    public static final List<String> providePrompt =  Arrays.asList(
             "# 差异化优势\n" ,
             "【我们提供的】\n" ,
             "- 薪酬福利：{salaryAndWelfare}\n" ,
@@ -70,15 +70,15 @@ public class AiReplyPromptUtil {
 
     public static String interviewPrompt = buildInterviewPrompt();
 
-    private static String buildInterviewPrompt() {
+    private static  String buildInterviewPrompt() {
         return "# 面试信息\n" +
                 "已预约的面试：{interview_info}\n"+
                 " - 面试方式：{address}\n";
     }
 
-    public static String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
+    public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
-    private static List<String> intelligentInteraction = Arrays.asList(
+    private static final List<String> intelligentInteraction = Arrays.asList(
             "# 智能交互指令\n" ,
             "1. 内容生成原则：\n" ,
             "   1. 语气风格：{style}\n" ,
@@ -94,7 +94,7 @@ public class AiReplyPromptUtil {
             "   3. 体现DEI（多元化、公平、包容）原则\n");
 
 
-    private static List<String> userInfoPrompts = Arrays.asList(
+    private static final List<String> userInfoPrompts = Arrays.asList(
             "# 求职者信息\n- 求职者姓名：{userName}\n" ,
             "# 求职者简历信息\n {zpData} \n",
             "# 求职者筛选提示词 根据下面的提示词对求职者进行筛选，如果不符合的调用工具函数标记为不符合————————————\n{filterWord}\n————————————");
@@ -103,7 +103,7 @@ public class AiReplyPromptUtil {
     /**
      * 流程控制prompt
      */
-    public static String processControlPrompt = "\n" +
+    public static final String processControlPrompt = "\n" +
             "# 沟通进度\n" +
             "沟通进度共有以下几种（进度必须按顺序，且不可倒退）：\n" +
             "1. 简历初筛：等待简历初筛（因为目前系统只有自动简历初筛，会根据筛选条件自动完成筛选，所以简历会直接进入下一阶段）\n" +
@@ -119,7 +119,7 @@ public class AiReplyPromptUtil {
      * 工具调用prompt
      */
 
-    public static final  String toolPrompt = "\n" +
+    public static final String toolPrompt = "\n" +
             "# 工具调用说明\n" +
             "你只能选择一个工具进行调用，在上下文双方已经确认面试时间后应调用appoint_interview函数直接预约面试，而不要调用get_spare_time再次查询，因为你一次只能调用一个函数，调用get_spare_time你将无法在系统预约面试时间。\n";
 
@@ -127,7 +127,7 @@ public class AiReplyPromptUtil {
     /**
      *  示例对话
      */
-    private static String exampleDialog = "# 示例对话数据\n" +
+    private static final String exampleDialog = "# 示例对话数据\n" +
             "————————————\n" +
             "{exampleDialog}\n" +
             "————————————";
@@ -215,8 +215,7 @@ public class AiReplyPromptUtil {
                 // #其他招聘信息
                 String otherRecruitmentInfo = amNewMaskAddReq.getOtherRecruitmentInfo();
                 if (StringUtils.isNotBlank(otherRecruitmentInfo)) {
-                    String localOtherInformationPrompt = otherInformationPrompt;
-                    stringBuilder.append(localOtherInformationPrompt.replace("{otherInformation}", otherRecruitmentInfo));
+                    stringBuilder.append(otherInformationPrompt.replace("{otherInformation}", otherRecruitmentInfo));
                 }
 
                 // 智能交互指令
@@ -268,14 +267,12 @@ public class AiReplyPromptUtil {
                 // 流程控制
                 Integer type = amResume.getType();
                 ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
-                String localProcessControlPrompt = processControlPrompt;
-                stringBuilder.append(localProcessControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
+                stringBuilder.append(processControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
 
                 // 示例对话
                 String exampleDialogs = amNewMaskAddReq.getExampleDialogues();
                 if (StringUtils.isNotBlank(exampleDialogs)) {
-                   String  localExampleDialog = exampleDialog;
-                    stringBuilder.append(localExampleDialog.replace("{exampleDialog}", exampleDialogs));
+                    stringBuilder.append(exampleDialog.replace("{exampleDialog}", exampleDialogs));
                 }
                 //工具调用
                 stringBuilder.append(toolPrompt);
@@ -324,9 +321,6 @@ public class AiReplyPromptUtil {
 //        amPosition.setExtendParams("{\"jobName\":\"数据标注2\",\"locationName\":\"广州2\",\"degreeName\":\"本2科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得22帅就好\"}\n");
 //        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴22\",\"industry\":\"互联网22\",\"establishedTime\":\"2000-01-0122\",\"scale\":\"10000人2以上\",\"headquartersLocation\":\"杭222州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师222\",\"locationName\":\"杭州222\",\"workLocation\":\"西湖区222\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
 //        String localOtherInformationPrompt = otherInformationPrompt;
-//        String replace = localOtherInformationPrompt.replace("{otherInformation}", "1233");
-//        System.out.println(replace);
-//        System.out.println(otherInformationPrompt);
 //        String s2 = buildPrompt(amResume, amNewMask,null);
 //        System.out.println(s2);
     }
