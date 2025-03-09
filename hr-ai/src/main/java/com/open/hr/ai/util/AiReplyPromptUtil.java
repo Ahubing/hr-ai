@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
+import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
@@ -166,6 +167,7 @@ public class AiReplyPromptUtil {
                         }
                     }
                 }
+
                 // 差异化优势（可选，若没有则整个模块都不出现）
                 if (Objects.nonNull(amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) && amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) {
                     DifferentiationAdvantage differentiationAdvantage = amNewMaskAddReq.getDifferentiationAdvantage();
@@ -213,7 +215,8 @@ public class AiReplyPromptUtil {
                 // #其他招聘信息
                 String otherRecruitmentInfo = amNewMaskAddReq.getOtherRecruitmentInfo();
                 if (StringUtils.isNotBlank(otherRecruitmentInfo)) {
-                    stringBuilder.append(otherInformationPrompt.replace("{otherInformation}", otherRecruitmentInfo));
+                    String localOtherInformationPrompt = otherInformationPrompt;
+                    stringBuilder.append(localOtherInformationPrompt.replace("{otherInformation}", otherRecruitmentInfo));
                 }
 
                 // 智能交互指令
@@ -265,12 +268,14 @@ public class AiReplyPromptUtil {
                 // 流程控制
                 Integer type = amResume.getType();
                 ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
-                stringBuilder.append(processControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
+                String localProcessControlPrompt = processControlPrompt;
+                stringBuilder.append(localProcessControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
 
                 // 示例对话
                 String exampleDialogs = amNewMaskAddReq.getExampleDialogues();
                 if (StringUtils.isNotBlank(exampleDialogs)) {
-                    stringBuilder.append(exampleDialog.replace("{exampleDialog}", exampleDialogs));
+                   String  localExampleDialog = exampleDialog;
+                    stringBuilder.append(localExampleDialog.replace("{exampleDialog}", exampleDialogs));
                 }
                 //工具调用
                 stringBuilder.append(toolPrompt);
@@ -307,29 +312,37 @@ public class AiReplyPromptUtil {
 
 
 
-//    public static void main(String[] args) {
+    public static void main(String[] args) {
 //        AmNewMask amNewMask = new AmNewMask();
 //        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴\",\"industry\":\"互联网\",\"establishedTime\":\"2000-01-01\",\"scale\":\"10000人以上\",\"headquartersLocation\":\"杭州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师\",\"locationName\":\"杭州\",\"workLocation\":\"西湖区\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
 //        AmResume amResume = new AmResume();
 //        amResume.setName("张三");
 //        AmPosition amPosition = new AmPosition();
 //        amPosition.setExtendParams("{\"jobName\":\"数据标注\",\"locationName\":\"广州\",\"degreeName\":\"本科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得帅就好\"}\n");
-//        String s = buildPrompt(amResume, amNewMask);
+//        String s = buildPrompt(amResume, amNewMask,null);
 //        System.out.println(s);
-//    }
-
-    public static void main(String[] args) {
-        String inputTime = "23:56";
-        long timestamp = DateUtils.convertToTimestamp(inputTime);
-        System.out.println("今天 " + inputTime + " 的时间戳是：" + timestamp);
-        LocalDate now = LocalDate.now();
-        System.out.println("今天是：" + now);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name", "张三");
-        jsonObject.put("age", 18);
-        jsonObject.put("address", "广州");
-        System.out.println(JSONObject.toJSONString(jsonObject));
-
+//        amPosition.setExtendParams("{\"jobName\":\"数据标注2\",\"locationName\":\"广州2\",\"degreeName\":\"本2科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得22帅就好\"}\n");
+//        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴22\",\"industry\":\"互联网22\",\"establishedTime\":\"2000-01-0122\",\"scale\":\"10000人2以上\",\"headquartersLocation\":\"杭222州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师222\",\"locationName\":\"杭州222\",\"workLocation\":\"西湖区222\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
+//        String localOtherInformationPrompt = otherInformationPrompt;
+//        String replace = localOtherInformationPrompt.replace("{otherInformation}", "1233");
+//        System.out.println(replace);
+//        System.out.println(otherInformationPrompt);
+//        String s2 = buildPrompt(amResume, amNewMask,null);
+//        System.out.println(s2);
     }
+
+//    public static void main(String[] args) {
+//        String inputTime = "23:56";
+//        long timestamp = DateUtils.convertToTimestamp(inputTime);
+//        System.out.println("今天 " + inputTime + " 的时间戳是：" + timestamp);
+//        LocalDate now = LocalDate.now();
+//        System.out.println("今天是：" + now);
+//
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("name", "张三");
+//        jsonObject.put("age", 18);
+//        jsonObject.put("address", "广州");
+//        System.out.println(JSONObject.toJSONString(jsonObject));
+//
+//    }
 }
