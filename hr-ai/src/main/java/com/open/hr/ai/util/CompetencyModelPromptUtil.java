@@ -39,7 +39,8 @@ public class CompetencyModelPromptUtil {
 
 
     private String BuildAiJobDescription(String positionName,String amDescribe ){
-        String replace = JobDescriptionPrompt.replace("{positionName}", positionName);
+        String LocalJobDescriptionPrompt = JobDescriptionPrompt;
+        String replace = LocalJobDescriptionPrompt.replace("{positionName}", positionName);
         String buildAiJobDescriptionPrompt = replace.replace("{amDescribe}", amDescribe);
         return buildAiJobDescriptionPrompt;
     }
@@ -47,7 +48,8 @@ public class CompetencyModelPromptUtil {
 
 
     private String BuildAmResumeCompetencyModel(String competencyModel,String amResume ){
-        String replace = amResumeCompetencyModelPrompt.replace("{competencyModel}", competencyModel);
+        String LocalAmResumeCompetencyModelPrompt = amResumeCompetencyModelPrompt;
+        String replace = LocalAmResumeCompetencyModelPrompt.replace("{competencyModel}", competencyModel);
         String buildAmResumeCompetencyModel = replace.replace("{amResume}", amResume);
         return buildAmResumeCompetencyModel;
     }
