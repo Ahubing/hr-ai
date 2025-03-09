@@ -25,7 +25,7 @@ import java.util.*;
 public class AiReplyPromptUtil {
 
     public static final List<String> basePrompt = Arrays.asList("# 核心角色设定\n",
-            " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。。\n" ,
+            " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。\n" ,
             "# 沟通注意事项\n" ,
             "1. 不要暴露你是AI助手，尽量模仿人类发送消息的风格，尽量简短，不要过于礼貌。\n" ,
             "2. 不要虚构不存在的信息，如果用户问的问题你不清楚，就含糊过去。\n" ,
@@ -69,8 +69,8 @@ public class AiReplyPromptUtil {
             "- 特别福利：{welfare}\n" );
 
     public static final String interviewPrompt = "# 面试信息\n" +
-            "已预约的面试：{interview_info}\n"+
-            " - 面试方式：{address}\n";
+            "已预约的面试：{interview_info} \n"+
+            " - 面试方式：{address} \n";
 
     public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
@@ -188,21 +188,25 @@ public class AiReplyPromptUtil {
                 //面试信息
                 if(amNewMaskAddReq.getOpenInterviewSwitch()){
                     log.info("before interview_info：{}",stringBuilder);
+                    String dynamicInterviewPrompt = interviewPrompt;
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     if (StringUtils.isNotBlank(interviewAddress)) {
-                        stringBuilder.append(interviewPrompt.replace("{address}", interviewAddress));
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{address}", interviewAddress);
                     }else {
-                        stringBuilder.append(interviewPrompt.replace("{address}", ""));
+                        dynamicInterviewPrompt = dynamicInterviewPrompt.replace("{address}", interviewAddress);
                     }
                     log.info("buildPrompt icRecord={} isnull?:{}", JSONObject.toJSONString(icRecord),icRecord == null);
                     if(Objects.nonNull(icRecord)){
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("interviewId",icRecord.getId());
                         jsonObject.put("interviewTime", icRecord.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                        stringBuilder.append(interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject)));
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
+//                        stringBuilder.append(interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject)));
                     }else {
-                        stringBuilder.append(interviewPrompt.replace("{interview_info}", ""));
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "");
+//                        stringBuilder.append(interviewPrompt.replace("{interview_info}", ""));
                     }
+                    stringBuilder.append(dynamicInterviewPrompt);
                     log.info("after interview_info：{}",stringBuilder);
                 }
 
