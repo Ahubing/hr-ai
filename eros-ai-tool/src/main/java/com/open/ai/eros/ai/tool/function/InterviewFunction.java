@@ -54,17 +54,18 @@ public class InterviewFunction {
      * @param status
      * @return
      */
-    @Tool(name = "checkNeedReply", value = {"请"})
-    public String checkNeedReply(@P("设置沟通状态") String status) {
+    @Tool(name = "check_need_reply", value = {"请你根据当前上下文语境, 判断当前是否需要继续回复客户,如果判断需要回复,则传入 true, 否则传入 false"})
+    public String check_need_reply(@P("是否需要回复用户") String status) {
 
-        // 注意 AI只需要跟进到这个阶段，后面的阶段由人工进行操作
-        ReviewStatusEnums anEnum = ReviewStatusEnums.getEnum(status);
-        if (Objects.nonNull(anEnum) && (anEnum.getStatus() > 3 )) {
-            return ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getKey();
+        if (Objects.equals(status, "true")) {
+            return "true";
+        }
+        if (Objects.equals(status, "false")) {
+            return "false";
         }
 
-        // 返回结构化的 JSON 格式结果
-        return status;
+        // 如果都不存在则默认返回 true
+        return "true";
     }
 
 

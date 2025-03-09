@@ -63,7 +63,7 @@ public class CommonAIManager {
     public ChatMessage aiNoStream(List<ChatMessage> messages,
                                   List<String> tools,
                                   String templateModel,
-                                  Double temperature, AtomicInteger statusCode ) {
+                                  Double temperature, AtomicInteger statusCode,AtomicInteger needToReply) {
 
 
         try {
@@ -137,6 +137,15 @@ public class CommonAIManager {
                         DefaultToolExecutor executor = executorMap.get(name);
                         if (executor == null) {
                             continue;
+                        }
+                        if ("check_need_reply".equals(name)) {
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                            if ("false".equals(result)) {
+                                needToReply.set(0);
+                            } else {
+                                needToReply.set(1);
+                            }
+                            log.info("判断是否需要回复, tool={}, status={},needToReply={}", name, result, needToReply.get());
                         }
 
                         // 执行工具时传递实际参数

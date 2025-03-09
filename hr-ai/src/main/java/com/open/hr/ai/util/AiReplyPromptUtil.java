@@ -120,7 +120,8 @@ public class AiReplyPromptUtil {
 
     public static final  String toolPrompt = "\n" +
             "# 工具调用说明\n" +
-            "你只能选择一个工具进行调用，在上下文双方已经确认面试时间后应调用appoint_interview函数直接预约面试，而不要调用get_spare_time再次查询，因为你一次只能调用一个函数，调用get_spare_time你将无法在系统预约面试时间。\n";
+            "你只能选择一个工具进行调用，在上下文双方已经确认面试时间后应调用appoint_interview函数直接预约面试，而不要调用get_spare_time再次查询，因为你一次只能调用一个函数，调用get_spare_time你将无法在系统预约面试时间。\n" +
+            "在上下文双方推断无需对用户的回复进行回答的时候,可以调用check_need_reply函数判断是否需要继续回复用户。\n";
 
 
     /**
