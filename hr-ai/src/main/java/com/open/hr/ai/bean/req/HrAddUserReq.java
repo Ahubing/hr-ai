@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @ApiModel("用户注册的实体类")
 @Data
@@ -43,5 +44,12 @@ public class HrAddUserReq implements Serializable {
     @ApiModelProperty("电话号码")
     @NotEmpty(message = "电话号码不能为空")
     private String mobile;
+
+
+    @ApiModelProperty("权限")
+    private String role;
+
+    @ApiModelProperty("到期时间, 如果角色为vip 则必填,且不能小于当前时间")
+    private LocalDateTime expireTime;
 
 }

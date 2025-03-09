@@ -33,10 +33,10 @@ public class UpdateAmAdminInfoReq {
 
 
 
-    @ApiModelProperty("邮箱")
+    @ApiModelProperty("角色")
     private String role;
 
-    @ApiModelProperty("到期时间")
+    @ApiModelProperty("到期时间, 如果角色为vip 则必填,且不能小于当前时间")
     private LocalDateTime expireTime;
 
 }

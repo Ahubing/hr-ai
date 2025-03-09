@@ -140,7 +140,7 @@ public class AmAdminManager {
                 return ResultVO.fail("账号不存在,不能创建用户!");
             }
 
-            if (admin.getRole().equals(AmAdminRoleEnum.COMMON.getType())) {
+            if (admin.getRole().equals(AmAdminRoleEnum.COMMON.getType()) || admin.getRole().equals(AmAdminRoleEnum.VIP.getType())) {
                 return ResultVO.fail("没有权限创建用户");
             }
 
@@ -151,8 +151,22 @@ public class AmAdminManager {
             if (amAdmin != null) {
                 return ResultVO.fail("当前账号已存在");
             }
+            if (Objects.nonNull(req.getRole())){
+                Boolean isExit = AmAdminRoleEnum.getByType(req.getRole());
+                if (!isExit) {
+                    return ResultVO.fail("角色不存在");
+                }
+                if (req.getRole().equals(AmAdminRoleEnum.VIP.getType()) && Objects.isNull(req.getExpireTime())) {
+                    return ResultVO.fail("会员到期时间不能为空");
+                }
+
+                if (req.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+                    return ResultVO.fail("不能更新用户角色为系统管理员");
+                }
+            }
+
             String encodePassWord = Base64.getEncoder().encodeToString(CryptoUtil.encryptMD5(req.getPassword().getBytes("UTF-8")));
-            int addUserResult = amAdminService.createUser(adminId, req.getEmail(), encodePassWord, req.getUsername(), req.getCompany(), req.getMobile());
+            int addUserResult = amAdminService.createUser(adminId, req.getEmail(), encodePassWord, req.getUsername(), req.getCompany(), req.getMobile(),req.getRole(),req.getExpireTime());
             return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
 
         } catch (Exception e) {
@@ -288,6 +302,19 @@ public class AmAdminManager {
             if (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType()) && !admin.getRole().equals(AmAdminRoleEnum.ADMIN.getType())) {
                 return ResultVO.fail("没有权限更新");
             }
+            if (Objects.nonNull(req.getRole())){
+                Boolean isExit = AmAdminRoleEnum.getByType(req.getRole());
+                if (!isExit) {
+                    return ResultVO.fail("角色不存在");
+                }
+                if (req.getRole().equals(AmAdminRoleEnum.VIP.getType()) && Objects.isNull(req.getExpireTime())) {
+                    return ResultVO.fail("会员到期时间不能为空");
+                }
+
+                if (req.getRole().equals(AmAdminRoleEnum.SYSTEM.getType())) {
+                    return ResultVO.fail("不能更新用户角色为系统管理员");
+                }
+            }
             if (StringUtils.isNotBlank(req.getCompany())) {
                 user.setCompany(req.getCompany());
             }
@@ -296,6 +323,12 @@ public class AmAdminManager {
             }
             if (StringUtils.isNotBlank(req.getMobile())) {
                 user.setMobile(req.getMobile());
+            }
+            if (StringUtils.isNotBlank(req.getRole())) {
+                user.setRole(req.getRole());
+            }
+            if (Objects.nonNull(req.getExpireTime())) {
+                user.setExpireTime(req.getExpireTime());
             }
             boolean result = amAdminService.updateById(user);
             return result ? ResultVO.success() : ResultVO.fail("更新失败");

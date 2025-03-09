@@ -49,4 +49,24 @@ public class InterviewFunction {
         return status;
     }
 
+    /**
+     * 判断是否需要继续回复客户
+     * @param status
+     * @return
+     */
+    @Tool(name = "checkNeedReply", value = {"请"})
+    public String checkNeedReply(@P("设置沟通状态") String status) {
+
+        // 注意 AI只需要跟进到这个阶段，后面的阶段由人工进行操作
+        ReviewStatusEnums anEnum = ReviewStatusEnums.getEnum(status);
+        if (Objects.nonNull(anEnum) && (anEnum.getStatus() > 3 )) {
+            return ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getKey();
+        }
+
+        // 返回结构化的 JSON 格式结果
+        return status;
+    }
+
+
+
 }

@@ -102,13 +102,13 @@ public class AmAdminController extends HrAIBaseController {
         return amAdminManager.updatePassword(req, adminId);
     }
 
-    @ApiOperation("更新用户角色")
-    @VerifyUserToken
-    @PostMapping("admin/update/role")
-    public ResultVO updateAdminRole(@RequestBody @Valid UpdateAmAdminRoleReq req) {
-        Long adminId = getUserId();
-        return amAdminManager.updateRole(req, adminId);
-    }
+//    @ApiOperation("更新用户角色")
+//    @VerifyUserToken
+//    @PostMapping("admin/update/role")
+//    public ResultVO updateAdminRole(@RequestBody @Valid UpdateAmAdminRoleReq req) {
+//        Long adminId = getUserId();
+//        return amAdminManager.updateRole(req, adminId);
+//    }
 
     @ApiOperation("更新用户信息")
     @VerifyUserToken

@@ -148,8 +148,7 @@ public class DealUserFirstSendMessageUtil {
                 log.info("amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");
             }
-        }
-        else {
+        } else {
             log.info("amChatbotPositionOption is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
             return ResultVO.fail(404, "未找到对应的amChatbotPositionOption配置,不继续下一个流程");
         }
@@ -175,7 +174,7 @@ public class DealUserFirstSendMessageUtil {
         String content = "";
         AtomicInteger statusCode = new AtomicInteger(-2);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time"), "OpenAI:gpt-4o-2024-05-13", 0.8, statusCode);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
@@ -224,7 +223,7 @@ public class DealUserFirstSendMessageUtil {
 
             // 更新简历状态
             int status = statusCode.get();
-            if(status != -2){
+            if (status != -2) {
                 amResume.setType(status);
             }
 
