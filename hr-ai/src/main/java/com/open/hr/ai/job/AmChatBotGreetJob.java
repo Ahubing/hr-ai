@@ -480,7 +480,6 @@ public class AmChatBotGreetJob {
     }
 
 
-
     private void buildReChatTask(AmResume amResume, AmChatbotOptionsItems amChatbotOptionsItems, AmChatbotGreetResult amChatbotGreetResult, AmZpLocalAccouts amZpLocalAccouts) {
 
         AmClientTasks amClientTasks = new AmClientTasks();

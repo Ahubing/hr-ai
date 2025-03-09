@@ -1,12 +1,16 @@
 package com.open.ai.eros.ai.manager;
 
-import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
+import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
+import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
+import com.open.ai.eros.ai.constatns.InterviewRoleEnum;
 import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
-import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
+import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
+import dev.ai4j.openai4j.Json;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -18,10 +22,11 @@ import dev.langchain4j.model.output.Response;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +44,9 @@ public class CommonAIManager {
 
     @Autowired
     private ModelConfigManager modelConfigManager;
+
+    @Autowired
+    private ICManager icManager;
 
 
     /**
@@ -126,8 +134,7 @@ public class CommonAIManager {
             AiMessage content = generate.content();
             List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
             newMessages.add(content);
-            StringBuilder sb = new StringBuilder();//收集所有需要让ai回复的值
-            List<ToolExecutionResultMessage> toolResults = new ArrayList<>(); // 收集工具结果
+            List<ToolExecutionResultMessage> resultMessages = new ArrayList<>();
 
             if (CollectionUtils.isNotEmpty(toolExecutionRequests)) {
                 for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
@@ -143,35 +150,58 @@ public class CommonAIManager {
                         String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
                         log.info("执行工具结果: tool={}, result={}", name, result);
 
-                        // 特殊业务逻辑
-                        switch (name) {
-                            case "set_status":
-                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                                ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
-                                statusCode.set(enums.getStatus());
-                                log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
-                                break;
-                            case "get_spare_time":
-                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                                sb.append(result);
-                                log.info("获取空闲时间: tool={}, spareTimeStr={}", name, result);
-                                break;
-                            case "appoint_interview":
-                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                                statusCode.set(ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus());
-                                sb.append(result);
-                                log.info("预约面试: tool={}, appointInterviewStr={}", name, result);
-                                break;
-                            case "cancel_interview":
-                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                                sb.append(result);
-                                statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
-                                log.info("取消面试: tool={}, cancelInterviewStr={}", name, result);
-                                break;
-                            case "modify_interview_time":
-                                toolResults.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                                sb.append(result);
-                                log.info("修改面试时间: tool={}, modifyTimeStr={}", name, result);
+                        // 特殊业务逻辑,后续替换为策略模式
+                        if("set_status".equals(name)){
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                            ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
+                            statusCode.set(enums.getStatus());
+                            log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
+                        }
+
+                        if("get_spare_time".equals(name)){
+                            JSONObject params = JSONObject.parseObject(result);
+                            String startTime = params.getString("startTime");
+                            String endTime = params.getString("endTime");
+                            String maskId = params.getString("maskId");
+                            LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            ResultVO<IcSpareTimeVo> resultVO = icManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            log.info("获取空闲时间: tool={}, spareTimeStr={}", name, JSONObject.toJSONString(resultVO));
+                        }
+
+                        if("appoint_interview".equals(name)){
+                            statusCode.set(ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus());
+                            JSONObject params = JSONObject.parseObject(result);
+                            String adminId = params.getString("adminId");
+                            String employeeUid = params.getString("employeeUid");
+                            String positionId = params.getString("positionId");
+                            String accountId = params.getString("accountId");
+                            String startTime = params.getString("startTime");
+                            String maskId = params.getString("maskId");
+                            LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            ResultVO<String> resultVO = icManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId), Long.parseLong(adminId), employeeUid, sTime, Long.parseLong(positionId), accountId));
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            log.info("预约面试: tool={}, appointInterviewStr={}", name, JSONObject.toJSONString(resultVO));
+                        }
+
+                        if("cancel_interview".equals(name)){
+                            statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
+                            JSONObject params = JSONObject.parseObject(result);
+                            String interviewId = params.getString("interviewId");
+                            ResultVO<Boolean> resultVO = icManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            log.info("取消面试: tool={}, cancelInterviewStr={}", name, JSONObject.toJSONString(resultVO));
+                        }
+
+                        if("modify_interview_time".equals(name)){
+                            JSONObject params = JSONObject.parseObject(result);
+                            String interviewId = params.getString("interviewId");
+                            String newTime = params.getString("newTime");
+                            LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            ResultVO<Boolean> resultVO = icManager.modifyTime(interviewId, InterviewRoleEnum.EMPLOYEE.getCode(),sTime);
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            log.info("修改面试时间: tool={}, modifyTimeStr={}", name, JSONObject.toJSONString(resultVO));
                         }
                     } catch (Exception e) {
                         log.error("工具执行失败: tool={}", name, e);
@@ -179,24 +209,17 @@ public class CommonAIManager {
                 }
             }
 
-            log.info("toolResults={}", toolResults.isEmpty() ? "空的toolResults" : toolResults.toString());
             // 将工具结果反馈给模型并生成最终回答
-            if (!toolResults.isEmpty()) {
-                // 将工具结果添加到对话历史
-                List<dev.langchain4j.data.message.ChatMessage> updatedMessages = new ArrayList<>(newMessages);
-                updatedMessages.addAll(toolResults);
-
+            if (CollectionUtils.isNotEmpty(resultMessages)) {
                 // 生成最终回答
+                List<dev.langchain4j.data.message.ChatMessage> updatedMessages = new ArrayList<>(newMessages);
+                updatedMessages.addAll(resultMessages);
                 Response<AiMessage> finalResponse = modelService.generate(updatedMessages);
                 log.info("finalResponse text={}",finalResponse.content().text());
                 return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), finalResponse.content().text());
             }
             log.info("aiNoStream text={}",content.text());
-            log.info("aiNoStream sb={}",sb.length());
-            return new ChatMessage(
-                    AIRoleEnum.ASSISTANT.getRoleName(),
-                    sb.length() > 0 ? sb.toString() : content.text()
-            );
+            return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(),content.text());
 
         } catch (Exception e) {
             log.error("aiNoStream error templateModel={} ", templateModel, e);

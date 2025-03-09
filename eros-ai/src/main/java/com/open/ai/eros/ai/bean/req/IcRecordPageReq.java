@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.tool.tmp;
+package com.open.ai.eros.ai.bean.req;
 
 
 import io.swagger.annotations.ApiModelProperty;
@@ -21,4 +21,19 @@ public class IcRecordPageReq {
 
     @ApiModelProperty("面试类型group-群面，single-单面")
     private String interviewType;
+
+    @ApiModelProperty("账号")
+    private String account;
+
+    @ApiModelProperty("职位")
+    private String postName;
+
+    @ApiModelProperty("部门")
+    private String deptName;
+
+    @ApiModelProperty("平台")
+    private String platform;
+
+    @ApiModelProperty("账号")
+    private String employeeName;
 }

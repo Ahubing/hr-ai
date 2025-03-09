@@ -1,28 +1,21 @@
 package com.open.hr.ai.controller;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.open.ai.eros.ai.tool.tmp.IcRecordAddReq;
-import com.open.ai.eros.ai.tool.tmp.IcRecordPageReq;
-import com.open.ai.eros.ai.tool.tmp.IcSpareTimeReq;
-import com.open.ai.eros.ai.tool.tmp.IcGroupDaysVo;
-import com.open.ai.eros.ai.tool.tmp.IcRecordVo;
-import com.open.ai.eros.ai.tool.tmp.IcSpareTimeVo;
-import com.open.ai.eros.ai.tool.tmp.InterviewStatusEnum;
-import com.open.ai.eros.ai.tool.tmp.ICManager;
+import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
+import com.open.ai.eros.ai.bean.req.IcRecordPageReq;
+import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
+import com.open.ai.eros.ai.bean.vo.IcGroupDaysVo;
+import com.open.ai.eros.ai.bean.vo.IcRecordVo;
+import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcRecordServiceImpl;
 import com.open.hr.ai.config.HrAIBaseController;
-import com.open.hr.ai.convert.IcRecordConvert;
+import com.open.ai.eros.ai.manager.ICManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +24,6 @@ import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Api(tags = "ic 面试日历")
 @Slf4j
@@ -71,8 +63,9 @@ public class ICController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("/modifyTime")
     public ResultVO<Boolean> modifyTime(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
+                                        @RequestParam(value = "modifyWho",required = false,defaultValue = "1") @ApiParam("谁修改了，1-招聘方，2-受聘方,默认为招聘方") Integer modifyWho,
                                         @RequestParam(value = "newTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @ApiParam("新面试时间") LocalDateTime newTime) {
-        return icManager.modifyTime(icUuid,newTime);
+        return icManager.modifyTime(icUuid,modifyWho,newTime);
     }
 
     @ApiOperation("获取最近n天面试日历（群面）")
@@ -90,22 +83,6 @@ public class ICController extends HrAIBaseController {
     @PostMapping("/pageIcRecord")
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(@RequestBody @Valid IcRecordPageReq req) {
         req.setAdminId(getUserId());
-        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
-        Long adminId = req.getAdminId();
-        Integer status = req.getInterviewStatus();
-        String type = req.getInterviewType();
-        Integer pageNum = req.getPage();
-        Integer pageSize = req.getPageSize();
-        queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
-                .eq(status != null,IcRecord::getCancelStatus,status)
-                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
-        Page<IcRecord> page = new Page<>(pageNum, pageSize);
-        Page<IcRecord> icRecordPage = recordService.page(page, queryWrapper);
-        List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
-        if(CollectionUtil.isNotEmpty(icRecordVos)){
-            icRecordVos.forEach(item->
-                    item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus()));
-        }
-        return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
+        return icManager.pageIcRecord(req);
     }
 }

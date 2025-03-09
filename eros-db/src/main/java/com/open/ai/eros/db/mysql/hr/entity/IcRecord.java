@@ -103,4 +103,10 @@ public class IcRecord implements Serializable {
      */
     private String platform;
 
+
+    /**
+     * 账号
+     */
+    private String account;
+
 }
