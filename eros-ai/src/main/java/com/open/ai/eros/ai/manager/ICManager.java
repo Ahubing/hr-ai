@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.Time;
@@ -314,37 +315,49 @@ public class ICManager {
         return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
     }
 
+    @Transactional
     public ResultVO<Boolean> modifyTime(String icUuid,Integer modifyWho, LocalDateTime newTime) {
         IcRecord icRecord = icRecordService.getById(icUuid);
-        IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(icRecord.getMaskId(), newTime, newTime);
-        ResultVO<IcSpareTimeVo> resultVO = getSpareTime(spareTimeReq);
-        log.info("modifyTime getSpareTime:{}",resultVO.toString());
-        if ((200 != resultVO.getCode())) {
-            return ResultVO.fail(501,"面试时间修改失败，无法查询到空闲时间数据");
-        }
-        IcSpareTimeVo spareTimeVo = resultVO.getData();
-        if(CollectionUtil.isNotEmpty(spareTimeVo.getSpareDateVos())){
-            LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
-                    .eq(IcRecord::getId,icUuid)
-                    .set(IcRecord::getModifyTime, LocalDateTime.now())
-                    .set(IcRecord::getStartTime, newTime);
-            if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
-                AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
-                AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
-                        .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
-                //如果不在线，则报错
-                if(!Arrays.asList("free","busy").contains(account.getState())){
-                    return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
-                }
-                //在线则发送消息通知受聘者
-                generateAsyncMessage(resume,account,icRecord, "modify");
-                resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
-                resumeService.updateById(resume);
+        //招聘者取消面试
+        if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
+            AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
+            AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
+                    .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
+            //如果不在线，则报错
+            if(!Arrays.asList("free","busy").contains(account.getState())){
+                return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
             }
-            boolean update = icRecordService.update(updateWrapper);
-            return update ? ResultVO.success(true) : ResultVO.fail("面试时间修改失败");
+            //在线则发送消息通知受聘者
+            generateAsyncMessage(resume,account,icRecord, "modify");
+            //取消原来的面试
+            icRecord.setCancelTime(LocalDateTime.now());
+            icRecord.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
+            icRecord.setCancelWho(modifyWho);
+            icRecordService.updateById(icRecord);
+            resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
+            resumeService.updateById(resume);
+            return ResultVO.success(true);
         }
-        return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
+
+        if(InterviewRoleEnum.EMPLOYEE.getCode().equals(modifyWho)){
+            IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(icRecord.getMaskId(), newTime, newTime);
+            ResultVO<IcSpareTimeVo> resultVO = getSpareTime(spareTimeReq);
+            log.info("modifyTime getSpareTime:{}",resultVO.toString());
+            if ((200 != resultVO.getCode())) {
+                return ResultVO.fail(501,"面试时间修改失败，无法查询到空闲时间数据");
+            }
+            IcSpareTimeVo spareTimeVo = resultVO.getData();
+            if(CollectionUtil.isNotEmpty(spareTimeVo.getSpareDateVos())){
+                LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
+                        .eq(IcRecord::getId,icUuid)
+                        .set(IcRecord::getModifyTime, LocalDateTime.now())
+                        .set(IcRecord::getStartTime, newTime);
+                boolean update = icRecordService.update(updateWrapper);
+                return update ? ResultVO.success(true) : ResultVO.fail("面试时间修改失败");
+            }
+            return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
+        }
+        return ResultVO.fail("面试时间修改失败");
     }
 
     private void generateAsyncMessage(AmResume resume, AmZpLocalAccouts account, IcRecord record, String type) {

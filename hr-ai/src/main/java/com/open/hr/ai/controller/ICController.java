@@ -63,9 +63,8 @@ public class ICController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("/modifyTime")
     public ResultVO<Boolean> modifyTime(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
-                                        @RequestParam(value = "modifyWho",required = false,defaultValue = "1") @ApiParam("谁修改了，1-招聘方，2-受聘方,默认为招聘方") Integer modifyWho,
-                                        @RequestParam(value = "newTime") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) @ApiParam("新面试时间") LocalDateTime newTime) {
-        return icManager.modifyTime(icUuid,modifyWho,newTime);
+                                        @RequestParam(value = "modifyWho",required = false,defaultValue = "1") @ApiParam("谁修改了，1-招聘方，2-受聘方,默认为招聘方") Integer modifyWho) {
+        return icManager.modifyTime(icUuid,modifyWho,null);
     }
 
     @ApiOperation("获取最近n天面试日历（群面）")
