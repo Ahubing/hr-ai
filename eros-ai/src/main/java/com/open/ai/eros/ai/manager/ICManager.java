@@ -327,6 +327,9 @@ public class ICManager {
             if(!Arrays.asList("free","busy").contains(account.getState())){
                 return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
             }
+            if(InterviewStatusEnum.CANCEL.getStatus().equals(icRecord.getCancelStatus())){
+                return ResultVO.fail("面试已取消，无法修改面试时间");
+            }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "modify");
             //取消原来的面试
