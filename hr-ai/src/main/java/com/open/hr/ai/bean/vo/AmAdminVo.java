@@ -85,5 +85,13 @@ public class AmAdminVo implements Serializable {
 
 
 
+    /**
+     * 公司名
+     */
+    @ApiModelProperty(value = "公司名", required = false, notes = "公司名")
+    private String company;
+
+
+
     private SlackOffVo slackOff;
 }

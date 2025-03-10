@@ -69,7 +69,7 @@ public class AiReplyPromptUtil {
             "- 特别福利：{welfare}\n" );
 
     public static final String interviewPrompt = "# 面试信息\n" +
-            "已预约的面试：{interview_info} \n"+
+            " - 已预约的面试：{interview_info} \n"+
             " - 面试方式：{address} \n";
 
     public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
