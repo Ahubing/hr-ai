@@ -1,14 +1,28 @@
-package com.open.ai.eros.ai.tool.tmp;
+package com.open.ai.eros.ai.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
+import com.open.ai.eros.ai.bean.req.IcRecordPageReq;
+import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
+import com.open.ai.eros.ai.bean.vo.IcGroupDaysVo;
+import com.open.ai.eros.ai.bean.vo.IcRecordVo;
+import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
+import com.open.ai.eros.ai.constatns.InterviewRoleEnum;
+import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
+import com.open.ai.eros.ai.constatns.InterviewTypeEnum;
+import com.open.ai.eros.ai.convert.IcRecordConvert;
 import com.open.ai.eros.common.constants.CommonConstant;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
@@ -54,6 +68,15 @@ public class ICManager {
 
     @Resource
     private AmResumeServiceImpl resumeService;
+
+    @Resource
+    private AmZpLocalAccoutsServiceImpl accoutsService;
+
+    @Resource
+    private AmClientTasksServiceImpl clientTasksService;
+
+    @Resource
+    private AmChatMessageServiceImpl chatMessageService;
 
     private static final long EXPIRE_TIME = 5 * 24 * 3600;
 
@@ -219,6 +242,10 @@ public class ICManager {
                     icRecord.setEmployeeName(amResume.getName());
                     icRecord.setPlatform(amResume.getPlatform());
                 }
+                AmZpLocalAccouts account = accoutsService.getById(req.getAccountId());
+                if(Objects.nonNull(account)){
+                    icRecord.setAccount(account.getAccount());
+                }
                 icRecordService.save(icRecord);
                 return ResultVO.success(icRecord.getId());
             }
@@ -263,17 +290,31 @@ public class ICManager {
     }
 
     public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho) {
-        LambdaUpdateWrapper<IcRecord> updateWrapper = new LambdaUpdateWrapper<IcRecord>()
-                .eq(IcRecord::getId,icUuid)
-                .eq(IcRecord::getCancelStatus,InterviewStatusEnum.NOT_CANCEL.getStatus())
-                .set(IcRecord::getCancelTime, LocalDateTime.now())
-                .set(IcRecord::getCancelStatus, InterviewStatusEnum.CANCEL.getStatus())
-                .set(IcRecord::getCancelWho, cancelWho);
-        boolean update = icRecordService.update(updateWrapper);
+        IcRecord icRecord = icRecordService.getById(icUuid);
+        if(InterviewStatusEnum.CANCEL.getStatus().equals(icRecord.getCancelStatus())){
+            return ResultVO.fail("已经取消,无法再次取消");
+        }
+        icRecord.setCancelTime(LocalDateTime.now());
+        icRecord.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
+        icRecord.setCancelWho(cancelWho);
+        if(InterviewRoleEnum.EMPLOYER.getCode().equals(cancelWho)){
+            AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
+            AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
+                    .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
+            //如果不在线，则报错
+            if(!Arrays.asList("free","busy").contains(account.getState())){
+                return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
+            }
+            //在线则发送消息通知受聘者
+            generateAsyncMessage(resume,account,icRecord, "cancel");
+            resume.setType(ReviewStatusEnums.ABANDON.getStatus());
+            resumeService.updateById(resume);
+        }
+        boolean update = icRecordService.updateById(icRecord);
         return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
     }
 
-    public ResultVO<Boolean> modifyTime(String icUuid, LocalDateTime newTime) {
+    public ResultVO<Boolean> modifyTime(String icUuid,Integer modifyWho, LocalDateTime newTime) {
         IcRecord icRecord = icRecordService.getById(icUuid);
         IcSpareTimeReq spareTimeReq = new IcSpareTimeReq(icRecord.getMaskId(), newTime, newTime);
         ResultVO<IcSpareTimeVo> resultVO = getSpareTime(spareTimeReq);
@@ -287,10 +328,88 @@ public class ICManager {
                     .eq(IcRecord::getId,icUuid)
                     .set(IcRecord::getModifyTime, LocalDateTime.now())
                     .set(IcRecord::getStartTime, newTime);
+            if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
+                AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
+                AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
+                        .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
+                //如果不在线，则报错
+                if(!Arrays.asList("free","busy").contains(account.getState())){
+                    return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
+                }
+                //在线则发送消息通知受聘者
+                generateAsyncMessage(resume,account,icRecord, "modify");
+                resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
+                resumeService.updateById(resume);
+            }
             boolean update = icRecordService.update(updateWrapper);
             return update ? ResultVO.success(true) : ResultVO.fail("面试时间修改失败");
         }
         return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
+    }
+
+    private void generateAsyncMessage(AmResume resume, AmZpLocalAccouts account, IcRecord record, String type) {
+        String content = buildContentByType(record,type);
+        AmClientTasks amClientTasks = new AmClientTasks();
+        JSONObject jsonObject = new JSONObject();
+        JSONObject messageObject = new JSONObject();
+        JSONObject searchObject = new JSONObject();
+        searchObject.put("encrypt_friend_id", resume.getEncryptGeekId());
+        searchObject.put("name", resume.getName());
+        messageObject.put("content", content);
+        jsonObject.put("user_id", resume.getUid());
+        jsonObject.put("message", messageObject);
+        jsonObject.put("search_data", searchObject);
+
+        amClientTasks.setTaskType("send_message");
+        amClientTasks.setOrderNumber(2);
+        amClientTasks.setBossId(resume.getAccountId());
+        amClientTasks.setData(jsonObject.toJSONString());
+        amClientTasks.setStatus(0);
+        amClientTasks.setCreateTime(LocalDateTime.now());
+        boolean result = clientTasksService.save(amClientTasks);
+
+        //更新task临时status的状态
+        log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
+        if (result) {
+            // 生成聊天记录
+            AmChatMessage amChatMessage = new AmChatMessage();
+            amChatMessage.setConversationId(account.getId() + "_" + resume.getUid());
+            amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
+            amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+            amChatMessage.setType(-1);
+            amChatMessage.setContent(content);
+            amChatMessage.setCreateTime(LocalDateTime.now());
+            boolean save = chatMessageService.save(amChatMessage);
+            log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
+        }
+    }
+
+    private String buildContentByType(IcRecord record, String type) {
+        switch (type){
+            case "cancel":
+                String cancelContent =
+                        "感谢您对我们的关注及面试准备。由于我方内部临时出现调整，我们不得不取消原定于[time]的面试安排，对此我们深表歉意。\n" +
+                        "若您仍对该岗位感兴趣，我们将在后续招聘计划明确后优先与您联系。\n" +
+                        "再次感谢您的理解与支持，祝您求职顺利！";
+                return cancelContent.replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            case "modify":
+                String modifyContent =
+                        "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[time]的面试安排。\n" +
+                        "以下为可协调的新时间段，请您确认是否方便：\n" +
+                        " [newTime]\n" +
+                        "若以上时间均不合适，请您提供方便的时间段，我们将尽力配合。\n" +
+                        "如您需进一步沟通，请随时通过与我联系。对此次调整带来的不便，我们深表歉意，并感谢您的理解与配合！";
+                StringBuilder newTimeStr = new StringBuilder();
+                IcSpareTimeVo spareTimeVo = getSpareTime(new IcSpareTimeReq(record.getMaskId(), LocalDateTime.now(), LocalDateTime.now().plusDays(7))).getData();
+                List<IcSpareTimeVo.SpareDateVo> spareDateVos = spareTimeVo.getSpareDateVos();
+                for (IcSpareTimeVo.SpareDateVo spareDateVo : spareDateVos) {
+                    newTimeStr.append(spareDateVo.getLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).append("：");
+                    newTimeStr.append("   ").append(spareDateVo.getSparePeriodVos().stream().map(sparePeriodVo ->
+                            sparePeriodVo.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "至" + sparePeriodVo.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))).collect(Collectors.joining("，"))).append("\n");
+                }
+                return modifyContent.replace("[newTime]",newTimeStr).replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        }
+        return "";
     }
 
     public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, LocalDate startDate, LocalDate endDate, Integer deptId, Integer postId) {
@@ -379,4 +498,37 @@ public class ICManager {
         }
     }
 
+    public ResultVO<PageVO<IcRecordVo>> pageIcRecord(IcRecordPageReq req) {
+        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
+        Long adminId = req.getAdminId();
+        Integer status = req.getInterviewStatus();
+        String type = req.getInterviewType();
+        Integer pageNum = req.getPage();
+        Integer pageSize = req.getPageSize();
+        String account = req.getAccount();
+        String deptName = req.getDeptName();
+        String employeeName = req.getEmployeeName();
+        String postName = req.getPostName();
+        String platform = req.getPlatform();
+        queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
+                .eq(status != null,IcRecord::getCancelStatus,status)
+                .eq(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
+                .eq(StringUtils.isNotEmpty(deptName),IcRecord::getDeptName,deptName)
+                .eq(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
+                .eq(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
+                .eq(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
+                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
+        Page<IcRecord> page = new Page<>(pageNum, pageSize);
+        Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
+        List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
+        if(CollectionUtil.isNotEmpty(icRecordVos)){
+            icRecordVos.forEach(item->{
+                if(InterviewStatusEnum.CANCEL.getStatus().equals(item.getCancelStatus())){
+                    return;
+                }
+                item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus());
+            });
+        }
+        return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
+    }
 }

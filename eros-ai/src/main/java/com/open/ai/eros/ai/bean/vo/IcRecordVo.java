@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.tool.tmp;
+package com.open.ai.eros.ai.bean.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -84,5 +84,11 @@ public class IcRecordVo {
      */
     @ApiModelProperty("平台")
     private String platform;
+
+    /**
+     * 账号
+     */
+    @ApiModelProperty("账号")
+    private String account;
 
 }

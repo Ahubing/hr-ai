@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
-import com.open.ai.eros.ai.tool.tmp.InterviewStatusEnum;
+import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;

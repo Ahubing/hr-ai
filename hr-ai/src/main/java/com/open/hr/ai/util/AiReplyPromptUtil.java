@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
+import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
@@ -23,8 +24,8 @@ import java.util.*;
 @Slf4j
 public class AiReplyPromptUtil {
 
-    public static List<String> basePrompt = Arrays.asList("# 核心角色设定\n",
-            " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。。\n" ,
+    public static final List<String> basePrompt = Arrays.asList("# 核心角色设定\n",
+            " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。\n" ,
             "# 沟通注意事项\n" ,
             "1. 不要暴露你是AI助手，尽量模仿人类发送消息的风格，尽量简短，不要过于礼貌。\n" ,
             "2. 不要虚构不存在的信息，如果用户问的问题你不清楚，就含糊过去。\n" ,
@@ -55,11 +56,11 @@ public class AiReplyPromptUtil {
             "- 学历要求：{degreeName}\n" ,
             "- 工作经验：{experienceName}\n" ,
             "- 专业技能：{skillRequire}\n" ,
-            "- 其他要求：{otherArgue}"
+            "- 其他要求：{otherArgue}\n"
     );
 
 
-    public static List<String> providePrompt =  Arrays.asList(
+    public static final List<String> providePrompt =  Arrays.asList(
             "# 差异化优势\n" ,
             "【我们提供的】\n" ,
             "- 薪酬福利：{salaryAndWelfare}\n" ,
@@ -67,17 +68,13 @@ public class AiReplyPromptUtil {
             "- 工作环境：{workEnvironment}\n" ,
             "- 特别福利：{welfare}\n" );
 
-    public static String interviewPrompt = buildInterviewPrompt();
+    public static final String interviewPrompt = "# 面试信息\n" +
+            " - 已预约的面试：{interview_info} \n"+
+            " - 面试方式：{address} \n";
 
-    private static String buildInterviewPrompt() {
-        return "# 面试信息\n" +
-                "已预约的面试：{interview_info}\n"+
-                " - 面试方式：{address}\n";
-    }
+    public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
-    public static String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
-
-    private static List<String> intelligentInteraction = Arrays.asList(
+    private static final List<String> intelligentInteraction = Arrays.asList(
             "# 智能交互指令\n" ,
             "1. 内容生成原则：\n" ,
             "   1. 语气风格：{style}\n" ,
@@ -93,7 +90,7 @@ public class AiReplyPromptUtil {
             "   3. 体现DEI（多元化、公平、包容）原则\n");
 
 
-    private static List<String> userInfoPrompts = Arrays.asList(
+    private static final List<String> userInfoPrompts = Arrays.asList(
             "# 求职者信息\n- 求职者姓名：{userName}\n" ,
             "# 求职者简历信息\n {zpData} \n",
             "# 求职者筛选提示词 根据下面的提示词对求职者进行筛选，如果不符合的调用工具函数标记为不符合————————————\n{filterWord}\n————————————");
@@ -102,7 +99,7 @@ public class AiReplyPromptUtil {
     /**
      * 流程控制prompt
      */
-    public static String processControlPrompt = "\n" +
+    public static final String processControlPrompt = "\n" +
             "# 沟通进度\n" +
             "沟通进度共有以下几种（进度必须按顺序，且不可倒退）：\n" +
             "1. 简历初筛：等待简历初筛（因为目前系统只有自动简历初筛，会根据筛选条件自动完成筛选，所以简历会直接进入下一阶段）\n" +
@@ -118,16 +115,25 @@ public class AiReplyPromptUtil {
      * 工具调用prompt
      */
 
-    public static final  String toolPrompt = "\n" +
+    public static final String toolPrompt = "\n" +
             "# 工具调用说明\n" +
-            "你只能选择一个工具进行调用，在上下文双方已经确认面试时间后应调用appoint_interview函数直接预约面试，而不要调用get_spare_time再次查询，因为你一次只能调用一个函数，调用get_spare_time你将无法在系统预约面试时间。\n" +
-            "在上下文双方推断无需对用户的回复进行回答的时候,可以调用check_need_reply函数判断是否需要继续回复用户。\n";
+            "\n" +
+            "## 工具调用优先级\n" +
+            "\n" +
+            "你只能选择一个工具进行调用，请根据情景选择当前需要且优先级最高的工具进行调用(优先级顺序从高到低排列)。\n" +
+            "\n" +
+            "modify_interview_time\n" +
+            "cancel_interview\n" +
+            "appoint_interview\n" +
+            "get_spare_time\n" +
+            "set_status\n" ;
+
 
 
     /**
      *  示例对话
      */
-    private static String exampleDialog = "# 示例对话数据\n" +
+    private static final String exampleDialog = "# 示例对话数据\n" +
             "————————————\n" +
             "{exampleDialog}\n" +
             "————————————";
@@ -167,6 +173,7 @@ public class AiReplyPromptUtil {
                         }
                     }
                 }
+
                 // 差异化优势（可选，若没有则整个模块都不出现）
                 if (Objects.nonNull(amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) && amNewMaskAddReq.getDifferentiatedAdvantagesSwitch()) {
                     DifferentiationAdvantage differentiationAdvantage = amNewMaskAddReq.getDifferentiationAdvantage();
@@ -190,24 +197,22 @@ public class AiReplyPromptUtil {
 
                 //面试信息
                 if(amNewMaskAddReq.getOpenInterviewSwitch()){
-                    interviewPrompt = buildInterviewPrompt();
                     log.info("before interview_info：{}",stringBuilder);
+                    String dynamicInterviewPrompt = interviewPrompt;
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
-                    if (StringUtils.isNotBlank(interviewAddress)) {
-                        interviewPrompt = interviewPrompt.replace("{address}", interviewAddress);
-                    }else {
-                        interviewPrompt = interviewPrompt.replace("{address}", "");
-                    }
+                    dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{address}", interviewAddress);
                     log.info("buildPrompt icRecord={} isnull?:{}", JSONObject.toJSONString(icRecord),icRecord == null);
                     if(Objects.nonNull(icRecord)){
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("interviewId",icRecord.getId());
                         jsonObject.put("interviewTime", icRecord.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                        interviewPrompt = interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
+//                        stringBuilder.append(interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject)));
                     }else {
-                        interviewPrompt = interviewPrompt.replace("{interview_info}", "");
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "");
+//                        stringBuilder.append(interviewPrompt.replace("{interview_info}", ""));
                     }
-                    stringBuilder.append(interviewPrompt);
+                    stringBuilder.append(dynamicInterviewPrompt);
                     log.info("after interview_info：{}",stringBuilder);
                 }
 
@@ -308,29 +313,34 @@ public class AiReplyPromptUtil {
 
 
 
-//    public static void main(String[] args) {
+    public static void main(String[] args) {
 //        AmNewMask amNewMask = new AmNewMask();
 //        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴\",\"industry\":\"互联网\",\"establishedTime\":\"2000-01-01\",\"scale\":\"10000人以上\",\"headquartersLocation\":\"杭州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师\",\"locationName\":\"杭州\",\"workLocation\":\"西湖区\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
 //        AmResume amResume = new AmResume();
 //        amResume.setName("张三");
 //        AmPosition amPosition = new AmPosition();
 //        amPosition.setExtendParams("{\"jobName\":\"数据标注\",\"locationName\":\"广州\",\"degreeName\":\"本科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得帅就好\"}\n");
-//        String s = buildPrompt(amResume, amNewMask);
+//        String s = buildPrompt(amResume, amNewMask,null);
 //        System.out.println(s);
-//    }
-
-    public static void main(String[] args) {
-        String inputTime = "23:56";
-        long timestamp = DateUtils.convertToTimestamp(inputTime);
-        System.out.println("今天 " + inputTime + " 的时间戳是：" + timestamp);
-        LocalDate now = LocalDate.now();
-        System.out.println("今天是：" + now);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name", "张三");
-        jsonObject.put("age", 18);
-        jsonObject.put("address", "广州");
-        System.out.println(JSONObject.toJSONString(jsonObject));
-
+//        amPosition.setExtendParams("{\"jobName\":\"数据标注2\",\"locationName\":\"广州2\",\"degreeName\":\"本2科\",\"experienceName\":\"1年\",\"skillRequire\":\"java\",\"otherArgue\":\"长得22帅就好\"}\n");
+//        amNewMask.setAiRequestParam("{\"companyInfo\":{\"companyName\":\"阿里巴巴22\",\"industry\":\"互联网22\",\"establishedTime\":\"2000-01-0122\",\"scale\":\"10000人2以上\",\"headquartersLocation\":\"杭222州\",\"officialWebsite\":\"www.ali.com\",\"jobName\":\"Java开发工程师222\",\"locationName\":\"杭州222\",\"workLocation\":\"西湖区222\",\"workTime\":\"9:00-18:00\",\"workMiniTime\":\"1年\",\"jobTypeName\":\"全职\",\"salaryDesc\":\"10k-20k\",\"emergencyDegree\":\"紧急\"},\"differentiatedAdvantages\":true,\"openInterview\":true,\"interviewAddress\":\"广州天河的地址\",\"otherRecruitmentInfo\":\"其他招聘信息,谢谢谢谢谢谢谢谢\",\"style\":\"轻松写意\",\"otherArgue\":\"长得帅, 小白脸\"}\n");
+//        String localOtherInformationPrompt = otherInformationPrompt;
+//        String s2 = buildPrompt(amResume, amNewMask,null);
+//        System.out.println(s2);
     }
+
+//    public static void main(String[] args) {
+//        String inputTime = "23:56";
+//        long timestamp = DateUtils.convertToTimestamp(inputTime);
+//        System.out.println("今天 " + inputTime + " 的时间戳是：" + timestamp);
+//        LocalDate now = LocalDate.now();
+//        System.out.println("今天是：" + now);
+//
+//        JSONObject jsonObject = new JSONObject();
+//        jsonObject.put("name", "张三");
+//        jsonObject.put("age", 18);
+//        jsonObject.put("address", "广州");
+//        System.out.println(JSONObject.toJSONString(jsonObject));
+//
+//    }
 }
