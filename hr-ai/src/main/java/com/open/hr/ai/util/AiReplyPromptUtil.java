@@ -190,11 +190,7 @@ public class AiReplyPromptUtil {
                     log.info("before interview_info：{}",stringBuilder);
                     String dynamicInterviewPrompt = interviewPrompt;
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
-                    if (StringUtils.isNotBlank(interviewAddress)) {
-                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{address}", interviewAddress);
-                    }else {
-                        dynamicInterviewPrompt = dynamicInterviewPrompt.replace("{address}", interviewAddress);
-                    }
+                    dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{address}", interviewAddress);
                     log.info("buildPrompt icRecord={} isnull?:{}", JSONObject.toJSONString(icRecord),icRecord == null);
                     if(Objects.nonNull(icRecord)){
                         JSONObject jsonObject = new JSONObject();

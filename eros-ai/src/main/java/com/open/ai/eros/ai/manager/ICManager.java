@@ -297,7 +297,7 @@ public class ICManager {
         icRecord.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
         icRecord.setCancelWho(cancelWho);
         if(InterviewRoleEnum.EMPLOYER.getCode().equals(cancelWho)){
-            AmZpLocalAccouts account = accoutsService.getById(icRecord.getId());
+            AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
             AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
                     .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
             //如果不在线，则报错
@@ -327,7 +327,7 @@ public class ICManager {
                     .set(IcRecord::getModifyTime, LocalDateTime.now())
                     .set(IcRecord::getStartTime, newTime);
             if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
-                AmZpLocalAccouts account = accoutsService.getById(icRecord.getId());
+                AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
                 AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
                         .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
                 //如果不在线，则报错
@@ -390,7 +390,7 @@ public class ICManager {
                 return modifyContent.replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
             case "cancel":
                 String cancelContent =
-                        "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[原定日期和时间]的面试安排。\n" +
+                        "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[time]的面试安排。\n" +
                         " 以下为可协调的新时间段，请您确认是否方便：\n" +
                         " [newTime]\n" +
                         " 这里可以查询未来一周内的面试时间\n" +
@@ -404,7 +404,7 @@ public class ICManager {
                     newTimeStr.append("   ").append(spareDateVo.getSparePeriodVos().stream().map(sparePeriodVo ->
                             sparePeriodVo.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "至" + sparePeriodVo.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))).collect(Collectors.joining("，"))).append("\n");
                 }
-                return cancelContent.replace("[newTime]",newTimeStr);
+                return cancelContent.replace("[newTime]",newTimeStr).replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         }
         return "";
     }
@@ -519,8 +519,12 @@ public class ICManager {
         Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
         if(CollectionUtil.isNotEmpty(icRecordVos)){
-            icRecordVos.forEach(item->
-                    item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus()));
+            icRecordVos.forEach(item->{
+                if(InterviewStatusEnum.CANCEL.getStatus().equals(item.getCancelStatus())){
+                    return;
+                }
+                item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus());
+            });
         }
         return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
     }
