@@ -186,7 +186,7 @@ public class CommonAIManager {
                         }
 
                         if("cancel_interview".equals(name)){
-                            statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
+                            statusCode.set(ReviewStatusEnums.ABANDON.getStatus());
                             JSONObject params = JSONObject.parseObject(result);
                             String interviewId = params.getString("interviewId");
                             ResultVO<Boolean> resultVO = icManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
@@ -195,6 +195,7 @@ public class CommonAIManager {
                         }
 
                         if("modify_interview_time".equals(name)){
+                            statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
                             JSONObject params = JSONObject.parseObject(result);
                             String interviewId = params.getString("interviewId");
                             String newTime = params.getString("newTime");
