@@ -63,6 +63,16 @@ public class AmAdminVo implements Serializable {
     @ApiModelProperty(value = "创建时间", required = false, notes = "创建时间")
     private LocalDateTime createTime;
 
+
+
+
+    /**
+     * 失效时间
+     */
+    @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
+    @ApiModelProperty(value = "失效时间", required = false, notes = "失效时间")
+    private LocalDateTime expireTime;
+
     /**
      * 创建人
      *
