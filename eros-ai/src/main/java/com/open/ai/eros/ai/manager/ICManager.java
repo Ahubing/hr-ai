@@ -19,6 +19,7 @@ import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
 import com.open.ai.eros.ai.constatns.InterviewTypeEnum;
 import com.open.ai.eros.ai.convert.IcRecordConvert;
 import com.open.ai.eros.common.constants.CommonConstant;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -306,7 +307,8 @@ public class ICManager {
             }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "cancel");
-
+            resume.setType(ReviewStatusEnums.ABANDON.getStatus());
+            resumeService.updateById(resume);
         }
         boolean update = icRecordService.updateById(icRecord);
         return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
@@ -336,6 +338,8 @@ public class ICManager {
                 }
                 //在线则发送消息通知受聘者
                 generateAsyncMessage(resume,account,icRecord, "modify");
+                resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
+                resumeService.updateById(resume);
             }
             boolean update = icRecordService.update(updateWrapper);
             return update ? ResultVO.success(true) : ResultVO.fail("面试时间修改失败");
@@ -382,20 +386,19 @@ public class ICManager {
 
     private String buildContentByType(IcRecord record, String type) {
         switch (type){
-            case "modify":
-                String modifyContent =
+            case "cancel":
+                String cancelContent =
                         "感谢您对我们的关注及面试准备。由于我方内部临时出现调整，我们不得不取消原定于[time]的面试安排，对此我们深表歉意。\n" +
                         "若您仍对该岗位感兴趣，我们将在后续招聘计划明确后优先与您联系。\n" +
                         "再次感谢您的理解与支持，祝您求职顺利！";
-                return modifyContent.replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-            case "cancel":
-                String cancelContent =
+                return cancelContent.replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+            case "modify":
+                String modifyContent =
                         "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[time]的面试安排。\n" +
-                        " 以下为可协调的新时间段，请您确认是否方便：\n" +
+                        "以下为可协调的新时间段，请您确认是否方便：\n" +
                         " [newTime]\n" +
-                        " 这里可以查询未来一周内的面试时间\n" +
-                        " 若以上时间均不合适，请您提供方便的时间段，我们将尽力配合。\n" +
-                        " 如您需进一步沟通，请随时通过与我联系。对此次调整带来的不便，我们深表歉意，并感谢您的理解与配合！";
+                        "若以上时间均不合适，请您提供方便的时间段，我们将尽力配合。\n" +
+                        "如您需进一步沟通，请随时通过与我联系。对此次调整带来的不便，我们深表歉意，并感谢您的理解与配合！";
                 StringBuilder newTimeStr = new StringBuilder();
                 IcSpareTimeVo spareTimeVo = getSpareTime(new IcSpareTimeReq(record.getMaskId(), LocalDateTime.now(), LocalDateTime.now().plusDays(7))).getData();
                 List<IcSpareTimeVo.SpareDateVo> spareDateVos = spareTimeVo.getSpareDateVos();
@@ -404,7 +407,7 @@ public class ICManager {
                     newTimeStr.append("   ").append(spareDateVo.getSparePeriodVos().stream().map(sparePeriodVo ->
                             sparePeriodVo.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "至" + sparePeriodVo.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))).collect(Collectors.joining("，"))).append("\n");
                 }
-                return cancelContent.replace("[newTime]",newTimeStr).replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+                return modifyContent.replace("[newTime]",newTimeStr).replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         }
         return "";
     }
