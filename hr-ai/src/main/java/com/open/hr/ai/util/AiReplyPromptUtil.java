@@ -122,9 +122,9 @@ public class AiReplyPromptUtil {
             "\n" +
             "你只能选择一个工具进行调用，请根据情景选择当前需要且优先级最高的工具进行调用(优先级顺序从高到低排列)。\n" +
             "\n" +
-            "modify_interview_time\n" +
-            "cancel_interview\n" +
-            "appoint_interview\n" +
+            "appoint_interview（调用条件：当前无面试）\n" +
+            "modify_interview_time（调用条件：当前有面试）\n" +
+            "cancel_interview（调用条件：当前有面试）\n" +
             "get_spare_time\n" +
             "set_status\n" ;
 
