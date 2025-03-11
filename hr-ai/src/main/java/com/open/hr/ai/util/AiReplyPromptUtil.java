@@ -69,7 +69,7 @@ public class AiReplyPromptUtil {
             "- 特别福利：{welfare}\n" );
 
     public static final String interviewPrompt = "# 面试信息\n" +
-            "如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n"  +
+//            "如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n"  +
             " - 系统查询到的已预约的面试：{interview_info} \n"+
             " - 面试方式：{address} \n";
 
@@ -211,7 +211,7 @@ public class AiReplyPromptUtil {
                         dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
 //                        stringBuilder.append(interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject)));
                     }else {
-                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "当前无已预约面试");
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "");
 //                        stringBuilder.append(interviewPrompt.replace("{interview_info}", ""));
                     }
                     stringBuilder.append(dynamicInterviewPrompt);
