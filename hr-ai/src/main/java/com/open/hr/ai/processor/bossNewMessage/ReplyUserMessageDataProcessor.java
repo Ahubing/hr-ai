@@ -264,13 +264,14 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AtomicInteger needToReply = new AtomicInteger(1);
         AtomicInteger statusCode = new AtomicInteger(-2);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","check_need_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
             }
         }
         if (needToReply.get() == 0){
+            //本次不回答用户
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiNoStream needToReply is 0");
             return ResultVO.success();
         }

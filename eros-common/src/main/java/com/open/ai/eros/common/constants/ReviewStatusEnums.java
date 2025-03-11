@@ -70,7 +70,7 @@ public enum ReviewStatusEnums {
                 return e;
             }
         }
-        return INVITATION_FOLLOW_UP;
+        return null;
     }
 
 

@@ -187,4 +187,9 @@ public class AmNewMaskVo {
     @ApiModelProperty(value = "面试时段配置",required = true)
     private List<IcConfigVo> icConfigVos = new ArrayList<>();
 
+    /**
+     * 打招呼话术
+     */
+    @ApiModelProperty(value = "打招呼话术")
+    private String greetMessage;
 }

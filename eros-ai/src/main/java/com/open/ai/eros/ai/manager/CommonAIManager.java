@@ -145,26 +145,25 @@ public class CommonAIManager {
                         if (executor == null) {
                             continue;
                         }
-                        if ("check_need_reply".equals(name)) {
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                            if ("false".equals(result)) {
-                                needToReply.set(0);
-                            } else {
-                                needToReply.set(1);
-                            }
-                            log.info("判断是否需要回复, tool={}, status={},needToReply={}", name, result, needToReply.get());
-                        }
+
 
                         // 执行工具时传递实际参数
                         String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
                         log.info("执行工具结果: tool={}, result={}", name, result);
 
                         // 特殊业务逻辑,后续替换为策略模式
-                        if("set_status".equals(name)){
+                        if ("set_status".equals(name)) {
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
                             ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
-                            statusCode.set(enums.getStatus());
-                            log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
+                            if (Objects.nonNull(enums)) {
+                                statusCode.set(enums.getStatus());
+                                log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
+                            }
+                        }
+                        if ("check_need_reply".equals(name)) {
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                            needToReply.set(0);
+                            log.info("判断是否需要回复, tool={}, status={},needToReply={}", name, result, needToReply.get());
                         }
 
                         if("get_spare_time".equals(name)){

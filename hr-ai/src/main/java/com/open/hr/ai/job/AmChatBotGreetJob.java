@@ -13,6 +13,7 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.constant.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -70,6 +71,9 @@ public class AmChatBotGreetJob {
 
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
+
+    @Resource
+    private AmNewMaskServiceImpl amNewMaskService;
 
 
     private static final String GREET_MESSAGE = "你好";
@@ -399,6 +403,7 @@ public class AmChatBotGreetJob {
                             continue;
                         }
 
+
                         // 执行任务
                         AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
                         amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
@@ -461,6 +466,19 @@ public class AmChatBotGreetJob {
                         JSONObject messageObject = new JSONObject();
 //                        messageObject.put("content", GREET_MESSAGE);
                         jsonObject.put("message", messageObject);
+
+
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
+                                .eq(AmChatbotPositionOption::getAccountId, zpLocalAccouts.getId())
+                                .eq(AmChatbotPositionOption::getPositionId, chatbotGreetTask.getPositionId())
+                                .one();
+
+                        if (positionOption != null) {
+                            Long amMaskId = positionOption.getAmMaskId();
+                            AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                            if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage()))
+                                messageObject.put("content", amNewMask.getGreetMessage());
+                        }
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
                         amClientTasks.setUpdateTime(LocalDateTime.now());
