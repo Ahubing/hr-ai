@@ -4,6 +4,7 @@ import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -17,6 +18,7 @@ import java.util.Objects;
  * @创建时间：2024/10/15 0:28
  */
 @Component
+@Slf4j
 public class InterviewFunction {
 
 
@@ -38,7 +40,7 @@ public class InterviewFunction {
      */
     @Tool(name = "set_status", value = {"判断当前沟通进行到了哪一步并调用本函数设置跟进状态,状态码对应的code如下, 业务筛选:business_screening, 邀约跟进:invitation_follow,  面试安排:interview_arrangement, 不符合:abandon"})
     public String set_status(@P("设置沟通状态") String status) {
-
+        log.info("set_status function params status:{}", status);
         // 注意 AI只需要跟进到这个阶段，后面的阶段由人工进行操作
         ReviewStatusEnums anEnum = ReviewStatusEnums.getEnum(status);
         if (Objects.nonNull(anEnum) && (anEnum.getStatus() > 3 )) {
@@ -54,17 +56,9 @@ public class InterviewFunction {
      * @param status
      * @return
      */
-    @Tool(name = "checkNeedReply", value = {"请"})
-    public String checkNeedReply(@P("设置沟通状态") String status) {
-
-        // 注意 AI只需要跟进到这个阶段，后面的阶段由人工进行操作
-        ReviewStatusEnums anEnum = ReviewStatusEnums.getEnum(status);
-        if (Objects.nonNull(anEnum) && (anEnum.getStatus() > 3 )) {
-            return ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getKey();
-        }
-
-        // 返回结构化的 JSON 格式结果
-        return status;
+    @Tool(name = "no_further_reply", value = {"调用此函数本次将不回复求职者消息。"})
+    public void no_further_reply() {
+      log.info("no_further_reply function");
     }
 
 

@@ -95,4 +95,11 @@ public class AmNewMask implements Serializable {
      * 是否跳过节假日，1-是，2-否
      */
     private Integer skipHolidayStatus;
+
+
+
+    /**
+     * 打招呼话术
+     */
+    private String greetMessage;
 }

@@ -141,7 +141,7 @@ public class ResumeManager {
             amResumeCountDataVo.setType(6);
             amResumeCountDataVo.setTotal(amResumeService.count(queryWrapper));
             amResumeCountDataVos.add(amResumeCountDataVo);
-            for (int i = 0; i < 6; i++) {
+            for (int i = -1; i < 6; i++) {
                 LambdaQueryWrapper<AmResume> innerQueryWrapper = new QueryWrapper<AmResume>().lambda();
                 innerQueryWrapper.eq(AmResume::getAdminId, adminId);
                 innerQueryWrapper.eq(AmResume::getType, i);
