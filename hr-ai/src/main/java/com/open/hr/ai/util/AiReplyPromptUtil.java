@@ -209,12 +209,14 @@ public class AiReplyPromptUtil {
                         dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
 //                        stringBuilder.append(interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject)));
                     }else {
-                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "");
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "当前无已预约面试");
 //                        stringBuilder.append(interviewPrompt.replace("{interview_info}", ""));
                     }
                     stringBuilder.append(dynamicInterviewPrompt);
                     log.info("after interview_info：{}",stringBuilder);
                 }
+
+                stringBuilder.append("如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n");
 
                 // #其他招聘信息
                 String otherRecruitmentInfo = amNewMaskAddReq.getOtherRecruitmentInfo();
