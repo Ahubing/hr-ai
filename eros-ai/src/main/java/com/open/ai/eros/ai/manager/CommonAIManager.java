@@ -232,6 +232,7 @@ public class CommonAIManager {
                 // 生成最终回答
                 List<dev.langchain4j.data.message.ChatMessage> updatedMessages = new ArrayList<>(newMessages);
                 updatedMessages.addAll(resultMessages);
+                log.info("updatedMessages text={}",JSONObject.toJSONString(updatedMessages));
                 Response<AiMessage> finalResponse = modelService.generate(updatedMessages);
                 log.info("finalResponse text={}",finalResponse.content().text());
                 return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), finalResponse.content().text());

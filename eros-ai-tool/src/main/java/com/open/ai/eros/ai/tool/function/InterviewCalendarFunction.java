@@ -49,11 +49,6 @@ public class InterviewCalendarFunction {
         return JSONObject.toJSONString(params);
     }
 
-    //appoint_interview（调用条件：当前无面试）
-    //modify_interview_time（调用条件：当前有面试）
-    //cancel_interview（调用条件：当前有面试）
-    //get_spare_time
-    //set_status
     @Tool(name = "modify_interview_time", value = {"修改面试时间。（必要条件：系统查询当前有面试）"})
     public String modify_interview_time(@P("原面试的id") String interviewId,
                                         @P("修改到的新时间（格式为yyyy-MM-ddTHH:mm:ss）") String newTime) {
