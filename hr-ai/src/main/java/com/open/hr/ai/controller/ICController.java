@@ -12,6 +12,7 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcRecordServiceImpl;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.ai.eros.ai.manager.ICManager;
+import dev.langchain4j.data.message.SystemMessage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -64,7 +65,11 @@ public class ICController extends HrAIBaseController {
     @GetMapping("/modifyTime")
     public ResultVO<Boolean> modifyTime(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
                                         @RequestParam(value = "modifyWho",required = false,defaultValue = "1") @ApiParam("谁修改了，1-招聘方，2-受聘方,默认为招聘方") Integer modifyWho) {
-        return icManager.modifyTime(icUuid,modifyWho,null);
+        long startTime = System.currentTimeMillis();
+        ResultVO<Boolean> resultVO = icManager.modifyTime(icUuid, modifyWho, null);
+        long endTime = System.currentTimeMillis();
+        log.info("modifyTime apicall execute:{}", endTime - startTime);
+        return resultVO;
     }
 
     @ApiOperation("获取最近n天面试日历（群面）")

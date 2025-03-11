@@ -317,6 +317,7 @@ public class ICManager {
 
     @Transactional
     public ResultVO<Boolean> modifyTime(String icUuid,Integer modifyWho, LocalDateTime newTime) {
+        long startTime = System.currentTimeMillis();
         IcRecord icRecord = icRecordService.getById(icUuid);
         //招聘者取消面试
         if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
@@ -360,6 +361,8 @@ public class ICManager {
             }
             return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
         }
+        long endTime = System.currentTimeMillis();
+        log.info("modifyTime execute time:{}" ,endTime - startTime);
         return ResultVO.fail("面试时间修改失败");
     }
 
