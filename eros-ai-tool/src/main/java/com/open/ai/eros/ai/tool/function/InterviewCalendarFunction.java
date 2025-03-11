@@ -23,7 +23,7 @@ public class InterviewCalendarFunction {
         return JSONObject.toJSONString(params);
     }
 
-    @Tool(name = "appoint_interview", value = {"为求职者预约面试时间。"})
+    @Tool(name = "appoint_interview", value = {"为求职者预约面试时间。（必要条件：系统查询当前无面试）"})
     public String appoint_interview(@P("maskId") String maskId,
                                     @P("adminId") String adminId,
                                     @P("employeeUid") String employeeUid,
@@ -41,14 +41,20 @@ public class InterviewCalendarFunction {
         return JSONObject.toJSONString(params);
     }
 
-    @Tool(name = "cancel_interview", value = {"取消面试"})
+    @Tool(name = "cancel_interview", value = {"取消面试。（必要条件：系统查询当前有面试）"})
     public String cancel_interview(@P("面试的id") String interviewId) {
         log.info("cancel_interview function params interviewId:{}", interviewId);
         JSONObject params = new JSONObject();
         params.put("interviewId", interviewId);
         return JSONObject.toJSONString(params);
     }
-    @Tool(name = "modify_interview_time", value = {"修改面试时间"})
+
+    //appoint_interview（调用条件：当前无面试）
+    //modify_interview_time（调用条件：当前有面试）
+    //cancel_interview（调用条件：当前有面试）
+    //get_spare_time
+    //set_status
+    @Tool(name = "modify_interview_time", value = {"修改面试时间。（必要条件：系统查询当前有面试）"})
     public String modify_interview_time(@P("原面试的id") String interviewId,
                                         @P("修改到的新时间（格式为yyyy-MM-ddTHH:mm:ss）") String newTime) {
         log.info("modify_interview_time function params interviewId:{} newTime:{}", interviewId, newTime);
