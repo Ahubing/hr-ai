@@ -173,8 +173,17 @@ public class CommonAIManager {
                             String maskId = params.getString("maskId");
                             LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            ToolExecutionResultMessage resultMessage = null;
                             ResultVO<IcSpareTimeVo> resultVO = icManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            if(200 == resultVO.getCode()){
+                                if (CollectionUtils.isEmpty(resultVO.getData().getSpareDateVos())) {
+                                    resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(ResultVO.fail(500,"无空闲时间")));
+                                }
+                            }
+                            if(resultMessage == null){
+                                resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            }
+                            resultMessages.add(resultMessage);
                             log.info("获取空闲时间: tool={}, spareTimeStr={}", name, JSONObject.toJSONString(resultVO));
                         }
 
