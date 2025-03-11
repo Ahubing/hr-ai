@@ -127,7 +127,8 @@ public class AiReplyPromptUtil {
             "cancel_interview\n" +
             "appoint_interview\n" +
             "get_spare_time\n" +
-            "set_status\n" ;
+            "no_further_reply\n" +
+            "set_status\n";
 
 
 
