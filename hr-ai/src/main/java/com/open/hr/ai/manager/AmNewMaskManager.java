@@ -253,6 +253,7 @@ public class AmNewMaskManager {
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
         amNewMaskVo.setStatus(amNewMask.getStatus());
+        amNewMaskVo.setGreetMessage(amNewMask.getGreetMessage());
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){
