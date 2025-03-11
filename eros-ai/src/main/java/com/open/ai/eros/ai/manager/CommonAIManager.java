@@ -181,7 +181,7 @@ public class CommonAIManager {
                                 }
                             }
                             if(resultMessage == null){
-                                resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                                resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO));
                             }
                             resultMessages.add(resultMessage);
                             log.info("获取空闲时间: tool={}, spareTimeStr={}", name, JSONObject.toJSONString(resultVO));
@@ -232,7 +232,7 @@ public class CommonAIManager {
                 // 生成最终回答
                 List<dev.langchain4j.data.message.ChatMessage> updatedMessages = new ArrayList<>(newMessages);
                 updatedMessages.addAll(resultMessages);
-                log.info("updatedMessages text={}",JSONObject.toJSONString(updatedMessages));
+                log.info("updatedMessages text={}", updatedMessages);
                 Response<AiMessage> finalResponse = modelService.generate(updatedMessages);
                 log.info("finalResponse text={}",finalResponse.content().text());
                 return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), finalResponse.content().text());
@@ -245,6 +245,14 @@ public class CommonAIManager {
         }
         return null;
 
+    }
+
+    public static void main(String[] args) {
+        List<JSONObject> jsonObjects = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        object.put("a","1");
+        jsonObjects.add(object);
+        System.out.println(JSONObject.toJSONString(jsonObjects));
     }
 
 
