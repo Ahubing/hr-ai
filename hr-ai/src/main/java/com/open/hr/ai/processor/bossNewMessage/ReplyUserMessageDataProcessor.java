@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
 import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -319,7 +320,14 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 更新简历状态
             int status = statusCode.get();
             if(status != -2){
-                amResume.setType(status);
+                // 如果是放弃状态则修改简历状态
+                if (status == ReviewStatusEnums.ABANDON.getStatus()){
+                    amResume.setType(status);
+                }
+                // 状态大于当前状态 不允许回退
+                if ( status  > amResume.getType()) {
+                    amResume.setType(status);
+                }
             }
             // 请求微信和手机号
             generateRequestInfo(status,amNewMask,amZpLocalAccouts,amResume,req);
