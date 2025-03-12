@@ -400,7 +400,11 @@ public class ICManager {
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(0);
         amClientTasks.setCreateTime(LocalDateTime.now());
+        long startTime = System.currentTimeMillis();
         boolean result = clientTasksService.save(amClientTasks);
+        long endTime = System.currentTimeMillis();
+        log.info("clientTasksService.save:{}" ,endTime - startTime);
+        startTime = endTime;
 
         //更新task临时status的状态
         log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
@@ -414,6 +418,8 @@ public class ICManager {
             amChatMessage.setContent(content);
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = chatMessageService.save(amChatMessage);
+            endTime = System.currentTimeMillis();
+            log.info("clientTasksService.save:{}" ,endTime - startTime);
             log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
         }
     }
