@@ -319,11 +319,20 @@ public class ICManager {
     public ResultVO<Boolean> modifyTime(String icUuid,Integer modifyWho, LocalDateTime newTime) {
         long startTime = System.currentTimeMillis();
         IcRecord icRecord = icRecordService.getById(icUuid);
+        long endTime = System.currentTimeMillis();
+        log.info("icRecordService.getById:{}" ,endTime - startTime);
+        startTime = endTime;
         //招聘者取消面试
         if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
             AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
+            endTime = System.currentTimeMillis();
+            log.info("accoutsService.getById:{}" ,endTime - startTime);
+            startTime = endTime;
             AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
                     .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
+            endTime = System.currentTimeMillis();
+            log.info("resumeService.getOne:{}" ,endTime - startTime);
+            startTime = endTime;
             //如果不在线，则报错
             if(!Arrays.asList("free","busy").contains(account.getState())){
                 return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
@@ -333,13 +342,21 @@ public class ICManager {
             }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "modify");
+            endTime = System.currentTimeMillis();
+            log.info("generateAsyncMessage:{}" ,endTime - startTime);
+            startTime = endTime;
             //取消原来的面试
             icRecord.setCancelTime(LocalDateTime.now());
             icRecord.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
             icRecord.setCancelWho(modifyWho);
             icRecordService.updateById(icRecord);
+            endTime = System.currentTimeMillis();
+            log.info("icRecordService.updateById:{}" ,endTime - startTime);
+            startTime = endTime;
             resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
             resumeService.updateById(resume);
+            endTime = System.currentTimeMillis();
+            log.info("resumeService.updateById:{}" ,endTime - startTime);
             return ResultVO.success(true);
         }
 
@@ -361,8 +378,6 @@ public class ICManager {
             }
             return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
         }
-        long endTime = System.currentTimeMillis();
-        log.info("modifyTime execute time:{}" ,endTime - startTime);
         return ResultVO.fail("面试时间修改失败");
     }
 
