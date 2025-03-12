@@ -536,7 +536,8 @@ public class ICManager {
                 .eq(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
                 .eq(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
                 .eq(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
-                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
+                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
+                .orderByDesc(IcRecord::getStartTime);
         Page<IcRecord> page = new Page<>(pageNum, pageSize);
         Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
