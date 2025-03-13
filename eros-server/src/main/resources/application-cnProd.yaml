@@ -40,8 +40,8 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://118.24.73.184:3377/hr-ai?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-#    url: jdbc:mysql://localhost:3377/hr-ai?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+#    url: jdbc:mysql://118.24.73.184:3377/hr-ai?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3377/hr-ai?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: root
     password: blueCat666
 

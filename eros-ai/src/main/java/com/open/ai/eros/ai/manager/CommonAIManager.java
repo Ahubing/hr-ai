@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -71,7 +72,7 @@ public class CommonAIManager {
     public ChatMessage aiNoStream(List<ChatMessage> messages,
                                   List<String> tools,
                                   String templateModel,
-                                  Double temperature, AtomicInteger statusCode,AtomicInteger needToReply) {
+                                  Double temperature, AtomicInteger statusCode, AtomicInteger needToReply, AtomicBoolean isAiSetStatus) {
 
 
         try {
@@ -157,6 +158,7 @@ public class CommonAIManager {
                             ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
                             if (Objects.nonNull(enums)) {
                                 statusCode.set(enums.getStatus());
+                                isAiSetStatus.set(Boolean.TRUE);
                                 log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
                             }
                         }
@@ -203,7 +205,7 @@ public class CommonAIManager {
                         }
 
                         if("cancel_interview".equals(name)){
-                            statusCode.set(ReviewStatusEnums.ABANDON.getStatus());
+                            statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
                             JSONObject params = JSONObject.parseObject(result);
                             String interviewId = params.getString("interviewId");
                             ResultVO<Boolean> resultVO = icManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
@@ -212,7 +214,6 @@ public class CommonAIManager {
                         }
 
                         if("modify_interview_time".equals(name)){
-                            statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
                             JSONObject params = JSONObject.parseObject(result);
                             String interviewId = params.getString("interviewId");
                             String newTime = params.getString("newTime");

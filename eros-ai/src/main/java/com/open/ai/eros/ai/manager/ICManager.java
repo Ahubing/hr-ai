@@ -319,11 +319,20 @@ public class ICManager {
     public ResultVO<Boolean> modifyTime(String icUuid,Integer modifyWho, LocalDateTime newTime) {
         long startTime = System.currentTimeMillis();
         IcRecord icRecord = icRecordService.getById(icUuid);
+        long endTime = System.currentTimeMillis();
+        log.info("icRecordService.getById:{}" ,endTime - startTime);
+        startTime = endTime;
         //招聘者取消面试
         if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
             AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
+            endTime = System.currentTimeMillis();
+            log.info("accoutsService.getById:{}" ,endTime - startTime);
+            startTime = endTime;
             AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
                     .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
+            endTime = System.currentTimeMillis();
+            log.info("resumeService.getOne:{}" ,endTime - startTime);
+            startTime = endTime;
             //如果不在线，则报错
             if(!Arrays.asList("free","busy").contains(account.getState())){
                 return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
@@ -333,13 +342,21 @@ public class ICManager {
             }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "modify");
+            endTime = System.currentTimeMillis();
+            log.info("generateAsyncMessage:{}" ,endTime - startTime);
+            startTime = endTime;
             //取消原来的面试
             icRecord.setCancelTime(LocalDateTime.now());
             icRecord.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
             icRecord.setCancelWho(modifyWho);
             icRecordService.updateById(icRecord);
+            endTime = System.currentTimeMillis();
+            log.info("icRecordService.updateById:{}" ,endTime - startTime);
+            startTime = endTime;
             resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
             resumeService.updateById(resume);
+            endTime = System.currentTimeMillis();
+            log.info("resumeService.updateById:{}" ,endTime - startTime);
             return ResultVO.success(true);
         }
 
@@ -361,8 +378,6 @@ public class ICManager {
             }
             return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
         }
-        long endTime = System.currentTimeMillis();
-        log.info("modifyTime execute time:{}" ,endTime - startTime);
         return ResultVO.fail("面试时间修改失败");
     }
 
@@ -385,7 +400,11 @@ public class ICManager {
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(0);
         amClientTasks.setCreateTime(LocalDateTime.now());
+        long startTime = System.currentTimeMillis();
         boolean result = clientTasksService.save(amClientTasks);
+        long endTime = System.currentTimeMillis();
+        log.info("clientTasksService.save:{}" ,endTime - startTime);
+        startTime = endTime;
 
         //更新task临时status的状态
         log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
@@ -399,6 +418,8 @@ public class ICManager {
             amChatMessage.setContent(content);
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = chatMessageService.save(amChatMessage);
+            endTime = System.currentTimeMillis();
+            log.info("clientTasksService.save:{}" ,endTime - startTime);
             log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
         }
     }
@@ -536,7 +557,8 @@ public class ICManager {
                 .eq(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
                 .eq(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
                 .eq(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
-                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type);
+                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
+                .orderByDesc(IcRecord::getStartTime);
         Page<IcRecord> page = new Page<>(pageNum, pageSize);
         Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());

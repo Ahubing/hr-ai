@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -268,8 +269,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         String content = "";
         AtomicInteger needToReply = new AtomicInteger(1);
         AtomicInteger statusCode = new AtomicInteger(-2);
+        AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
@@ -324,12 +326,16 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 更新简历状态
             int status = statusCode.get();
             if(status != -2){
-                // 如果是放弃状态则修改简历状态
-                if (status == ReviewStatusEnums.ABANDON.getStatus()){
-                    amResume.setType(status);
-                }
                 // 状态大于当前状态 不允许回退
-                if ( status  > amResume.getType()) {
+                if(isAiSetStatus.get()){
+                    // 如果是放弃状态则修改简历状态
+                    if (status == ReviewStatusEnums.ABANDON.getStatus()){
+                        amResume.setType(status);
+                    }
+                    if ( status  > amResume.getType()) {
+                        amResume.setType(status);
+                    }
+                }else {
                     amResume.setType(status);
                 }
             }
