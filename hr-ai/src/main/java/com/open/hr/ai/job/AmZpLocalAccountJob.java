@@ -38,6 +38,12 @@ public class AmZpLocalAccountJob {
 
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
+
+
+
+    @Resource
+    private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
+
     private static final String GREET_MESSAGE = "你好";
 
 
@@ -109,6 +115,35 @@ public class AmZpLocalAccountJob {
                     amClientTasks.setUpdateTime(LocalDateTime.now());
                     boolean result = amClientTasksService.save(amClientTasks);
                     log.info("syncPositions save amClientTasks result={}", result);
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+
+    /**
+     * 每10分钟检测一次, 生成打招呼任务
+     */
+    @Scheduled(cron = "0 10 * * * ?")
+    public void dealGreetStatus() {
+        Lock lock = DistributedLockUtils.getLock("dealGreetStatus", 20);
+        if (lock.tryLock()) {
+            try {
+                LambdaQueryWrapper<AmChatbotGreetConfig> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+                // 判断lastCannotGreetTime为空的数据
+                lambdaQueryWrapper.isNotNull(AmChatbotGreetConfig::getLastCannotGreetTime);
+                List<AmChatbotGreetConfig> amChatbotGreetConfigs = amChatbotGreetConfigService.list(lambdaQueryWrapper);
+                //判断是否是昨天,如果是昨天则把时间置为空,如果不是昨天则不做处理
+                for (AmChatbotGreetConfig amChatbotGreetConfig : amChatbotGreetConfigs) {
+                    LocalDateTime lastCannotGreetTime = amChatbotGreetConfig.getLastCannotGreetTime();
+                    LocalDate lastCannotGreetDate = lastCannotGreetTime.toLocalDate();
+                    LocalDate now = LocalDate.now();
+                    if (lastCannotGreetDate.isBefore(now)) {
+                        amChatbotGreetConfig.setLastCannotGreetTime(null);
+                        amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
+                    }
                 }
             } finally {
                 lock.unlock();

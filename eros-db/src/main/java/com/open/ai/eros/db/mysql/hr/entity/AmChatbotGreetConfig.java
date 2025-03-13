@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -53,6 +55,11 @@ public class AmChatbotGreetConfig implements Serializable {
      * 总开关
      */
     private Integer isAllOn;
+
+    /**
+     * 上次禁止打招呼时间
+     */
+    private LocalDateTime lastCannotGreetTime;
 
 
 }

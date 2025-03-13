@@ -13,6 +13,7 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.constant.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -70,6 +71,9 @@ public class AmChatBotGreetJob {
 
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
+
+    @Resource
+    private AmNewMaskServiceImpl amNewMaskService;
 
 
     private static final String GREET_MESSAGE = "你好";
@@ -275,6 +279,7 @@ public class AmChatBotGreetJob {
                         AmChatbotGreetResult amChatbotGreetResult = JSONObject.parseObject(reChatTask, AmChatbotGreetResult.class);
                         if (Objects.isNull(amChatbotGreetResult)) {
                             log.error("复聊任务处理失败,amChatbotGreetResult解析:{}", reChatTask);
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
@@ -283,6 +288,7 @@ public class AmChatBotGreetJob {
                         AmChatbotOptionsItems amChatbotOptionsItems = amChatbotOptionsItemsService.getById(rechatItem);
                         if (Objects.isNull(amChatbotOptionsItems)) {
                             log.error("复聊任务处理失败,未找到对应的任务:{}", rechatItem);
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
@@ -290,6 +296,7 @@ public class AmChatBotGreetJob {
                         AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()), false);
                         if (Objects.isNull(amResume)) {
                             log.error("复聊任务处理失败,未找到用户:{}", amChatbotGreetResult.getUserId());
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
@@ -299,6 +306,7 @@ public class AmChatBotGreetJob {
                                 || ReviewStatusEnums.ONBOARD.getStatus().equals(amResume.getType())
                                 || ReviewStatusEnums.ABANDON.getStatus().equals(amResume.getType())) {
                             log.error("复聊任务处理失败,简历状态不是初筛 Uid:{}", amResume.getUid());
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
@@ -307,6 +315,7 @@ public class AmChatBotGreetJob {
                         //判断是否在线
                         if (Objects.isNull(amZpLocalAccouts) || amZpLocalAccouts.getState() == AmLocalAccountStatusEnums.OFFLINE.getStatus()) {
                             log.error("复聊任务处理失败,未找到账号或账号已下线:{}", accountId);
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
@@ -328,21 +337,32 @@ public class AmChatBotGreetJob {
                         chatMessageQueryWrapper.ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay());
                         AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
 
-                        //
+
                         if (Objects.nonNull(amChatMessage)) {
                             log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage, conversationId);
                             chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
                             AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
                             if (Objects.isNull(chatMessage)) {
                                 log.info("用户已经回复过消息:{}", chatMessage);
+                                jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                                 continue;
                             }
                         }
+                        // 获取最后一条消息
+                        LambdaQueryWrapper<AmChatMessage> lastMessageQueryWrapper = new LambdaQueryWrapper<>();
+                        lastMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+                        lastMessageQueryWrapper.orderByDesc(AmChatMessage::getCreateTime);
+                        lastMessageQueryWrapper.last("limit 1");
+                        AmChatMessage lastMessage = amChatMessageService.getOne(lastMessageQueryWrapper, false);
 
-                        buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts);
+                        String chatId = "";
+                        if (Objects.nonNull(lastMessage)){
+                            chatId = lastMessage.getChatId();
+                        }
+                        buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts,chatId);
                         jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                     } catch (Exception e) {
-                        log.error("复聊任务处理失败,未找到打招呼的任务任务:{}", reChatTask);
+                        log.error("复聊任务处理异常:{}", reChatTask);
                     }
                 }
             } catch (Exception e) {
@@ -461,6 +481,19 @@ public class AmChatBotGreetJob {
                         JSONObject messageObject = new JSONObject();
 //                        messageObject.put("content", GREET_MESSAGE);
                         jsonObject.put("message", messageObject);
+
+
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
+                                .eq(AmChatbotPositionOption::getAccountId, zpLocalAccouts.getId())
+                                .eq(AmChatbotPositionOption::getPositionId, chatbotGreetTask.getPositionId())
+                                .one();
+
+                        if (positionOption != null) {
+                            Long amMaskId = positionOption.getAmMaskId();
+                            AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                            if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage()))
+                                messageObject.put("content", amNewMask.getGreetMessage());
+                        }
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
                         amClientTasks.setUpdateTime(LocalDateTime.now());
@@ -480,7 +513,7 @@ public class AmChatBotGreetJob {
     }
 
 
-    private void buildReChatTask(AmResume amResume, AmChatbotOptionsItems amChatbotOptionsItems, AmChatbotGreetResult amChatbotGreetResult, AmZpLocalAccouts amZpLocalAccouts) {
+    private void buildReChatTask(AmResume amResume, AmChatbotOptionsItems amChatbotOptionsItems, AmChatbotGreetResult amChatbotGreetResult, AmZpLocalAccouts amZpLocalAccouts,String chatId) {
 
         AmClientTasks amClientTasks = new AmClientTasks();
         JSONObject jsonObject = new JSONObject();
@@ -492,9 +525,14 @@ public class AmChatBotGreetJob {
         jsonObject.put("user_id", amChatbotGreetResult.getUserId());
         jsonObject.put("message", messageObject);
         jsonObject.put("search_data", searchObject);
+        if (StringUtils.isNotBlank(chatId)){
+            jsonObject.put("rechat_last_message_id", searchObject);
+        }
 
+        jsonObject.put("rechat",true);
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
-        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
+        //复聊任务优先级最低
+        amClientTasks.setOrderNumber(0);
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
@@ -529,5 +567,44 @@ public class AmChatBotGreetJob {
         }
     }
 
+
+
+
+    /**
+     * 处理定时删除过期的复聊任务
+     */
+    @Transactional
+    @Scheduled(cron = "0 0/5 * * * ?")
+    public void delete_reChat_timer() {
+        Lock lock = DistributedLockUtils.getLock("delete_reChat_timer", 30);
+        if (lock.tryLock()) {
+            try {
+                // 查出所有包含rechat的复聊服务,且状态为未开始或者开始的,判断他们的创建时间是否超出12小时,如果超出,则修改状态为失败,并且原因为超时
+                LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.like(AmClientTasks::getData, "rechat")
+                        .and(wrapper -> wrapper
+                                .or(innerWrapper -> innerWrapper
+                                        .eq(AmClientTasks::getStatus, AmClientTaskStatusEnums.NOT_START.getStatus())
+                                        .or()
+                                        .eq(AmClientTasks::getStatus, AmClientTaskStatusEnums.START.getStatus())
+                                )
+                                .le(AmClientTasks::getCreateTime, LocalDateTime.now().minusHours(12))
+                        );
+                List<AmClientTasks> amClientTasks = amClientTasksService.list(queryWrapper);
+
+                for (AmClientTasks amClientTask : amClientTasks) {
+                    amClientTask.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
+                    amClientTask.setUpdateTime(LocalDateTime.now());
+                    amClientTask.setReason("超时");
+                    amClientTasksService.updateById(amClientTask);
+                }
+            }finally {
+                lock.unlock();
+            }
+        } else {
+            log.info("打招呼定时任务未执行，因锁未获取成功");
+        }
+
+    }
 
 }

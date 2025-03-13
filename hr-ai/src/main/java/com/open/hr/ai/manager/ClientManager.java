@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -222,7 +223,13 @@ public class ClientManager {
                 jsonObject.put("isRechatOn",amChatbotGreetConfig.getIsRechatOn());
                 jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
+                if (Objects.nonNull(amChatbotGreetConfig.getLastCannotGreetTime())) {
+                    jsonObject.put("canGreet",false);
+                }else {
+                    jsonObject.put("canGreet",true);
+                }
             }
+
 
             Long adminId = amZpLocalAccouts.getAdminId();
             AmAdmin admin = amAdminService.getById(adminId);
@@ -403,6 +410,9 @@ public class ClientManager {
                 case "switch_job_state":
                     switchJobState(taskId, bossId, data);
                     break;
+                case "send_message":
+                    sendMessage(taskId,tasksServiceOne, bossId, data);
+                    break;
                 default:
                     log.error("找不到该任务 req={}", clientFinishTaskReq);
                     break;
@@ -551,6 +561,18 @@ public class ClientManager {
 
     private void greetHandle(String platform,AmClientTasks tasksServiceOne, String taskId, String bossId, JSONObject finishTaskReqData) {
         try {
+            if (finishTaskReqData.containsKey("can_greet")){
+                boolean canGreet = finishTaskReqData.getBoolean("can_greet");
+                if (!canGreet){
+                    LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
+                    greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId,bossId);
+                    AmChatbotGreetConfig amChatbotGreetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
+                    if (Objects.nonNull(amChatbotGreetConfig)){
+                        amChatbotGreetConfig.setLastCannotGreetTime(LocalDateTime.now());
+                        amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
+                   }
+                }
+            }
             // 提取简历信息
             JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
             if (Objects.isNull(resumes) || resumes.isEmpty()) {
@@ -1041,6 +1063,29 @@ public class ClientManager {
         }
     }
 
+
+    private void sendMessage(String taskId,AmClientTasks tasksServiceOne,  String bossId, JSONObject finishTaskReqData) {
+        try {
+            Object type = finishTaskReqData.get("type");
+            if (Objects.isNull(type)) {
+                log.error("sendMessage type is null,taskId={},bossId={},finishTaskReqData={}", taskId, bossId, finishTaskReqData);
+                return;
+            }
+            String data = tasksServiceOne.getData();
+            JSONObject jsonObject = JSONObject.parseObject(data);
+            String userId = jsonObject.get("user_id").toString();
+            LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmResume::getUid, userId);
+            queryWrapper.eq(AmResume::getAccountId, bossId);
+            AmResume amResume = amResumeService.getOne(queryWrapper, false);
+            amResume.setType(ReviewStatusEnums.ABANDON.getStatus());
+            boolean result = amResumeService.updateById(amResume);
+            log.info("sendMessage update result={},amResume={}", result, amResume);
+        } catch (Exception e) {
+            log.error("deal sendMessage error taskId={},bossId={},finishTaskReqData={}", taskId, bossId, finishTaskReqData, e);
+        }
+
+    }
 
 
 
