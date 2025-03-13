@@ -71,7 +71,7 @@ public class CommonAIManager {
     public ChatMessage aiNoStream(List<ChatMessage> messages,
                                   List<String> tools,
                                   String templateModel,
-                                  Double temperature, AtomicInteger statusCode ) {
+                                  Double temperature, AtomicInteger statusCode,AtomicInteger needToReply) {
 
 
         try {
@@ -146,16 +146,24 @@ public class CommonAIManager {
                             continue;
                         }
 
+
                         // 执行工具时传递实际参数
                         String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
                         log.info("执行工具结果: tool={}, result={}", name, result);
 
                         // 特殊业务逻辑,后续替换为策略模式
-                        if("set_status".equals(name)){
+                        if ("set_status".equals(name)) {
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
                             ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
-                            statusCode.set(enums.getStatus());
-                            log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
+                            if (Objects.nonNull(enums)) {
+                                statusCode.set(enums.getStatus());
+                                log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
+                            }
+                        }
+                        if ("check_need_reply".equals(name)) {
+                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
+                            needToReply.set(0);
+                            log.info("判断是否需要回复, tool={}, status={},needToReply={}", name, result, needToReply.get());
                         }
 
                         if("get_spare_time".equals(name)){
@@ -165,8 +173,17 @@ public class CommonAIManager {
                             String maskId = params.getString("maskId");
                             LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                            ToolExecutionResultMessage resultMessage = null;
                             ResultVO<IcSpareTimeVo> resultVO = icManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
+                            if(200 == resultVO.getCode()){
+                                if (CollectionUtils.isEmpty(resultVO.getData().getSpareDateVos())) {
+                                    resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(ResultVO.fail(500,"无空闲时间")));
+                                }
+                            }
+                            if(resultMessage == null){
+                                resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO));
+                            }
+                            resultMessages.add(resultMessage);
                             log.info("获取空闲时间: tool={}, spareTimeStr={}", name, JSONObject.toJSONString(resultVO));
                         }
 
@@ -215,6 +232,7 @@ public class CommonAIManager {
                 // 生成最终回答
                 List<dev.langchain4j.data.message.ChatMessage> updatedMessages = new ArrayList<>(newMessages);
                 updatedMessages.addAll(resultMessages);
+                log.info("updatedMessages text={}", updatedMessages);
                 Response<AiMessage> finalResponse = modelService.generate(updatedMessages);
                 log.info("finalResponse text={}",finalResponse.content().text());
                 return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), finalResponse.content().text());
@@ -227,6 +245,14 @@ public class CommonAIManager {
         }
         return null;
 
+    }
+
+    public static void main(String[] args) {
+        List<JSONObject> jsonObjects = new ArrayList<>();
+        JSONObject object = new JSONObject();
+        object.put("a","1");
+        jsonObjects.add(object);
+        System.out.println(JSONObject.toJSONString(jsonObjects));
     }
 
 

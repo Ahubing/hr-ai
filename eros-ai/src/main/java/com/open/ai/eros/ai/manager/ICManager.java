@@ -317,6 +317,7 @@ public class ICManager {
 
     @Transactional
     public ResultVO<Boolean> modifyTime(String icUuid,Integer modifyWho, LocalDateTime newTime) {
+        long startTime = System.currentTimeMillis();
         IcRecord icRecord = icRecordService.getById(icUuid);
         //招聘者取消面试
         if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
@@ -326,6 +327,9 @@ public class ICManager {
             //如果不在线，则报错
             if(!Arrays.asList("free","busy").contains(account.getState())){
                 return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
+            }
+            if(InterviewStatusEnum.CANCEL.getStatus().equals(icRecord.getCancelStatus())){
+                return ResultVO.fail("面试已取消，无法修改面试时间");
             }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "modify");
@@ -357,6 +361,8 @@ public class ICManager {
             }
             return ResultVO.fail("面试时间修改失败，此时间非空闲时间");
         }
+        long endTime = System.currentTimeMillis();
+        log.info("modifyTime execute time:{}" ,endTime - startTime);
         return ResultVO.fail("面试时间修改失败");
     }
 

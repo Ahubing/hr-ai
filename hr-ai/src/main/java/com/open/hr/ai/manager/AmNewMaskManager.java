@@ -108,6 +108,7 @@ public class AmNewMaskManager {
         amNewMask.setStatus(MaskStatusEnum.OK.getStatus());
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setInterviewType(req.getInterviewType());
+        amNewMask.setGreetMessage(req.getGreetMessage());
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -152,6 +153,7 @@ public class AmNewMaskManager {
         amNewMask.setStatus(req.getStatus());
         amNewMask.setUpdateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
+        amNewMask.setGreetMessage(req.getGreetMessage());
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {
             log.info("updateNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -251,6 +253,7 @@ public class AmNewMaskManager {
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
         amNewMaskVo.setStatus(amNewMask.getStatus());
+        amNewMaskVo.setGreetMessage(amNewMask.getGreetMessage());
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){

@@ -23,7 +23,7 @@ public class InterviewCalendarFunction {
         return JSONObject.toJSONString(params);
     }
 
-    @Tool(name = "appoint_interview", value = {"为求职者预约面试时间。"})
+    @Tool(name = "appoint_interview", value = {"为求职者预约面试时间"})
     public String appoint_interview(@P("maskId") String maskId,
                                     @P("adminId") String adminId,
                                     @P("employeeUid") String employeeUid,
@@ -48,6 +48,7 @@ public class InterviewCalendarFunction {
         params.put("interviewId", interviewId);
         return JSONObject.toJSONString(params);
     }
+
     @Tool(name = "modify_interview_time", value = {"修改面试时间"})
     public String modify_interview_time(@P("原面试的id") String interviewId,
                                         @P("修改到的新时间（格式为yyyy-MM-ddTHH:mm:ss）") String newTime) {

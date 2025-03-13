@@ -419,6 +419,7 @@ public class AmChatBotGreetJob {
                             continue;
                         }
 
+
                         // 执行任务
                         AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
                         amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -68,7 +69,7 @@ public class DealUserFirstSendMessageUtil {
      * 处理临时任务,一次性塞到队列里面执行
      */
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts) {
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, bossId={}", amResume, amZpLocalAccouts.getId());
+        log.info("DealUserFirstSendMessageUtil dealBossNewMessage amResume={}, bossId={}", amResume, amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
@@ -91,14 +92,14 @@ public class DealUserFirstSendMessageUtil {
         Integer postId = amResume.getPostId();
 
         if (Objects.isNull(postId)) {
-            log.info("postId is null,amResume={}", amResume);
+            log.info("DealUserFirstSendMessageUtil postId is null,amResume={}", amResume);
             return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
         }
         LambdaQueryWrapper<AmPosition> positionLambdaQueryWrapper = new LambdaQueryWrapper<>();
         positionLambdaQueryWrapper.eq(AmPosition::getId, postId);
         AmPosition amPosition = amPositionService.getOne(positionLambdaQueryWrapper, false);
         if (Objects.isNull(amPosition)) {
-            log.info("amPosition is null,postId={}", postId);
+            log.info("DealUserFirstSendMessageUtil amPosition is null,postId={}", postId);
             // 先注释,让流程继续下去
             return ResultVO.fail(404, "未找到对应的岗位配置,不继续走下一个流程");
         }
@@ -109,9 +110,9 @@ public class DealUserFirstSendMessageUtil {
             optionsConfigLambdaQueryWrapper.eq(AmChatbotOptionsConfig::getAdminId, amZpLocalAccouts.getAdminId());
             AmChatbotOptionsConfig optionsConfigServiceOne = amChatbotOptionsConfigService.getOne(optionsConfigLambdaQueryWrapper, false);
             if (Objects.nonNull(optionsConfigServiceOne) && optionsConfigServiceOne.getIsContinueFollow() == 1) {
-                log.info("optionsConfigServiceOne is open,amPosition={}", amPosition);
+                log.info("DealUserFirstSendMessageUtil optionsConfigServiceOne is open,amPosition={}", amPosition);
             } else {
-                log.info("optionsConfigServiceOne is not open,amPosition={}", amPosition);
+                log.info("DealUserFirstSendMessageUtil optionsConfigServiceOne is not open,amPosition={}", amPosition);
                 return ResultVO.fail(404, "岗位未开放,且关闭岗位未开发ai继续跟进, 不继续走下一个流程");
             }
         }
@@ -135,21 +136,21 @@ public class DealUserFirstSendMessageUtil {
                         .ge(IcRecord::getStartTime, LocalDateTime.now())
                         .eq(IcRecord::getEmployeeUid, amResume.getUid())
                         .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
-                log.info("icRecord={}", JSONObject.toJSONString(icRecord));
-                log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
+                log.info("DealUserFirstSendMessageUtil icRecord={}", JSONObject.toJSONString(icRecord));
+                log.info("DealUserFirstSendMessageUtil icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 if (StringUtils.isBlank(aiPrompt)) {
-                    log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
+                    log.info("DealUserFirstSendMessageUtil aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
                 }
                 ChatMessage chatMessage = new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), aiPrompt);
                 messages.add(chatMessage);
             } else {
-                log.info("amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
+                log.info("DealUserFirstSendMessageUtil amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");
             }
         } else {
-            log.info("amChatbotPositionOption is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
+            log.info("DealUserFirstSendMessageUtil amChatbotPositionOption is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
             return ResultVO.fail(404, "未找到对应的amChatbotPositionOption配置,不继续下一个流程");
         }
         //告诉ai所有相关参数信息
@@ -159,7 +160,7 @@ public class DealUserFirstSendMessageUtil {
                 ",当前招聘的职位id positionId(String类型):" + amResume.getPostId() +
                 ",当前角色所登录的平台账号的id accountId:(String类型)" + amResume.getAccountId() +
                 ",当前的时间是:" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        log.info("ai pre params:" + preParams);
+        log.info("DealUserFirstSendMessageUtil ai pre params:" + preParams);
         messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), preParams));
         for (AmChatMessage message : amChatMessages) {
             if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
@@ -169,19 +170,24 @@ public class DealUserFirstSendMessageUtil {
             }
         }
 
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
+        log.info("DealUserFirstSendMessageUtil dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         // 如果content为空 重试10次
         String content = "";
+        AtomicInteger needToReply = new AtomicInteger(1);
         AtomicInteger statusCode = new AtomicInteger(-2);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time"), "OpenAI:gpt-4o-2024-05-13", 0.8, statusCode);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8, statusCode,needToReply);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
             }
         }
+        if (needToReply.get() == 0){
+            log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiNoStream needToReply is 0");
+            return ResultVO.success();
+        }
         if (StringUtils.isBlank(content)) {
-            log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiNoStream content is null");
+            log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiNoStream content is null");
             return ResultVO.fail(404, "ai回复内容为空");
         }
         AmClientTasks amClientTasks = new AmClientTasks();
@@ -205,7 +211,7 @@ public class DealUserFirstSendMessageUtil {
         hashMap.put("message", messageMap);
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         boolean result = amClientTasksService.save(amClientTasks);
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);
+        log.info("DealUserFirstSendMessageUtil dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);
 
         if (result) {
             //保存ai的回复
@@ -219,17 +225,24 @@ public class DealUserFirstSendMessageUtil {
             // 虚拟的消息数据
             aiMockMessages.setType(-1);
             boolean mockSaveResult = amChatMessageService.save(aiMockMessages);
-            log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
+            log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
 
             // 更新简历状态
             int status = statusCode.get();
-            if (status != -2) {
-                amResume.setType(status);
+            if(status != -2){
+                // 如果是放弃状态则修改简历状态
+                if (status == ReviewStatusEnums.ABANDON.getStatus()){
+                    amResume.setType(status);
+                }
+                // 状态大于当前状态 不允许回退
+                if ( status  > amResume.getType()) {
+                    amResume.setType(status);
+                }
             }
 
             // 根据状态发起request_info
             boolean updateResume = amResumeService.updateById(amResume);
-            log.info("ReplyUserMessageDataProcessor dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
+            log.info("DealUserFirstSendMessageUtil dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
         }
 
         return ResultVO.success();

@@ -266,13 +266,19 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), preParams));
         // 如果content为空 重试10次
         String content = "";
+        AtomicInteger needToReply = new AtomicInteger(1);
         AtomicInteger statusCode = new AtomicInteger(-2);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
             }
+        }
+        if (needToReply.get() == 0){
+            //本次不回答用户
+            log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiNoStream needToReply is 0");
+            return ResultVO.success();
         }
         if (StringUtils.isBlank(content)) {
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiNoStream content is null");
@@ -318,7 +324,14 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 更新简历状态
             int status = statusCode.get();
             if(status != -2){
-                amResume.setType(status);
+                // 如果是放弃状态则修改简历状态
+                if (status == ReviewStatusEnums.ABANDON.getStatus()){
+                    amResume.setType(status);
+                }
+                // 状态大于当前状态 不允许回退
+                if ( status  > amResume.getType()) {
+                    amResume.setType(status);
+                }
             }
             // 请求微信和手机号
             generateRequestInfo(status,amNewMask,amZpLocalAccouts,amResume,req);

@@ -177,4 +177,11 @@ public class AmNewMaskUpdateReq {
     private List<IcConfigUpdateReq> icConfigUpdateReqs = new ArrayList<>();
 
 
+    /**
+     * 打招呼话术
+     */
+    @ApiModelProperty(value = "打招呼话术",required = false,example = "打招呼话术")
+    private String greetMessage;
+
+
 }

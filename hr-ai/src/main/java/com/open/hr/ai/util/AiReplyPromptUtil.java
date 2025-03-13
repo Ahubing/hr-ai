@@ -69,7 +69,8 @@ public class AiReplyPromptUtil {
             "- 特别福利：{welfare}\n" );
 
     public static final String interviewPrompt = "# 面试信息\n" +
-            " - 已预约的面试：{interview_info} \n"+
+//            "如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n"  +
+            " - 系统查询到的已预约的面试：{interview_info} \n"+
             " - 面试方式：{address} \n";
 
     public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
@@ -117,7 +118,18 @@ public class AiReplyPromptUtil {
 
     public static final String toolPrompt = "\n" +
             "# 工具调用说明\n" +
-            "你只能选择一个工具进行调用，在上下文双方已经确认面试时间后应调用appoint_interview函数直接预约面试，而不要调用get_spare_time再次查询，因为你一次只能调用一个函数，调用get_spare_time你将无法在系统预约面试时间。\n";
+            "\n" +
+            "## 工具调用优先级\n" +
+            "\n" +
+            "你只能选择一个工具进行调用，请根据情景选择当前需要且优先级最高的工具进行调用(优先级顺序从高到低排列)。\n" +
+            "\n" +
+            "modify_interview_time\n" +
+            "cancel_interview\n" +
+            "appoint_interview\n" +
+            "get_spare_time\n" +
+            "no_further_reply\n" +
+            "set_status\n";
+
 
 
     /**
