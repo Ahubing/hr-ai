@@ -229,7 +229,7 @@ public class ClientManager {
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
                 if (Objects.nonNull(amChatbotGreetConfig.getLastCannotGreetTime())) {
                     // 判断是否与emptyTimestamp相等
-                    if (!amChatbotGreetConfig.getLastCannotGreetTime().equals(emptyTimestamp)){
+                    if (amChatbotGreetConfig.getLastCannotGreetTime().equals(emptyTimestamp)){
                         jsonObject.put("canGreet",true);
                     }else {
                         jsonObject.put("canGreet",false);
