@@ -46,6 +46,11 @@ public class AmZpLocalAccountJob {
 
     private static final String GREET_MESSAGE = "你好";
 
+    private  LocalDateTime emptyTimestamp = LocalDateTime.of(1970, 1, 1, 0, 0, 0); // 特定的空值标识
+
+    // 改成LocalDateTime
+
+
 
     /**
      * 处理定时任务 检测用户的状态, 超过25秒即下线
@@ -126,14 +131,17 @@ public class AmZpLocalAccountJob {
     /**
      * 每10分钟检测一次, 生成打招呼任务
      */
-    @Scheduled(cron = "0 10 * * * ?")
+//    @Scheduled(cron = "0 10 * * * ?")
+    @Scheduled(cron = "0/20 * * * * ?")
     public void dealGreetStatus() {
         Lock lock = DistributedLockUtils.getLock("dealGreetStatus", 20);
+        log.info("dealGreetStatus start");
         if (lock.tryLock()) {
             try {
                 LambdaQueryWrapper<AmChatbotGreetConfig> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-                // 判断lastCannotGreetTime为空的数据
+                // 判断lastCannotGreetTime不等于emptyTimestamp
                 lambdaQueryWrapper.isNotNull(AmChatbotGreetConfig::getLastCannotGreetTime);
+                lambdaQueryWrapper.ne(AmChatbotGreetConfig::getLastCannotGreetTime, emptyTimestamp);
                 List<AmChatbotGreetConfig> amChatbotGreetConfigs = amChatbotGreetConfigService.list(lambdaQueryWrapper);
                 //判断是否是昨天,如果是昨天则把时间置为空,如果不是昨天则不做处理
                 for (AmChatbotGreetConfig amChatbotGreetConfig : amChatbotGreetConfigs) {
@@ -141,7 +149,8 @@ public class AmZpLocalAccountJob {
                     LocalDate lastCannotGreetDate = lastCannotGreetTime.toLocalDate();
                     LocalDate now = LocalDate.now();
                     if (lastCannotGreetDate.isBefore(now)) {
-                        amChatbotGreetConfig.setLastCannotGreetTime(null);
+                        //设置特定的表示空值的时间
+                        amChatbotGreetConfig.setLastCannotGreetTime(emptyTimestamp);
                         amChatbotGreetConfigService.updateById(amChatbotGreetConfig);
                     }
                 }

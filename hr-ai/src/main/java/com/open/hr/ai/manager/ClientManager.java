@@ -89,6 +89,10 @@ public class ClientManager {
     private DealUserFirstSendMessageUtil dealUserFirstSendMessageUtil;
 
 
+    private  LocalDateTime emptyTimestamp = LocalDateTime.of(1970, 1, 1, 0, 0, 0); // 特定的空值标识
+
+
+
     public ResultVO connectClient(String platform,String bossId, String connectId) {
         try {
 
@@ -224,7 +228,12 @@ public class ClientManager {
                 jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
                 if (Objects.nonNull(amChatbotGreetConfig.getLastCannotGreetTime())) {
-                    jsonObject.put("canGreet",false);
+                    // 判断是否与emptyTimestamp相等
+                    if (!amChatbotGreetConfig.getLastCannotGreetTime().equals(emptyTimestamp)){
+                        jsonObject.put("canGreet",true);
+                    }else {
+                        jsonObject.put("canGreet",false);
+                    }
                 }else {
                     jsonObject.put("canGreet",true);
                 }
