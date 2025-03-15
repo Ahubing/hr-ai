@@ -192,6 +192,10 @@ public class DealUserFirstSendMessageUtil {
             log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiNoStream content is null");
             return ResultVO.fail(404, "ai回复内容为空");
         }
+        // 对content 消息内容 删除包含</think>之前的内容
+        if (content.contains("</think>")) {
+            content = content.substring(content.indexOf("</think>") + 8);
+        }
         AmClientTasks amClientTasks = new AmClientTasks();
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
