@@ -1075,21 +1075,19 @@ public class ClientManager {
 
     private void sendMessage(String taskId,AmClientTasks tasksServiceOne,  String bossId, JSONObject finishTaskReqData) {
         try {
-            Object type = finishTaskReqData.get("type");
-            if (Objects.isNull(type)) {
-                log.error("sendMessage type is null,taskId={},bossId={},finishTaskReqData={}", taskId, bossId, finishTaskReqData);
-                return;
+            if (finishTaskReqData.containsKey("type")) {
+                String data = tasksServiceOne.getData();
+                JSONObject jsonObject = JSONObject.parseObject(data);
+                String userId = jsonObject.get("user_id").toString();
+                LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmResume::getUid, userId);
+                queryWrapper.eq(AmResume::getAccountId, bossId);
+                AmResume amResume = amResumeService.getOne(queryWrapper, false);
+                amResume.setType(ReviewStatusEnums.ABANDON.getStatus());
+                boolean result = amResumeService.updateById(amResume);
+                log.info("sendMessage update result={},amResume={}", result, amResume);
             }
-            String data = tasksServiceOne.getData();
-            JSONObject jsonObject = JSONObject.parseObject(data);
-            String userId = jsonObject.get("user_id").toString();
-            LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmResume::getUid, userId);
-            queryWrapper.eq(AmResume::getAccountId, bossId);
-            AmResume amResume = amResumeService.getOne(queryWrapper, false);
-            amResume.setType(ReviewStatusEnums.ABANDON.getStatus());
-            boolean result = amResumeService.updateById(amResume);
-            log.info("sendMessage update result={},amResume={}", result, amResume);
+
         } catch (Exception e) {
             log.error("deal sendMessage error taskId={},bossId={},finishTaskReqData={}", taskId, bossId, finishTaskReqData, e);
         }
