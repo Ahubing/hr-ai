@@ -178,7 +178,7 @@ public class DealUserFirstSendMessageUtil {
         AtomicInteger statusCode = new AtomicInteger(-2);
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time","no_further_reply"), "OpenAI::QwQ-32B", 0.8, statusCode,needToReply,isAiSetStatus);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time","no_further_reply"), "OpenAI:QwQ-32B", 0.8, statusCode,needToReply,isAiSetStatus);
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
