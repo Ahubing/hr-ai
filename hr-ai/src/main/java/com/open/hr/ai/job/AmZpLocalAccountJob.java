@@ -132,7 +132,7 @@ public class AmZpLocalAccountJob {
      * 每10分钟检测一次, 生成打招呼任务
      */
 //    @Scheduled(cron = "0 10 * * * ?")
-    @Scheduled(cron = "0/20 * * * * ?")
+//    @Scheduled(cron = "0/20 * * * * ?")
     public void dealGreetStatus() {
         Lock lock = DistributedLockUtils.getLock("dealGreetStatus", 20);
         log.info("dealGreetStatus start");

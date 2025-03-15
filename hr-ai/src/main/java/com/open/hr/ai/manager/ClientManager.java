@@ -228,8 +228,8 @@ public class ClientManager {
                 jsonObject.put("isAiOn",amChatbotGreetConfig.getIsAiOn());
                 jsonObject.put("isAllOn",amChatbotGreetConfig.getIsAllOn());
                 if (Objects.nonNull(amChatbotGreetConfig.getLastCannotGreetTime())) {
-                    // 判断是否与emptyTimestamp相等
-                    if (amChatbotGreetConfig.getLastCannotGreetTime().equals(emptyTimestamp)){
+                    // 判断是否小于今天的凌晨
+                    if (amChatbotGreetConfig.getLastCannotGreetTime().isBefore(LocalDate.now().atStartOfDay())) {
                         jsonObject.put("canGreet",true);
                     }else {
                         jsonObject.put("canGreet",false);
