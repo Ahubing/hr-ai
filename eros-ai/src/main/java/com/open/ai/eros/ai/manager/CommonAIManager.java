@@ -129,6 +129,8 @@ public class CommonAIManager {
                     .apiKey(token)
                     .baseUrl(url)
                     .modelName(split[1])
+                    .temperature(0.6)
+                    .topP(0.95)
                     .build();
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
