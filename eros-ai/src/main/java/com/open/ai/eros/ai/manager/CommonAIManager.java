@@ -123,13 +123,12 @@ public class CommonAIManager {
             }
 
             String url = getUrl("https://openapi.flcat.top/");
-            String token = "sk-3POnnCKvc6Unei5VPLZKUlRj4B3XaurNG3MrKzUUbeHPjtKMQwQ-32B";
+            String token = "sk-3POnnCKvc6Unei5VPLZKUlRj4B3XaurNG3MrKzUUbeHPjtKM";
 
             OpenAiChatModel modelService = OpenAiChatModel.builder()
                     .apiKey(token)
                     .baseUrl(url)
                     .modelName(split[1])
-                    .temperature(temperature)
                     .build();
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
