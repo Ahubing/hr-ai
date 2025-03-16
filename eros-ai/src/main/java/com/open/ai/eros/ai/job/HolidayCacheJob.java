@@ -32,14 +32,15 @@ public class HolidayCacheJob {
 
     @EventListener(ApplicationReadyEvent.class)
     public void initHoliday() {
+
         Lock lock = DistributedLockUtils.getLock(HOLIDAY_LOCK, 20, TimeUnit.SECONDS);
         try {
-            if (lock.tryLock(1, TimeUnit.SECONDS)) {
+            if (lock.tryLock()) {
                 log.info("HolidayCacheJob init start---");
                 flushHolidayCache();
                 log.info("HolidayCacheJob init end---");
             }
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             log.error("HolidayCacheJob init error---",e);
         }finally {
@@ -51,12 +52,12 @@ public class HolidayCacheJob {
     public void flushHoliday(){
         Lock lock = DistributedLockUtils.getLock(HOLIDAY_LOCK, 20, TimeUnit.SECONDS);
         try {
-            if (lock.tryLock(1, TimeUnit.SECONDS)) {
+            if (lock.tryLock()) {
                 log.info("HolidayCacheJob flush start---");
                 flushHolidayCache();
                 log.info("HolidayCacheJob flush end---");
             }
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             log.error("HolidayCacheJob flush error---",e);
         }finally {
