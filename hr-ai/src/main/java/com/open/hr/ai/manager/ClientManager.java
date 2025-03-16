@@ -1075,7 +1075,7 @@ public class ClientManager {
 
     private void sendMessage(String taskId,AmClientTasks tasksServiceOne,  String bossId, JSONObject finishTaskReqData) {
         try {
-            if (finishTaskReqData.containsKey("type")) {
+            if (Objects.nonNull(finishTaskReqData) &&  finishTaskReqData.containsKey("type")) {
                 String data = tasksServiceOne.getData();
                 JSONObject jsonObject = JSONObject.parseObject(data);
                 String userId = jsonObject.get("user_id").toString();

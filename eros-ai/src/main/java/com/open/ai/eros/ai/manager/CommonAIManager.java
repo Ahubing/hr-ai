@@ -122,15 +122,13 @@ public class CommonAIManager {
                 }
             }
 
-            String url = getUrl("https://openapi.flcat.top/");
-            String token = "sk-3POnnCKvc6Unei5VPLZKUlRj4B3XaurNG3MrKzUUbeHPjtKM";
+            String url = getUrl("https://vip.zen-ai.top/");
+            String token = "sk-hV2cfUMDd1N027qV012foenZzjmfRSKikPd4nrrwHsZa964K";
 
             OpenAiChatModel modelService = OpenAiChatModel.builder()
                     .apiKey(token)
                     .baseUrl(url)
                     .modelName(split[1])
-                    .temperature(0.6)
-                    .topP(0.95)
                     .build();
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
