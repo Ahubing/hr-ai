@@ -120,7 +120,7 @@ public class ClientController extends HrAIBaseController {
 
 
     @ApiOperation("客户端请求过滤简历")
-    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}")
+    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}")
     public ResultVO filterResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId, @RequestBody @Valid JSONObject resume) {
         log.info("filterResume bossId={},connectId={},clientBossNewMessageReq={}", bossId, connectId, resume);
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
