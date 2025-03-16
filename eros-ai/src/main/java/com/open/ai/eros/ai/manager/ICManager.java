@@ -65,9 +65,6 @@ public class ICManager {
     private AmPositionServiceImpl positionService;
 
     @Resource
-    private JedisClientImpl jedisClient;
-
-    @Resource
     private AmResumeServiceImpl resumeService;
 
     @Resource
@@ -79,7 +76,9 @@ public class ICManager {
     @Resource
     private AmChatMessageServiceImpl chatMessageService;
 
-    private static final long EXPIRE_TIME = 5 * 24 * 3600;
+    @Resource
+    private JedisClientImpl jedisClient;
+
 
     public ResultVO<IcSpareTimeVo> getSpareTime(IcSpareTimeReq spareTimeReq){
         //开始时间参数修正
@@ -185,24 +184,10 @@ public class ICManager {
     }
 
     private boolean isHoliday(LocalDate date) {
-        String dateStr = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        String dateStr = CommonConstant.HOLIDAY_PREFIX + date.format(DateTimeFormatter.ISO_LOCAL_DATE);
         String value = jedisClient.get(dateStr);
         if(StringUtils.isNotEmpty(value)){
-            jedisClient.expire(dateStr, EXPIRE_TIME);
             return "1".equals(value);
-        }
-        try {
-            String jsonString = HttpUtil.get(CommonConstant.HOLIDAY_API_URL);
-            JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
-            JsonObject holidays = json.getAsJsonObject("holidays");
-            if(holidays.keySet().contains(dateStr)){
-                jedisClient.set(dateStr, "1", EXPIRE_TIME);
-                return true;
-            }else {
-                jedisClient.set(dateStr, "0", EXPIRE_TIME);
-            }
-        }catch (Exception e){
-            log.error("[ic]查询是否是节假日失败:{},错误信息:{}",dateStr,e.getMessage());
         }
         return false;
     }
@@ -217,6 +202,9 @@ public class ICManager {
                 .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
         if(count > 0){
             return ResultVO.fail("已经预约了面试,无法再次预约");
+        }
+        if(!req.getStartTime().isAfter(LocalDateTime.now())){
+            return ResultVO.fail("预约面试时间有误：" + req.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
         IcRecord icRecord = new IcRecord();
         AmNewMask newMask = amNewMaskService.getById(req.getMaskId());

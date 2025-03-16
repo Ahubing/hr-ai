@@ -104,5 +104,7 @@ public class CommonConstant {
      */
     public static final String HOLIDAY_API_URL = "https://cdn.jsdelivr.net/npm/chinese-days/dist/chinese-days.json";
 
+    public static final String HOLIDAY_PREFIX = "HOLIDAY:";
 
+    public static final long HOLIDAY_EXPIRE_TIME = 5 * 24 * 3600;
 }
