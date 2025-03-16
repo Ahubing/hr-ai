@@ -1,5 +1,6 @@
 package com.open.hr.ai.manager;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.util.DateUtils;
@@ -55,7 +56,7 @@ public class ChatBotManager {
     private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
 
     @Resource
-    private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
+    private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
     @Resource
     private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
@@ -214,9 +215,9 @@ public class ChatBotManager {
                     AmPosition amPosition = amPositionService.getById(amChatbotGreetTaskVo.getPositionId());
                     AmPositionVo amPositionVo = AmPositionConvert.I.converAmPositionVo(amPosition);
                     amChatbotGreetTaskVo.setPositionVo(amPositionVo);
-                    AmChatbotGreetCondition amChatbotGreetCondition = amChatbotGreetConditionService.getOne(new LambdaQueryWrapper<AmChatbotGreetCondition>().eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTaskVo.getPositionId()), false);
+                    AmChatbotGreetConditionNew amChatbotGreetCondition = amChatbotGreetConditionNewService.getOne(new LambdaQueryWrapper<AmChatbotGreetConditionNew>().eq(AmChatbotGreetConditionNew::getPositionId, amChatbotGreetTaskVo.getPositionId()), false);
                     if (Objects.nonNull(amChatbotGreetCondition)) {
-                        amChatbotGreetTaskVo.setConditionVo(AmChatBotGreetConditionConvert.I.convertGreetConditionVo(amChatbotGreetCondition));
+                        amChatbotGreetTaskVo.setConditionVo(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(amChatbotGreetCondition));
                     }
                 }
             }
@@ -529,31 +530,34 @@ public class ChatBotManager {
 
 
     @Transactional
-    public ResultVO<AmChatbotGreetCondition> setGreetCondition(AddOrUpdateChatbotGreetCondition req) {
+    public ResultVO<AmGreetConditionVo> setGreetCondition(AddOrUpdateChatbotGreetConditionNew req) {
         try {
-            AmChatbotGreetCondition amChatbotGreetCondition = AmChatBotGreetConditionConvert.I.convertAddOrUpdateGreetCondition(req);
+            AmChatbotGreetConditionNew amChatbotGreetConditionNew = AmChatBotGreetNewConditionConvert.I.convertAddOrUpdateGreetNewCondition(req);
             if (Objects.nonNull(req.getId())) {
                 // 根据id 更新
-                AmChatbotGreetCondition amChatbotGreetConfig = amChatbotGreetConditionService.getById(req.getId());
-                if (Objects.isNull(amChatbotGreetConfig)) {
-                    boolean updateResult = amChatbotGreetConditionService.save(amChatbotGreetCondition);
-                    return updateResult ? ResultVO.success(amChatbotGreetConfig) : ResultVO.fail("添加打招呼筛选条件失败");
+                AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(req.getId());
+                if (Objects.isNull(chatbotGreetConditionNew)) {
+                    boolean updateResult = amChatbotGreetConditionNewService.save(chatbotGreetConditionNew);
+                    AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(chatbotGreetConditionNew);
+                    return updateResult ? ResultVO.success(amGreetConditionVo) : ResultVO.fail("添加打招呼筛选条件失败");
                 }
             }else {
                 // 根据岗位id 更新
-                LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId());
-                queryWrapper.eq(AmChatbotGreetCondition::getPositionId, req.getPositionId());
-                AmChatbotGreetCondition one = amChatbotGreetConditionService.getOne(queryWrapper,false);
-                if (Objects.nonNull(one)) {
-                    amChatbotGreetCondition.setId(one.getId());
-                    boolean result = amChatbotGreetConditionService.updateById(amChatbotGreetCondition);
+                LambdaQueryWrapper<AmChatbotGreetConditionNew> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, req.getAccountId());
+                queryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, req.getPositionId());
+                AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(queryWrapper, false);
+                if (Objects.nonNull(conditionNewServiceOne)) {
+                    amChatbotGreetConditionNew.setId(conditionNewServiceOne.getId());
+                    boolean result = amChatbotGreetConditionNewService.updateById(amChatbotGreetConditionNew);
                     log.info("setGreetCondition update amChatbotGreetCondition result={}", result);
-                    return result ? ResultVO.success(amChatbotGreetCondition) : ResultVO.fail("修改打招呼筛选条件失败");
+                    AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(amChatbotGreetConditionNew);
+                    return result ? ResultVO.success(amGreetConditionVo) : ResultVO.fail("修改打招呼筛选条件失败");
                 }
             }
-            boolean addResult = amChatbotGreetConditionService.save(amChatbotGreetCondition);
-            return addResult ? ResultVO.success(amChatbotGreetCondition) : ResultVO.fail("修改打招呼筛选条件失败");
+            boolean addResult = amChatbotGreetConditionNewService.save(amChatbotGreetConditionNew);
+            AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(amChatbotGreetConditionNew);
+            return addResult ? ResultVO.success(amGreetConditionVo) : ResultVO.fail("修改打招呼筛选条件失败");
         } catch (Exception e) {
             log.error("modifyGreetStatus error req={}", JSONObject.toJSONString(req), e);
         }
@@ -569,14 +573,14 @@ public class ChatBotManager {
         try {
             //查询打招呼条件
             if (Objects.nonNull(req.getConditionsId())) {
-                AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(req.getConditionsId());
-                req.setConditionsId(condition.getId());
+                AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(req.getConditionsId());
+                req.setConditionsId(chatbotGreetConditionNew.getId());
             }else {
                 // 根据岗位id 和 账号id
-                LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId());
-                queryWrapper.eq(AmChatbotGreetCondition::getPositionId, req.getPositionId());
-                AmChatbotGreetCondition one = amChatbotGreetConditionService.getOne(queryWrapper,false);
+                LambdaQueryWrapper<AmChatbotGreetConditionNew> queryWrapper = new LambdaQueryWrapper<>();
+                queryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, req.getAccountId());
+                queryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, req.getPositionId());
+                AmChatbotGreetConditionNew one = amChatbotGreetConditionNewService.getOne(queryWrapper,false);
                 if (Objects.nonNull(one)) {
                     req.setConditionsId(one.getId());
                 }
@@ -710,10 +714,10 @@ public class ChatBotManager {
 
     private void populateConditionVo(AmChatbotGreetTaskVo taskVo) {
         if (Objects.nonNull(taskVo.getConditionsId())) {
-            AmChatbotGreetCondition condition = amChatbotGreetConditionService.getById(taskVo.getConditionsId());
-            if (condition != null) {
-                AmChatbotGreetConditionVo conditionVo = AmChatBotGreetConditionConvert.I.convertGreetConditionVo(condition);
-                taskVo.setConditionVo(conditionVo);
+            AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(taskVo.getConditionsId());
+            if (chatbotGreetConditionNew != null) {
+                AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(chatbotGreetConditionNew);
+                taskVo.setConditionVo(amGreetConditionVo);
             }
         }
     }
@@ -737,12 +741,12 @@ public class ChatBotManager {
      * 先跟着php的逻辑实现..
      */
     @Transactional
-    public ResultVO<AmChatbotGreetCondition> getConditionByPositionId(Integer positionId) {
+    public ResultVO<AmGreetConditionVo> getConditionByPositionId(Integer positionId) {
         try {
-            LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmChatbotGreetCondition::getPositionId, positionId);
-            AmChatbotGreetCondition amChatbotGreetCondition = amChatbotGreetConditionService.getOne(queryWrapper, false);
-            return Objects.nonNull(amChatbotGreetCondition) ? ResultVO.success(amChatbotGreetCondition) : ResultVO.fail("条件未设置，无数据");
+            LambdaQueryWrapper<AmChatbotGreetConditionNew> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, positionId);
+            AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(queryWrapper, false);
+            return Objects.nonNull(conditionNewServiceOne) ? ResultVO.success(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne)) : ResultVO.fail("条件未设置，无数据");
         } catch (Exception e) {
             log.error("getConditionByPositionId error positionId={}", positionId, e);
         }
@@ -776,8 +780,9 @@ public class ChatBotManager {
                     amChatbotPositionOption.setAmMaskVo(amMaskVo);
                 }
                 amChatbotPositionOption.setAmChatbotOptions(amChatbotOptionsService.getById(amChatbotPositionOption.getRechatOptionId()));
-                LambdaQueryWrapper<AmChatbotGreetCondition> optionQueryWrapper = new LambdaQueryWrapper<>();
-                amChatbotPositionOption.setAmChatbotGreetCondition(amChatbotGreetConditionService.getOne(optionQueryWrapper.eq(AmChatbotGreetCondition::getAccountId, req.getAccountId()).eq(AmChatbotGreetCondition::getPositionId, amChatbotPositionOption.getPositionId()), false));
+                LambdaQueryWrapper<AmChatbotGreetConditionNew> optionQueryWrapper = new LambdaQueryWrapper<>();
+                AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(optionQueryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, req.getAccountId()).eq(AmChatbotGreetConditionNew::getPositionId, amChatbotPositionOption.getPositionId()), false);
+                amChatbotPositionOption.setAmGreetConditionVo(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne));
             }
             return ResultVO.success(amChatbotPositionOptionVos);
         } catch (Exception e) {
@@ -817,6 +822,48 @@ public class ChatBotManager {
             log.error("setPositionOption error req={}", JSONObject.toJSONString(req), e);
         }
         return ResultVO.fail("程序异常,设置失败");
+    }
+
+
+    /**
+     * 获取打招呼条件
+     */
+    public ResultVO<AmGreetConditionStaticVo> getAmGreetConditionStaticVo(){
+        AmGreetConditionStaticVo amGreetConditionStaticVo = new AmGreetConditionStaticVo();
+        JSONArray AmGreetEducationVo = new JSONArray();
+        for (AmGreetDegreeEnum value : AmGreetDegreeEnum.values()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type",value.getType());
+            jsonObject.put("value",value.getValue());
+            AmGreetEducationVo.add(jsonObject);
+        }
+        amGreetConditionStaticVo.setAmGreetEducationVo(AmGreetEducationVo);
+        JSONArray AmGreetExperienceVo = new JSONArray();
+        for (AmGreetExperienceEnum value : AmGreetExperienceEnum.values()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type",value.getType());
+            jsonObject.put("value",value.getValue());
+            AmGreetExperienceVo.add(jsonObject);
+        }
+        amGreetConditionStaticVo.setAmGreetExperienceVo(AmGreetExperienceVo);
+        JSONArray AmGreetSalaryVo = new JSONArray();
+        for (AmGreetSalaryEnum value : AmGreetSalaryEnum.values()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type",value.getType());
+            jsonObject.put("value",value.getValue());
+            AmGreetSalaryVo.add(jsonObject);
+        }
+        amGreetConditionStaticVo.setAmGreetSalaryVo(AmGreetSalaryVo);
+        JSONArray AmGreetIntentionVo = new JSONArray();
+        for (AmIntentionEnum value : AmIntentionEnum.values()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("type",value.getType());
+            jsonObject.put("value",value.getValue());
+            AmGreetIntentionVo.add(jsonObject);
+        }
+        amGreetConditionStaticVo.setAmGreetIntentionVo(AmGreetIntentionVo);
+        return ResultVO.success(amGreetConditionStaticVo);
+
     }
 
 }

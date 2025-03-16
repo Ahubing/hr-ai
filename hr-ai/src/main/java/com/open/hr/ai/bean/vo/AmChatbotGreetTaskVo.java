@@ -82,7 +82,7 @@ public class AmChatbotGreetTaskVo implements Serializable {
     @JsonFormat(pattern = DateUtils.FORMAT_YYYY_MM_DD_HHMMSS)
     private LocalDateTime updateTime;
 
-    private AmChatbotGreetConditionVo conditionVo;
+    private AmGreetConditionVo conditionVo;
 
     private List<AmChatbotGreetTaskVo> tasks;
 
