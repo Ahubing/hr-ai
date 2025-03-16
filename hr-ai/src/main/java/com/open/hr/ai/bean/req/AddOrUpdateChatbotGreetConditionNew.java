@@ -63,7 +63,7 @@ public class AddOrUpdateChatbotGreetConditionNew {
     /**
      * 工作年限；如：不限，应届生，1年以下，1-3年，3-5年，5-10年，10年以上
      */
-    private String workYears;
+    private List<String> workYears;
 
     /**
      * 通过resume的work_experiences和projects判断

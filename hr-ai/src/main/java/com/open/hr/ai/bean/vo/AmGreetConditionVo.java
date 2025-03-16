@@ -45,19 +45,19 @@ public class AmGreetConditionVo {
     private List<String> filterPosition;
 
     /**
-     * 年龄 18-35 不限
+     * 年龄 18-35 空字符串为不限
      */
     private String age;
 
     /**
-     * 性别，男 女 不限
+     * 0女，1男, 空为不限
      */
-    private String gender;
+    private Integer gender;
 
     /**
      * 工作年限；如：不限，应届生，1年以下，1-3年，3-5年，5-10年，10年以上
      */
-    private String workYears;
+    private List<String> workYears;
 
     /**
      * 通过resume的work_experiences和projects判断

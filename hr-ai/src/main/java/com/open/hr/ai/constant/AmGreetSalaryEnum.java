@@ -10,13 +10,13 @@ public enum AmGreetSalaryEnum {
      * 20-50k
      * 50k以上
      */
-    UM_LIMITED("unlimited","不限"),
-    THREE_K_BELOW("three_k_below","3k以下"),
-    THREE_TO_FIVE_K("three_to_five_k","3-5k"),
-    FIVE_TO_TEN_K("five_to_ten_k","5-10k"),
-    TEN_TO_TWENTY_K("ten_to_twenty_k","10-20k"),
-    TWENTY_TO_FIFTY_K("twenty_to_fifty_k","20-50k"),
-    FIFTY_ABOVE("fifty_above","50k以上")
+    UM_LIMITED("","不限"),
+    THREE_K_BELOW("3k","3k以下"),
+    THREE_TO_FIVE_K("3-5k","3-5k"),
+    FIVE_TO_TEN_K("5-10k","5-10k"),
+    TEN_TO_TWENTY_K("10-20k","10-20k"),
+    TWENTY_TO_FIFTY_K("20-50k","20-50k"),
+    FIFTY_ABOVE("50k","50k以上")
    ;
 
     private final String type;

@@ -1,5 +1,6 @@
 package com.open.hr.ai.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
@@ -114,6 +115,18 @@ public class ClientController extends HrAIBaseController {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
         return clientManager.bossNewMessage(platform,bossId, connectId, clientBossNewMessageReq);
+    }
+
+
+
+    @ApiOperation("客户端请求过滤简历")
+    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}")
+    public ResultVO filterResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId, @RequestBody @Valid JSONObject resume) {
+        log.info("filterResume bossId={},connectId={},clientBossNewMessageReq={}", bossId, connectId, resume);
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
+            return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
+        }
+        return clientManager.filterAmResume(platform,bossId, connectId,encryptId, resume);
     }
 
 }

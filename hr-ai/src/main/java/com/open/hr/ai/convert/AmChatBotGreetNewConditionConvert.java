@@ -1,10 +1,7 @@
 package com.open.hr.ai.convert;
 
-import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetCondition;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetConditionNew;
-import com.open.hr.ai.bean.req.AddOrUpdateChatbotGreetCondition;
 import com.open.hr.ai.bean.req.AddOrUpdateChatbotGreetConditionNew;
-import com.open.hr.ai.bean.vo.AmChatbotGreetConditionVo;
 import com.open.hr.ai.bean.vo.AmGreetConditionVo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,29 +23,31 @@ public interface AmChatBotGreetNewConditionConvert {
     AmChatBotGreetNewConditionConvert I = Mappers.getMapper(AmChatBotGreetNewConditionConvert.class);
 
 
-    @Mapping(target = "expectPosition",source = "expectPosition",qualifiedByName="AmListToString")
-    @Mapping(target = "filterPosition",source = "filterPosition",qualifiedByName="AmListToString")
-    @Mapping(target = "experience",source = "experience",qualifiedByName="AmListToString")
-    @Mapping(target = "filterExperience",source = "filterExperience",qualifiedByName="AmListToString")
-    @Mapping(target = "degree",source = "degree",qualifiedByName="AmListToString")
-    @Mapping(target = "intention",source = "intention",qualifiedByName="AmListToString")
-    @Mapping(target = "skills",source = "skills",qualifiedByName="AmListToString")
+    @Mapping(target = "expectPosition",source = "expectPosition",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "filterPosition",source = "filterPosition",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "experience",source = "experience",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "filterExperience",source = "filterExperience",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "degree",source = "degree",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "intention",source = "intention",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "skills",source = "skills",qualifiedByName="AmGreetListToString")
+    @Mapping(target = "workYears",source = "workYears",qualifiedByName="AmGreetListToString")
     AmChatbotGreetConditionNew convertAddOrUpdateGreetNewCondition(AddOrUpdateChatbotGreetConditionNew addOrUpdateChatbotGreetConditionNew);
 
-    @Mapping(target = "expectPosition",source = "expectPosition",qualifiedByName="AmStringToList")
-    @Mapping(target = "filterPosition",source = "filterPosition",qualifiedByName="AmStringToList")
-    @Mapping(target = "experience",source = "experience",qualifiedByName="AmStringToList")
-    @Mapping(target = "filterExperience",source = "filterExperience",qualifiedByName="AmStringToList")
-    @Mapping(target = "degree",source = "degree",qualifiedByName="AmStringToList")
-    @Mapping(target = "intention",source = "intention",qualifiedByName="AmStringToList")
-    @Mapping(target = "skills",source = "skills",qualifiedByName="AmStringToList")
+    @Mapping(target = "expectPosition",source = "expectPosition",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "filterPosition",source = "filterPosition",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "experience",source = "experience",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "filterExperience",source = "filterExperience",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "degree",source = "degree",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "intention",source = "intention",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "skills",source = "skills",qualifiedByName="AmGreetStringToList")
+    @Mapping(target = "workYears",source = "workYears",qualifiedByName="AmGreetStringToList")
     AmGreetConditionVo convertGreetConditionVo(AmChatbotGreetConditionNew amChatbotGreetConditionNew);
 
 
 
 
-    @Named("AmListToString")
-    default String AmListToString(List<String> strs){
+    @Named("AmGreetListToString")
+    default String AmGreetListToString(List<String> strs){
         if(CollectionUtils.isEmpty(strs)){
             return "";
         }
@@ -56,8 +55,8 @@ public interface AmChatBotGreetNewConditionConvert {
     }
 
 
-    @Named("AmStringToList")
-    default List<String> AmStringToList(String str){
+    @Named("AmGreetStringToList")
+    default List<String> AmGreetStringToList(String str){
         if(StringUtils.isEmpty(str)){
             return Collections.EMPTY_LIST;
         }
