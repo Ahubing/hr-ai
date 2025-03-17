@@ -324,6 +324,7 @@ public class AmChatBotGreetJob {
                         AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                         if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
                             log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或 全部开关关闭中 或 未开启复聊 greetConfig={}", accountId, greetConfig);
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
