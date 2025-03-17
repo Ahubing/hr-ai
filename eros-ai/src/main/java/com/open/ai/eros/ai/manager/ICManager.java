@@ -539,7 +539,6 @@ public class ICManager {
         String postName = req.getPostName();
         String platform = req.getPlatform();
         queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
-                .eq(status != null,IcRecord::getCancelStatus,status)
                 .eq(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
                 .eq(StringUtils.isNotEmpty(deptName),IcRecord::getDeptName,deptName)
                 .eq(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
@@ -547,6 +546,14 @@ public class ICManager {
                 .eq(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
                 .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
                 .orderByDesc(IcRecord::getStartTime);
+        if(status != null){
+            if(3 == status){
+                queryWrapper.eq(IcRecord::getCancelStatus,1)
+                        .le(IcRecord::getStartTime,LocalDateTime.now());
+            }else {
+                queryWrapper.eq(IcRecord::getCancelStatus,status);
+            }
+        }
         Page<IcRecord> page = new Page<>(pageNum, pageSize);
         Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
         List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());

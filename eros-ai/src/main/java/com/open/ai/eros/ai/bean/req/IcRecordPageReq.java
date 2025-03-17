@@ -16,7 +16,7 @@ public class IcRecordPageReq {
     @ApiModelProperty("显示数")
     private Integer pageSize = 10;
 
-    @ApiModelProperty("面试预约状态1-未取消，2-已取消")
+    @ApiModelProperty("面试预约状态1-未取消，2-已取消，3-已过期")
     private Integer interviewStatus;
 
     @ApiModelProperty("面试类型group-群面，single-单面")
