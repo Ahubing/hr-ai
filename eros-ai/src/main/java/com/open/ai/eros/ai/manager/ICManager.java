@@ -550,6 +550,9 @@ public class ICManager {
             if(3 == status){
                 queryWrapper.eq(IcRecord::getCancelStatus,1)
                         .le(IcRecord::getStartTime,LocalDateTime.now());
+            }else if(1 == status) {
+                queryWrapper.eq(IcRecord::getCancelStatus,status)
+                            .gt(IcRecord::getStartTime,LocalDateTime.now());
             }else {
                 queryWrapper.eq(IcRecord::getCancelStatus,status);
             }
