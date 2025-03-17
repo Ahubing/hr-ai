@@ -2,9 +2,7 @@ package com.open.hr.ai.bean.vo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetCondition;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptions;
-import com.open.ai.eros.db.mysql.hr.entity.AmSquareRoles;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -59,7 +57,7 @@ public class AmChatbotPositionOptionVo implements Serializable {
 
     private AmChatbotOptions amChatbotOptions;
 
-    private AmChatbotGreetCondition amChatbotGreetCondition;
+    private AmGreetConditionVo amGreetConditionVo;
 
 
 }

@@ -185,4 +185,20 @@ public class AmResume implements Serializable {
      */
     private String competencyModel;
 
+    /**
+     *  0离职/离校-正在找工作，1在职/在校-考虑机会，2在职/在校-寻找新工作, -1未知
+     */
+    private Integer intention;
+
+
+    /**
+     *  0初中及以下，1中专/技校，2高中，3大专，4本科，5硕士，6博士, -1未知
+     */
+    private Integer degree;
+
+    /**
+     *  是否是学生 1是学生 -1 不是
+     */
+    private Integer isStudent;
+
 }

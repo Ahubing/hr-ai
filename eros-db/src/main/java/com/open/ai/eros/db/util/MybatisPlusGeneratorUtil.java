@@ -15,7 +15,7 @@ public class MybatisPlusGeneratorUtil {
         String author = "Eros-AI";
         String database = "hr-ai";
         String model = "hr";
-        generateByTables(author, database, model, "ic_config", "ic_record");
+        generateByTables(author, database, model, "am_chatbot_greet_condition_new");
     }
 
     private static void generateByTables(String author, String database, String model, String... tableNames) {

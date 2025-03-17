@@ -2,7 +2,6 @@ package com.open.hr.ai.job;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.util.DistributedLockUtils;
@@ -10,7 +9,9 @@ import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
+import com.open.hr.ai.bean.vo.AmGreetConditionVo;
 import com.open.hr.ai.constant.*;
+import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -24,8 +25,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
@@ -53,7 +52,7 @@ public class AmChatBotGreetJob {
     @Resource
     private AmChatbotGreetMessagesServiceImpl amChatbotGreetMessagesService;
     @Resource
-    private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
+    private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
     @Resource
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
@@ -325,6 +324,7 @@ public class AmChatBotGreetJob {
                         AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                         if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
                             log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或 全部开关关闭中 或 未开启复聊 greetConfig={}", accountId, greetConfig);
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
 
@@ -434,39 +434,31 @@ public class AmChatBotGreetJob {
                         amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
                         amChatbotGreetTaskService.updateById(amChatbotGreetTask);
 
-                        LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
-                        queryWrapper.eq(AmChatbotGreetCondition::getAccountId, amChatbotGreetTask.getAccountId());
-                        queryWrapper.eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTask.getPositionId());
-                        AmChatbotGreetCondition condition = amChatbotGreetConditionService.getOne(queryWrapper, false);
+                        LambdaQueryWrapper<AmChatbotGreetConditionNew> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, amChatbotGreetTask.getAccountId());
+                        queryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, amChatbotGreetTask.getPositionId());
+                        AmChatbotGreetConditionNew condition = amChatbotGreetConditionNewService.getOne(queryWrapper, false);
 
                         if (Objects.isNull(condition)) {
                             // 如果为空,则默认取第一个
-                            condition = amChatbotGreetConditionService.getById(1);
+                            condition = amChatbotGreetConditionNewService.getById(1);
                         }
+                        AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(condition);
 
                         AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
                         if (Objects.isNull(amPosition) || amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
                             log.error("职位已删除: amPosition={}", amPosition);
                             return;
                         }
-                        if (Objects.isNull(condition)) {
-                            condition = amChatbotGreetConditionService.getById(1);
-                            if (Objects.isNull(amPosition)) {
-                                condition.setRecruitPosition("不限");
-                            } else {
-                                condition.setRecruitPosition(amPosition.getName());
-                            }
-                        }
                         // 创建 JSON 对象并根据逻辑填充数据
                         JSONObject conditions = new JSONObject();
-                        conditions.put("曾就职单位", condition.getPreviousCompany() != null ? condition.getPreviousCompany() : "");
-                        conditions.put("招聘职位", condition.getRecruitPosition() != null ? condition.getRecruitPosition() : "不限");
-                        conditions.put("年龄", condition.getAge() != null ? condition.getAge() : "不限");
-                        conditions.put("性别", condition.getGender() != null ? condition.getGender() : "不限");
-                        conditions.put("经验要求", condition.getExperience() != null ? condition.getExperience() : "不限");
-                        conditions.put("学历要求", condition.getEducation() != null ? condition.getEducation() : "不限");
-                        conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
-                        conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
+                        conditions.put("学历要求", amGreetConditionVo.getDegree() != null ? amGreetConditionVo.getDegree() : Collections.singletonList(-1));
+                        conditions.put("薪资待遇", amGreetConditionVo.getSalary() != null ?amGreetConditionVo.getSalary()  : "不限");
+                        conditions.put("经验要求", amGreetConditionVo.getExperience() != null ? amGreetConditionVo.getExperience() :  Collections.singletonList("不限"));
+                        conditions.put("求职意向", amGreetConditionVo.getIntention() != null ?amGreetConditionVo.getIntention() : Collections.singletonList(-1));
+                        conditions.put("年龄", amGreetConditionVo.getAge() != null ? amGreetConditionVo.getAge() : -1);
+                        conditions.put("性别", amGreetConditionVo.getGender() != null ? amGreetConditionVo.getGender() : "不限");
+
 
                         // 创建任务
                         AmClientTasks amClientTasks = new AmClientTasks();

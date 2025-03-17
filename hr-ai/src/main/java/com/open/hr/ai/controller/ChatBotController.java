@@ -176,7 +176,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("设置打招呼筛选条件")
     @VerifyUserToken
     @PostMapping("/chatbot/set_greet_condition")
-    public ResultVO<AmChatbotGreetCondition> setGreetCondition(@RequestBody @Valid AddOrUpdateChatbotGreetCondition req) {
+    public ResultVO<AmGreetConditionVo> setGreetCondition(@RequestBody @Valid AddOrUpdateChatbotGreetConditionNew req) {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
@@ -216,7 +216,7 @@ public class ChatBotController extends HrAIBaseController {
     @ApiOperation("根据职位id获取筛选条件")
     @VerifyUserToken
     @GetMapping("/chatbot/get_condition_by_position_id")
-    public ResultVO<AmChatbotGreetCondition> getConditionByPositionId(@RequestParam(value = "id", required = true) Integer id) {
+    public ResultVO<AmGreetConditionVo> getConditionByPositionId(@RequestParam(value = "id", required = true) Integer id) {
         return chatBotManager.getConditionByPositionId(id);
     }
 
@@ -245,5 +245,12 @@ public class ChatBotController extends HrAIBaseController {
         return chatBotManager.setPositionOption(req);
     }
 
+
+    @ApiOperation("获取打招呼筛选条件")
+    @VerifyUserToken
+    @PostMapping("/chatbot/get_greet_condition")
+    public ResultVO<AmGreetConditionStaticVo> getGreetCondition() {
+        return chatBotManager.getAmGreetConditionStaticVo();
+    }
 
 }

@@ -15,9 +15,12 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.bean.req.ClientFinishTaskReq;
 import com.open.hr.ai.bean.req.ClientQrCodeReq;
+import com.open.hr.ai.bean.vo.AmGreetConditionVo;
 import com.open.hr.ai.bean.vo.SlackOffVo;
 import com.open.hr.ai.constant.*;
+import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.AmResumeFilterUtil;
 import com.open.hr.ai.util.DealUserFirstSendMessageUtil;
 import com.open.hr.ai.util.TimeToDecimalConverter;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +81,8 @@ public class ClientManager {
 
     @Resource
     private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
+    @Resource
+    private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
     @Resource
     private JedisClientImpl jedisClient;
@@ -514,8 +519,9 @@ public class ClientManager {
                     AmPosition amPosition = amPositionService.getOne(positionQueryWrapper,false);
 
                     int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
-
+                    Integer positionId = 0;
                     if (Objects.nonNull(amPosition)) {
+                        positionId = amPosition.getId();
                         amPosition.setEncryptId(encryptId);
                         amPosition.setIsOpen(jobStatus);
                         amPosition.setName(jobName);
@@ -534,11 +540,12 @@ public class ClientManager {
                         newAmPosition.setCreateTime(LocalDateTime.now());
                         newAmPosition.setExtendParams(jobData.toJSONString());
                         boolean saveResult = amPositionService.save(newAmPosition);
+                        positionId = newAmPosition.getId();
                         log.info("amPositionService save result={}, amPosition={}", saveResult, newAmPosition);
                     }
                     // 如果岗位为关闭状态,则实际删除打招呼任务
                     if (jobStatus == 0) {
-                        Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId, amPosition.getId());
+                        Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId,positionId);
                         log.info("amChatbotGreetTaskService update deleted={},bossId={},amPosition={}", deleted, bossId, amPosition);
                     }
                 } catch (Exception e) {
@@ -612,6 +619,8 @@ public class ClientManager {
                 log.info("greetHandle amChatbotGreetTask is null,bossId={},greetId={}", bossId,greetId );
                 return;
             }
+            Integer conditionsId = amChatbotGreetTask.getConditionsId();
+            AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(conditionsId);
             // 增加打招呼任务的执行次数统计
             Integer doneNum = amChatbotGreetTask.getDoneNum();
             // 开始处理打招呼的简历数据
@@ -621,7 +630,11 @@ public class ClientManager {
                     //开始提取简历数据
                     JSONObject resumeObject = resumes.getJSONObject(i);
                     AmResume amResume = dealAmResume(platform,amZpLocalAccouts, resumeObject);
-
+                    Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume);
+                    if (filterAmResumeResult) {
+                        log.info("greetHandle filterAmResumeResult is true,bossId={},resume={}", bossId, resumes.get(i));
+                        continue;
+                    }
                     //查看账号是否开启打招呼
                     LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
                     greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, amZpLocalAccouts.getId());
@@ -793,6 +806,9 @@ public class ClientManager {
                     amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
                     amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
                     amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
+                    amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
+                    amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
                     // ---- end 从resume search_data数据结构提取数据  ----
 
                     // ---- begin 从resume数据结构提取数据  ----
@@ -830,6 +846,9 @@ public class ClientManager {
                     amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
                     amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
                     amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+                    amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
+                    amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
+                    amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
                     // ---- end 从resume search_data数据结构提取数据  ----
 
                     // ---- begin 从resume数据结构提取数据  ----
@@ -886,6 +905,9 @@ public class ClientManager {
         amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
         amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
         amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+        amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
+        amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
+        amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
         // ---- end 从resume search_data数据结构提取数据 ----
 
         // ---- begin 从resume数据结构提取数据  ----
@@ -1092,6 +1114,84 @@ public class ClientManager {
             log.error("deal sendMessage error taskId={},bossId={},finishTaskReqData={}", taskId, bossId, finishTaskReqData, e);
         }
 
+    }
+
+    public ResultVO filterAmResume(String platform,String bossId, String connectId, String encryptId,JSONObject resumeObject) {
+
+        AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
+        if (Objects.isNull(amZpLocalAccouts)) {
+            return ResultVO.fail(404, "boss_id不存在");
+        }
+
+        if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+            return ResultVO.fail(401, "connect_id 不一致");
+        }
+
+        LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
+        positionQueryWrapper.eq(AmPosition::getEncryptId, encryptId);
+        positionQueryWrapper.eq(AmPosition::getBossId, bossId);
+        AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
+        if (Objects.isNull(amPositionServiceOne)) {
+            log.error("switchJobState amPositionServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
+            return ResultVO.fail(401, "找不到对应的岗位");
+        }
+
+
+        LambdaQueryWrapper<AmChatbotGreetConditionNew> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, amPositionServiceOne.getId());
+        lambdaQueryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, bossId);
+        AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(lambdaQueryWrapper, false);
+        if (Objects.isNull(conditionNewServiceOne)) {
+            log.error("switchJobState conditionNewServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
+            return ResultVO.fail(401, "找不到对应的岗位筛选条件");
+        }
+        JSONObject searchData = resumeObject.getJSONObject("search_data");
+        AmResume amResume = new AmResume();
+        amResume.setAdminId(amZpLocalAccouts.getAdminId());
+        amResume.setAccountId(amZpLocalAccouts.getId());
+
+        // ---- begin 从resume search_data数据结构提取数据 ----
+        amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
+        amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
+        amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
+        amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
+        amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
+        amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
+        amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+        amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
+        amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
+        amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
+        // ---- end 从resume search_data数据结构提取数据 ----
+
+        // ---- begin 从resume数据结构提取数据  ----
+        amResume.setUid(Objects.nonNull(resumeObject.get("uid")) ? resumeObject.get("uid").toString() : "");
+        amResume.setName(Objects.nonNull(resumeObject.get("name")) ? resumeObject.get("name").toString() : "");
+        amResume.setAccountId(amZpLocalAccouts.getId());
+        amResume.setEmail(Objects.nonNull(resumeObject.get("email")) ? resumeObject.get("email").toString() : "");
+        amResume.setApplyStatus(Objects.nonNull(resumeObject.get("availability")) ? resumeObject.get("availability").toString() : "");
+        amResume.setAvatar(Objects.nonNull(resumeObject.get("avatar")) ? resumeObject.get("avatar").toString() : "");
+        amResume.setEducation(Objects.nonNull(resumeObject.get("educations")) ? resumeObject.getJSONArray("educations").toJSONString() : "");
+        amResume.setExperiences(Objects.nonNull(resumeObject.get("work_experiences")) ? resumeObject.getJSONArray("work_experiences").toJSONString() : "");
+        amResume.setProjects(Objects.nonNull(resumeObject.get("projects")) ? resumeObject.getJSONArray("projects").toJSONString() : "");
+        amResume.setEncryptGeekId(Objects.nonNull(resumeObject.get("encryptGeekId")) ? resumeObject.get("encryptGeekId").toString() : "");
+        amResume.setSkills(Objects.nonNull(resumeObject.get("skills")) ? resumeObject.get("skills").toString() : "");
+
+        // ---- end 从resume数据结构提取数据  ----
+
+        amResume.setType(0);
+        amResume.setCreateTime(LocalDateTime.now());
+        amResume.setZpData(resumeObject.toJSONString());
+        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume);
+        log.info("filterAmResume result={},amResume={}", result, resumeObject);
+        return ResultVO.success(result);
+    }
+
+
+    public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume) {
+        AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne);
+        boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo);
+        log.info("filterAmResume result={},amResume={}", result, amResume);
+        return result;
     }
 
 
