@@ -53,7 +53,7 @@ public class AmChatBotGreetJob {
     @Resource
     private AmChatbotGreetMessagesServiceImpl amChatbotGreetMessagesService;
     @Resource
-    private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
+    private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionService;
 
     @Resource
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
@@ -434,10 +434,10 @@ public class AmChatBotGreetJob {
                         amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
                         amChatbotGreetTaskService.updateById(amChatbotGreetTask);
 
-                        LambdaQueryWrapper<AmChatbotGreetCondition> queryWrapper = new LambdaQueryWrapper<>();
-                        queryWrapper.eq(AmChatbotGreetCondition::getAccountId, amChatbotGreetTask.getAccountId());
-                        queryWrapper.eq(AmChatbotGreetCondition::getPositionId, amChatbotGreetTask.getPositionId());
-                        AmChatbotGreetCondition condition = amChatbotGreetConditionService.getOne(queryWrapper, false);
+                        LambdaQueryWrapper<AmChatbotGreetConditionNew> queryWrapper = new LambdaQueryWrapper<>();
+                        queryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, amChatbotGreetTask.getAccountId());
+                        queryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, amChatbotGreetTask.getPositionId());
+                        AmChatbotGreetConditionNew condition = amChatbotGreetConditionService.getOne(queryWrapper, false);
 
                         if (Objects.isNull(condition)) {
                             // 如果为空,则默认取第一个
@@ -449,24 +449,16 @@ public class AmChatBotGreetJob {
                             log.error("职位已删除: amPosition={}", amPosition);
                             return;
                         }
-                        if (Objects.isNull(condition)) {
-                            condition = amChatbotGreetConditionService.getById(1);
-                            if (Objects.isNull(amPosition)) {
-                                condition.setRecruitPosition("不限");
-                            } else {
-                                condition.setRecruitPosition(amPosition.getName());
-                            }
-                        }
                         // 创建 JSON 对象并根据逻辑填充数据
                         JSONObject conditions = new JSONObject();
-                        conditions.put("曾就职单位", condition.getPreviousCompany() != null ? condition.getPreviousCompany() : "");
-                        conditions.put("招聘职位", condition.getRecruitPosition() != null ? condition.getRecruitPosition() : "不限");
-                        conditions.put("年龄", condition.getAge() != null ? condition.getAge() : "不限");
-                        conditions.put("性别", condition.getGender() != null ? condition.getGender() : "不限");
-                        conditions.put("经验要求", condition.getExperience() != null ? condition.getExperience() : "不限");
-                        conditions.put("学历要求", condition.getEducation() != null ? condition.getEducation() : "不限");
-                        conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
-                        conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
+//                        conditions.put("曾就职单位", condition.get() != null ? condition.getPreviousCompany() : "");
+//                        conditions.put("招聘职位", condition.getRecruitPosition() != null ? condition.getRecruitPosition() : "不限");
+//                        conditions.put("年龄", condition.getAge() != null ? condition.getAge() : "不限");
+//                        conditions.put("性别", condition.getGender() != null ? condition.getGender() : "不限");
+//                        conditions.put("经验要求", condition.getExperience() != null ? condition.getExperience() : "不限");
+//                        conditions.put("学历要求", condition.getEducation() != null ? condition.getEducation() : "不限");
+//                        conditions.put("薪资待遇[单选]", condition.getSalary() != null ? condition.getSalary() : "不限");
+//                        conditions.put("求职意向", condition.getJobIntention() != null ? condition.getJobIntention() : "不限");
 
                         // 创建任务
                         AmClientTasks amClientTasks = new AmClientTasks();
