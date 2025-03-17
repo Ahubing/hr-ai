@@ -514,8 +514,9 @@ public class ClientManager {
                     AmPosition amPosition = amPositionService.getOne(positionQueryWrapper,false);
 
                     int jobStatus = jobData.get("jobStatus").toString().equals("1") ? 1 : 0;
-
+                    Integer positionId = 0;
                     if (Objects.nonNull(amPosition)) {
+                        positionId = amPosition.getId();
                         amPosition.setEncryptId(encryptId);
                         amPosition.setIsOpen(jobStatus);
                         amPosition.setName(jobName);
@@ -534,11 +535,12 @@ public class ClientManager {
                         newAmPosition.setCreateTime(LocalDateTime.now());
                         newAmPosition.setExtendParams(jobData.toJSONString());
                         boolean saveResult = amPositionService.save(newAmPosition);
+                        positionId = newAmPosition.getId();
                         log.info("amPositionService save result={}, amPosition={}", saveResult, newAmPosition);
                     }
                     // 如果岗位为关闭状态,则实际删除打招呼任务
                     if (jobStatus == 0) {
-                        Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId, amPosition.getId());
+                        Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId,positionId);
                         log.info("amChatbotGreetTaskService update deleted={},bossId={},amPosition={}", deleted, bossId, amPosition);
                     }
                 } catch (Exception e) {
