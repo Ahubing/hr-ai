@@ -71,8 +71,9 @@ public class AmGreetConditionVo {
 
     /**
      * 学历要求(多选)；如：不限，初中。及以下，中专/技校，高中，大专，本科，硕士，博士
+     * 0初中及以下，1中专/技校，2高中，3大专，4本科，5硕士，6博士, -1未知
      */
-    private List<String> degree;
+    private List<Integer> degree;
 
     /**
      * 薪资待遇(单选)；如：不限,几k以下，几到几k，几k以上
@@ -81,8 +82,9 @@ public class AmGreetConditionVo {
 
     /**
      * 求职意向(多选）；如：不限,离职/离校-正在找工作，在职/在校-考虑机会，在职/在校-寻找新工作
+     * 0离职/离校-正在找工作，1在职/在校-考虑机会，2在职/在校-寻找新工作, -1未知
      */
-    private List<String> intention;
+    private List<Integer> intention;
 
     /**
      * 技能；如：不限

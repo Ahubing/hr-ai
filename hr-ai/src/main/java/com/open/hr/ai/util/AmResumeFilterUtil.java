@@ -36,14 +36,14 @@ public class AmResumeFilterUtil {
             }
         }
         // 性别
-        if (Objects.nonNull(criteria.getGender())) {
+        if (Objects.nonNull(criteria.getGender()) && criteria.getGender() != -1) {
             if (!criteria.getGender().equals(resume.getGender())) {
                 log.info("AmResumeFilterUtil uid={} 性别不符合", resume.getUid());
                 return false;
             }
         }
         // 工作年限
-        if (CollectionUtils.isNotEmpty(criteria.getWorkYears()) && resume.getWorkYears() != null) {
+        if (CollectionUtils.isNotEmpty(criteria.getWorkYears()) && criteria.getWorkYears().contains("不限") && resume.getWorkYears() != null) {
             if (Objects.nonNull(resume.getIsStudent())) {
                 // 判断是否是学生
                 if (resume.getIsStudent() == 1) {
@@ -66,9 +66,8 @@ public class AmResumeFilterUtil {
          * 求职意向(多选）；如：不限,离职/离校-正在找工作，在职/在校-考虑机会，在职/在校-寻找新工作
          */
         if (CollectionUtils.isNotEmpty(criteria.getIntention())) {
-            String valueByType = AmIntentionEnum.getValueByType(resume.getIntention());
-            if (StringUtils.isNotBlank(valueByType)) {
-                if (!criteria.getIntention().contains(valueByType)) {
+            if (Objects.nonNull(resume.getIntention())  && resume.getIntention() != -1 && !criteria.getIntention().contains(AmIntentionEnum.UM_LIMITED.getType().toString())) {
+                if (!criteria.getIntention().contains(resume.getIntention().toString())) {
                     log.info("AmResumeFilterUtil uid={} 求职意向不符合", resume.getUid());
                     return false;
                 }
@@ -151,7 +150,7 @@ public class AmResumeFilterUtil {
         /**
          * 薪资要求
          */
-        if (StringUtils.isNotBlank(criteria.getSalary())) {
+        if (StringUtils.isNotBlank(criteria.getSalary()) && !criteria.getSalary().equals("不限")) {
             String[] salarys = criteria.getSalary().split("-");
             if (salarys.length == 2) {
                 int minSalary = Integer.parseInt(salarys[0].replace("k", ""));
@@ -161,7 +160,8 @@ public class AmResumeFilterUtil {
                     return false;
                 }
             } else {
-                int salary = Integer.parseInt(salarys[0].replace("k", ""));
+                // 用正则过滤 3k以下 k以下后面这些数据
+                int salary = Integer.parseInt(salarys[0].replaceAll("[^0-9]", ""));
                 if (resume.getLowSalary() > salary || resume.getHighSalary() < salary) {
                     log.info("AmResumeFilterUtil uid={} 薪资不符合", resume.getUid());
                     return false;
@@ -169,7 +169,7 @@ public class AmResumeFilterUtil {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(criteria.getDegree())) {
+        if (CollectionUtils.isNotEmpty(criteria.getDegree()) ) {
             if (Objects.nonNull(resume.getDegree())) {
                 String valueByType = AmGreetDegreeEnum.getValueByType(resume.getDegree());
                 if (StringUtils.isNotBlank(valueByType) && !criteria.getDegree().contains(valueByType)) {
@@ -275,18 +275,29 @@ public class AmResumeFilterUtil {
 
         AmGreetConditionVo criteria = new AmGreetConditionVo();
         criteria.setAge("18-35");
-        criteria.setGender(1);
+        criteria.setGender(-1);
         criteria.setWorkYears(Collections.singletonList("1-3年"));
 //        criteria.setExperience(Collections.singletonList("舆情监测"));
 //        criteria.setFilterExperience(Collections.singletonList("导购员/店员"));
-        criteria.setDegree(Collections.singletonList("初中及以下"));
-        criteria.setSalary("2-3k");
-        criteria.setIntention(Collections.singletonList("离职/离校-正在找工作"));
+        criteria.setDegree(Collections.singletonList(0));
+        criteria.setSalary("50k以上");
+        criteria.setIntention(Collections.singletonList(0));
         criteria.setSkills(Collections.singletonList("Python"));
         criteria.setExpectPosition(Collections.singletonList("数据标注/AI训练师"));
 //        criteria.setFilterPosition(Collections.singletonList("数据标注/AI训练师"));
 
         System.out.println(filterResume(amResume, criteria));
+
+        JSONObject conditions = new JSONObject();
+        conditions.put("学历要求", criteria.getDegree() != null ? criteria.getDegree() : Collections.singletonList(-1));
+        conditions.put("薪资待遇", criteria.getSalary() != null ?criteria.getSalary()  : "不限");
+        conditions.put("经验要求", criteria.getExperience() != null ? criteria.getExperience() :  Collections.singletonList("不限"));
+        conditions.put("求职意向", criteria.getIntention() != null ?criteria.getIntention() : Collections.singletonList(-1));
+        conditions.put("年龄", criteria.getAge() != null ? criteria.getAge() : -1);
+        conditions.put("性别", criteria.getGender() != null ? criteria.getGender() : "不限");
+
+        System.out.println(conditions.toJSONString());
+
 
     }
 

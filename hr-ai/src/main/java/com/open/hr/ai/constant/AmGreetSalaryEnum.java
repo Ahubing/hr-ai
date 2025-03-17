@@ -10,7 +10,7 @@ public enum AmGreetSalaryEnum {
      * 20-50k
      * 50k以上
      */
-    UM_LIMITED("","不限"),
+    UM_LIMITED("不限","不限"),
     THREE_K_BELOW("3k","3k以下"),
     THREE_TO_FIVE_K("3-5k","3-5k"),
     FIVE_TO_TEN_K("5-10k","5-10k"),

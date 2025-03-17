@@ -56,7 +56,7 @@ public class AmChatbotGreetConditionNew implements Serializable {
     /**
      * 性别，男 女 不限
      */
-    private String gender;
+    private Integer gender;
 
     /**
      * 工作及项目经历：通过resume的work_experiences和projects判断
