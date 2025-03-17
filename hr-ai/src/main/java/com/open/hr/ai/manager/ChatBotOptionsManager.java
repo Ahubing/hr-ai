@@ -53,7 +53,9 @@ public class ChatBotOptionsManager {
         try {
             LambdaQueryWrapper<AmChatbotOptions> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmChatbotOptions::getAdminId, adminId);
-            queryWrapper.eq(AmChatbotOptions::getType, type);
+            if (Objects.nonNull(type)){
+                queryWrapper.eq(AmChatbotOptions::getType, type);
+            }
             if (StringUtils.isNotBlank(keyword)) {
                 queryWrapper.like(AmChatbotOptions::getName, keyword);
             }

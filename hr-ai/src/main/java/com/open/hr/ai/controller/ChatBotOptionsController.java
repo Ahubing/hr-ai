@@ -33,7 +33,7 @@ public class ChatBotOptionsController extends HrAIBaseController {
     @ApiOperation("获取方案列表")
     @VerifyUserToken
     @GetMapping("chatbotoptions/list")
-    public ResultVO<List<AmChatbotOptionsVo>> chatBotOptionsList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "keyword", required = false) String keyword) {
+    public ResultVO<List<AmChatbotOptionsVo>> chatBotOptionsList(@RequestParam(value = "type", required = false) Integer type, @RequestParam(value = "keyword", required = false) String keyword) {
         Long adminId = getUserId();
         return chatBotOptionsManager.chatbotOptionsList(adminId, type, keyword);
     }
