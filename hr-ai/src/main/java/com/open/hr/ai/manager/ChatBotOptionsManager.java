@@ -196,7 +196,7 @@ public class ChatBotOptionsManager {
 
             LambdaQueryWrapper<AmChatbotPositionOption> itemsQueryWrapper = new LambdaQueryWrapper<>();
             itemsQueryWrapper.eq(AmChatbotPositionOption::getRechatOptionId, id);
-            int count = amChatbotPositionOptionService.count();
+            int count = amChatbotPositionOptionService.count(itemsQueryWrapper);
             if (count > 0) {
                 return ResultVO.fail("该复聊方案已被引用,无法删除");
             }
