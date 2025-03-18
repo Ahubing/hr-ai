@@ -291,7 +291,7 @@ public class AmResumeFilterUtil {
         JSONObject conditions = new JSONObject();
         conditions.put("学历要求", criteria.getDegree() != null ? criteria.getDegree() : Collections.singletonList(-1));
         conditions.put("薪资待遇", criteria.getSalary() != null ?criteria.getSalary()  : "不限");
-        conditions.put("经验要求", criteria.getExperience() != null ? criteria.getExperience() :  Collections.singletonList("不限"));
+        conditions.put("经验要求", criteria.getWorkYears() != null ? criteria.getWorkYears() :  Collections.singletonList("不限"));
         conditions.put("求职意向", criteria.getIntention() != null ?criteria.getIntention() : Collections.singletonList(-1));
         conditions.put("年龄", criteria.getAge() != null ? criteria.getAge() : -1);
         conditions.put("性别", criteria.getGender() != null ? criteria.getGender() : "不限");

@@ -454,7 +454,7 @@ public class AmChatBotGreetJob {
                         JSONObject conditions = new JSONObject();
                         conditions.put("学历要求", amGreetConditionVo.getDegree() != null ? amGreetConditionVo.getDegree() : Collections.singletonList(-1));
                         conditions.put("薪资待遇", amGreetConditionVo.getSalary() != null ?amGreetConditionVo.getSalary()  : "不限");
-                        conditions.put("经验要求", amGreetConditionVo.getExperience() != null ? amGreetConditionVo.getExperience() :  Collections.singletonList("不限"));
+                        conditions.put("经验要求", amGreetConditionVo.getWorkYears() != null ? amGreetConditionVo.getWorkYears() :  Collections.singletonList("不限"));
                         conditions.put("求职意向", amGreetConditionVo.getIntention() != null ?amGreetConditionVo.getIntention() : Collections.singletonList(-1));
                         conditions.put("年龄", amGreetConditionVo.getAge() != null ? amGreetConditionVo.getAge() : -1);
                         conditions.put("性别", amGreetConditionVo.getGender() != null ? amGreetConditionVo.getGender() : "不限");
