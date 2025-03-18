@@ -208,6 +208,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("updateClientStatus connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
@@ -289,6 +290,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("loginQrCodeSave connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
@@ -313,6 +315,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("getClientTask connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
@@ -348,6 +351,7 @@ public class ClientManager {
             }
 
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("bossNewMessage connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
 
@@ -379,6 +383,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("finishClientTask connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
 

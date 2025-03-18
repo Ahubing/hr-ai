@@ -66,11 +66,11 @@ public class AmZpLocalAccountJob {
                     if (!AmLocalAccountStatusEnums.OFFLINE.getStatus().equals(localAccout.getState())) {
                         // 规定空闲事件超过25秒就认定下线
                         if (Objects.nonNull(localAccout.getUpdateTime()) && (System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(localAccout.getUpdateTime())) > 25 * 1000) {
+                            log.info("账号:{} 下线", localAccout.getId());
                             localAccout.setState(AmLocalAccountStatusEnums.OFFLINE.getStatus());
                             localAccout.setExtra("");
                             localAccout.setBrowserId("");
                             amZpLocalAccoutsService.updateById(localAccout);
-                            log.info("账号:{} 下线", localAccout.getId());
                         }
                     }
                 }
