@@ -541,15 +541,21 @@ public class ICManager {
         String platform = req.getPlatform();
         Integer deptId = req.getDeptId();
         Integer postId = req.getPostId();
+        String employeeUid = req.getEmployeeUid();
+        LocalDateTime startTime = req.getStartTime();
+        LocalDateTime endTime = req.getEndTime();
         queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
-                .eq(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
-                .eq(StringUtils.isNotEmpty(deptName),IcRecord::getDeptName,deptName)
-                .eq(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
-                .eq(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
-                .eq(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
+                .like(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
+                .like(StringUtils.isNotEmpty(deptName),IcRecord::getDeptName,deptName)
+                .like(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
+                .like(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
+                .like(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
                 .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
                 .eq(deptId != null,IcRecord::getDeptId,deptId)
                 .eq(postId != null,IcRecord::getPositionId,postId)
+                .eq(StringUtils.isNotEmpty(employeeUid),IcRecord::getEmployeeUid,employeeUid)
+                .ge(startTime != null,IcRecord::getStartTime,startTime)
+                .le(endTime != null,IcRecord::getStartTime,endTime)
                 .orderByDesc(IcRecord::getStartTime);
         if(status != null){
             if(InterviewStatusEnum.DEPRECATED.getStatus().equals(status)){

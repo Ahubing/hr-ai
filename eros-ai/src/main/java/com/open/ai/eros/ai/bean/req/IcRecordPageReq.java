@@ -4,6 +4,8 @@ package com.open.ai.eros.ai.bean.req;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class IcRecordPageReq {
 
@@ -42,4 +44,13 @@ public class IcRecordPageReq {
 
     @ApiModelProperty("账号")
     private String employeeName;
+
+    @ApiModelProperty("账号uid")
+    private String employeeUid;
+
+    @ApiModelProperty("查询开始时间")
+    private LocalDateTime startTime;
+
+    @ApiModelProperty("查询结束时间")
+    private LocalDateTime endTime;
 }
