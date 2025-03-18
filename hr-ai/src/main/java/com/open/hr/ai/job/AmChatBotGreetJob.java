@@ -470,6 +470,7 @@ public class AmChatBotGreetJob {
                         JSONObject jsonObject = new JSONObject();
                         jsonObject.put("greetId", amChatbotGreetTask.getId());
                         jsonObject.put("job_name", amPosition.getName());
+                        jsonObject.put("job_id", amPosition.getEncryptId());
 
                         jsonObject.put("conditions", conditions);
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
