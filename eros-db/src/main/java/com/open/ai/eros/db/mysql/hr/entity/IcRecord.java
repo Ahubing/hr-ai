@@ -109,4 +109,9 @@ public class IcRecord implements Serializable {
      */
     private String account;
 
+    /**
+     * 部门id
+     */
+    private Integer deptId;
+
 }
