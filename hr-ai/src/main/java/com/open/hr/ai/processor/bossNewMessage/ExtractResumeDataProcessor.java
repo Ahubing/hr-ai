@@ -2,6 +2,7 @@ package com.open.hr.ai.processor.bossNewMessage;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
@@ -97,7 +98,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
-            amResume.setType(0);
+            amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
             if (Objects.nonNull(chatInfo.get("toPositionId"))) {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
