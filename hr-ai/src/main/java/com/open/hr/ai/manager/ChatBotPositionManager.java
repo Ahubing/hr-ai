@@ -14,6 +14,7 @@ import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmPositionVo;
 import com.open.hr.ai.constant.PositionStatusEnums;
 import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
+import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import com.open.hr.ai.convert.AmPositionConvert;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
 import com.open.hr.ai.util.CompetencyModelPromptUtil;
@@ -65,7 +66,7 @@ public class ChatBotPositionManager {
 
 
     @Resource
-    private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
+    private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
 
 
@@ -552,9 +553,9 @@ public class ChatBotPositionManager {
                 if (Objects.isNull(miniUniUser)) {
                     continue;
                 }
-                AmChatbotGreetCondition amChatbotGreetCondition = amChatbotGreetConditionService.getOne(new LambdaQueryWrapper<AmChatbotGreetCondition>().eq(AmChatbotGreetCondition::getPositionId, amPositionVo.getId()), false);
-                if (Objects.nonNull(amChatbotGreetCondition)) {
-                    amPositionVo.setConditionVo(AmChatBotGreetConditionConvert.I.convertGreetConditionVo(amChatbotGreetCondition));
+                AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(new LambdaQueryWrapper<AmChatbotGreetConditionNew>().eq(AmChatbotGreetConditionNew::getPositionId, amPositionVo.getId()), false);
+                if (Objects.nonNull(conditionNewServiceOne)) {
+                    amPositionVo.setConditionVo(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne));
                 }
 
                 String name = miniUniUser.getName();
