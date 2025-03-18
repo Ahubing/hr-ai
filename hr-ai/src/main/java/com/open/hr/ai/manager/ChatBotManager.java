@@ -798,12 +798,12 @@ public class ChatBotManager {
     @Transactional
     public ResultVO<AmChatbotPositionOption> setPositionOption(AddPositionOptions req) {
         try {
-
             AmChatbotPositionOption chatbotPositionOption = new AmChatbotPositionOption();
             chatbotPositionOption.setAccountId(req.getAccountId());
             chatbotPositionOption.setPositionId(req.getPositionId());
             chatbotPositionOption.setAmMaskId(req.getAmMaskId());
             chatbotPositionOption.setRechatOptionId(req.getRechatOptionId());
+            chatbotPositionOption.setInquiryRechatOptionId(req.getInquiryRechatOptionId());
 
             LambdaQueryWrapper<AmChatbotPositionOption> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmChatbotPositionOption::getAccountId, req.getAccountId());
@@ -812,6 +812,7 @@ public class ChatBotManager {
             if (Objects.nonNull(amChatbotPositionOption)) {
                 amChatbotPositionOption.setAmMaskId(req.getAmMaskId());
                 amChatbotPositionOption.setRechatOptionId(req.getRechatOptionId());
+                amChatbotPositionOption.setInquiryRechatOptionId(req.getInquiryRechatOptionId());
                 amChatbotPositionOptionService.updateById(amChatbotPositionOption);
             } else {
                 chatbotPositionOption.setCreateTime((int) (System.currentTimeMillis() / 1000));

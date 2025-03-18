@@ -102,4 +102,9 @@ public class AmNewMask implements Serializable {
      * 打招呼话术
      */
     private String greetMessage;
+
+    /**
+     * 系统默认的,用于用户注册自动绑定
+     */
+    private Integer systemExample;
 }

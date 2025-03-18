@@ -117,6 +117,7 @@ public class AmGreetTaskUtil {
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
 
             JSONObject jsonObject = new JSONObject();
+            jsonObject.put("job_name", amPosition.getName());
             jsonObject.put("conditions", conditions);
             jsonObject.put("times", amChatbotGreetTask.getTaskNum());
             jsonObject.put("greetId", amChatbotGreetTask.getId());

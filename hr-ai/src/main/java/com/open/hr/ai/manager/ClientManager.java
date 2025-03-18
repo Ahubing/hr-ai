@@ -79,6 +79,13 @@ public class ClientManager {
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
+
+    @Resource
+    private AmNewMaskServiceImpl amNewMaskService;
+
+    @Resource
+    private AmChatbotOptionsServiceImpl amChatbotOptionsService;
+
     @Resource
     private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
@@ -497,6 +504,22 @@ public class ClientManager {
             }
             // 加密岗位id, 用于删除岗位状态
             List<String> encryptIds = new ArrayList<>();
+            LambdaQueryWrapper<AmNewMask>  amNewMaskLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            amNewMaskLambdaQueryWrapper.eq(AmNewMask::getAdminId,amZpLocalAccouts.getAdminId());
+            amNewMaskLambdaQueryWrapper.eq(AmNewMask::getSystemExample,1);
+            AmNewMask amNewMask = amNewMaskService.getOne(amNewMaskLambdaQueryWrapper,false);
+
+
+            LambdaQueryWrapper<AmChatbotOptions> amChatbotOptionsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getAdminId,amZpLocalAccouts.getAdminId());
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getSystemExample,1);
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getType,0);
+            // 主动打招呼
+            AmChatbotOptions chatbotOptionsServiceZero = amChatbotOptionsService.getOne(amChatbotOptionsLambdaQueryWrapper, false);
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getType,1);
+            AmChatbotOptions chatbotOptionsServiceOne = amChatbotOptionsService.getOne(amChatbotOptionsLambdaQueryWrapper, false);
+
+
             for (int i = 0; i < jobsArray.size(); i++) {
                 try {
                     JSONObject jobData = jobsArray.getJSONObject(i);
@@ -551,9 +574,25 @@ public class ClientManager {
                         Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId,positionId);
                         log.info("amChatbotGreetTaskService update deleted={},bossId={},amPosition={}", deleted, bossId, amPosition);
                     }
+                    AmChatbotPositionOption amChatbotPositionOption = new AmChatbotPositionOption();
+                    amChatbotPositionOption.setAccountId(bossId);
+                    amChatbotPositionOption.setPositionId(positionId);
+                    if (Objects.nonNull(amNewMask)){
+                        amChatbotPositionOption.setAmMaskId(amNewMask.getId());
+                    }
+                    if (Objects.nonNull(chatbotOptionsServiceZero)){
+                        amChatbotPositionOption.setRechatOptionId(chatbotOptionsServiceZero.getId());
+                    }
+                    if (Objects.nonNull(chatbotOptionsServiceOne)){
+                        amChatbotPositionOption.setInquiryRechatOptionId(chatbotOptionsServiceOne.getId());
+                    }
+                    // php 无语
+                    amChatbotPositionOption.setCreateTime((int)System.currentTimeMillis()/1000);
+                    amChatbotPositionOptionService.save(amChatbotPositionOption);
                 } catch (Exception e) {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
                 }
+
             }
 
             LambdaUpdateWrapper<AmPosition> deleteQueryWrapper = new LambdaUpdateWrapper<>();

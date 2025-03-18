@@ -24,6 +24,10 @@ public class AddPositionOptions {
     @ApiModelProperty(value = "AI方案", required = false, notes = "在广场角色里选。与rechat_option_id至少选一个")
     private Long amMaskId;
 
-    @ApiModelProperty(value = "复聊方案id", required = false, notes = "复聊方案id,在方案列表选取。与square_role_id至少选一个")
+    @ApiModelProperty(value = "打招呼后复聊方案id", required = false, notes = "打招呼后复聊方案id,在方案列表选取。与square_role_id至少选一个")
     private Integer rechatOptionId;
+
+
+    @ApiModelProperty(value = "用户询问信息后复聊方案id", required = false, notes = "用户询问信息后复聊方案id在方案列表选取。与square_role_id至少选一个")
+    private Integer inquiryRechatOptionId;
 }

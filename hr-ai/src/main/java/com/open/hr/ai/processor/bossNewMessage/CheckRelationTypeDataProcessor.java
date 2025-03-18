@@ -156,7 +156,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             return;
         }
         // 查询第一天的复聊任务
-        List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
+        List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getInquiryRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
         if (Objects.isNull(amChatbotOptionsItems) || amChatbotOptionsItems.isEmpty()) {
             log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
             return;

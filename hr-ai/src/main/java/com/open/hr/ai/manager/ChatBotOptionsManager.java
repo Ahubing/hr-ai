@@ -18,6 +18,7 @@ import com.open.hr.ai.convert.AmChatBotOptionConvert;
 import com.open.hr.ai.convert.AmChatBotPositionItemsConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -53,7 +54,7 @@ public class ChatBotOptionsManager {
         try {
             LambdaQueryWrapper<AmChatbotOptions> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmChatbotOptions::getAdminId, adminId);
-            if (Objects.nonNull(type)){
+            if (Objects.nonNull(type)) {
                 queryWrapper.eq(AmChatbotOptions::getType, type);
             }
             if (StringUtils.isNotBlank(keyword)) {
@@ -196,6 +197,8 @@ public class ChatBotOptionsManager {
 
             LambdaQueryWrapper<AmChatbotPositionOption> itemsQueryWrapper = new LambdaQueryWrapper<>();
             itemsQueryWrapper.eq(AmChatbotPositionOption::getRechatOptionId, id);
+            // 或者 inquiryRechatOptionId
+            itemsQueryWrapper.or().eq(AmChatbotPositionOption::getInquiryRechatOptionId, id);
             int count = amChatbotPositionOptionService.count(itemsQueryWrapper);
             if (count > 0) {
                 return ResultVO.fail("该复聊方案已被引用,无法删除");
@@ -216,5 +219,60 @@ public class ChatBotOptionsManager {
             log.error("删除失败 id={}", id, e);
         }
         return ResultVO.fail("系统异常,删除失败");
+    }
+
+    /**
+     * 添加默认的复聊数据
+     */
+    public Boolean createDefaultRechat(Long uid) {
+        try {
+            AmChatbotOptions amChatbotOptionType = amChatbotOptionsService.getById(1);
+            AmChatbotOptions amChatbotOptionType2 = amChatbotOptionsService.getById(2);
+            if (Objects.isNull(amChatbotOptionType) || Objects.isNull(amChatbotOptionType2)) {
+                log.error("复聊方案不存在");
+                return false;
+            }
+            AmChatbotOptions amChatbotOptionsCopyType = new AmChatbotOptions();
+            AmChatbotOptions amChatbotOptionsCopyType2 = new AmChatbotOptions();
+            BeanUtils.copyProperties(amChatbotOptionType, amChatbotOptionsCopyType);
+            BeanUtils.copyProperties(amChatbotOptionType2, amChatbotOptionsCopyType2);
+            amChatbotOptionsCopyType.setId(null);
+            amChatbotOptionsCopyType.setAdminId(uid);
+            amChatbotOptionsCopyType.setSystemExample(1);
+            amChatbotOptionsCopyType2.setSystemExample(1);
+            amChatbotOptionsCopyType2.setId(null);
+            amChatbotOptionsCopyType2.setAdminId(uid);
+            amChatbotOptionsService.save(amChatbotOptionsCopyType);
+            amChatbotOptionsService.save(amChatbotOptionsCopyType2);
+
+            //复制话术
+            LambdaQueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper = new LambdaQueryWrapper<>();
+            itemsQueryWrapper.eq(AmChatbotOptionsItems::getOptionId, amChatbotOptionType.getId());
+            List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.list(itemsQueryWrapper);
+
+            for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
+                AmChatbotOptionsItems amChatbotOptionsItemsCopy = new AmChatbotOptionsItems();
+                BeanUtils.copyProperties(amChatbotOptionsItem, amChatbotOptionsItemsCopy);
+                amChatbotOptionsItemsCopy.setId(null);
+                amChatbotOptionsItemsCopy.setOptionId(amChatbotOptionsCopyType.getId());
+                amChatbotOptionsItemsService.save(amChatbotOptionsItemsCopy);
+            }
+
+            LambdaQueryWrapper<AmChatbotOptionsItems> itemsQueryWrapper2 = new LambdaQueryWrapper<>();
+            itemsQueryWrapper2.eq(AmChatbotOptionsItems::getOptionId, amChatbotOptionType2.getId());
+            List<AmChatbotOptionsItems> amChatbotOptionsItems2 = amChatbotOptionsItemsService.list(itemsQueryWrapper2);
+
+            for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems2) {
+                AmChatbotOptionsItems amChatbotOptionsItemsCopy = new AmChatbotOptionsItems();
+                BeanUtils.copyProperties(amChatbotOptionsItem, amChatbotOptionsItemsCopy);
+                amChatbotOptionsItemsCopy.setId(null);
+                amChatbotOptionsItemsCopy.setOptionId(amChatbotOptionsCopyType2.getId());
+                amChatbotOptionsItemsService.save(amChatbotOptionsItemsCopy);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error("创建复聊方案失败", e);
+            return false;
+        }
     }
 }
