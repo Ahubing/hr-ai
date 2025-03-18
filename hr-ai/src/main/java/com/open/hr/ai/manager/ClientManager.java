@@ -80,8 +80,6 @@ public class ClientManager {
     private AmChatMessageServiceImpl amChatMessageService;
 
     @Resource
-    private AmChatbotGreetConditionServiceImpl amChatbotGreetConditionService;
-    @Resource
     private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
     @Resource
@@ -971,89 +969,6 @@ public class ClientManager {
         }
 
     }
-
-
-    //  todo 进行简历匹配已经扭转状态
-    private Boolean checkAmResume(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts) {
-        //根据岗位id 查询出 筛选条件
-        LambdaQueryWrapper<AmChatbotGreetCondition> positionQueryWrapper = new LambdaQueryWrapper<>();
-        positionQueryWrapper.eq(AmChatbotGreetCondition::getAccountId, amZpLocalAccouts.getId());
-        positionQueryWrapper.eq(AmChatbotGreetCondition::getPositionId, amResume.getPostId());
-        AmChatbotGreetCondition condition = amChatbotGreetConditionService.getOne(positionQueryWrapper, false);
-        if (Objects.isNull(condition)) {
-            log.info("checkAmResume condition is null,amResume={},amZpLocalAccouts={}", amResume, amZpLocalAccouts);
-            return false;
-        }
-        Boolean result = true;
-        Integer positionId = condition.getPositionId();
-        // 判断岗位是否符合条件
-        if (Objects.isNull(positionId) ||  !positionId.equals(amResume.getPostId())) {
-            log.info("checkAmResume positionId is not equals,amResume={},amZpLocalAccouts={}", amResume, amZpLocalAccouts);
-            return false;
-        }
-        // 判断性别是否符合
-        String gender = condition.getGender();
-        if (StringUtils.isNotBlank(gender)){
-            Integer amResumeGender = amResume.getGender();
-            if (Objects.isNull(amResumeGender)){
-                result = true;
-            }else {
-                String resumeGender = amResumeGender == 1 ? "男" : "女";
-                if (!resumeGender.equals(gender)){
-                    log.info("checkAmResume gender ={},resumeGender={}",gender,resumeGender);
-                    return false;
-                }
-            }
-        }
-
-//
-//        //进行简历匹配
-//        // 将18-35 转化成数字
-//        String age = condition.getAge();
-//        if (StringUtils.isNotBlank(age) && !"不限".equals(age)) {
-//            String[] split = age.split("-");
-//            int minAge = Integer.parseInt(split[0]);
-//            int maxAge = Integer.parseInt(split[1]);
-//            int resumeAge = amResume.getAge();
-//            if (resumeAge < minAge || resumeAge > maxAge) {
-//                // 符合年龄条件
-//                log.info("checkAmResume age={},resumeAge={}",age,resumeAge );
-//                return false;
-//            }
-//        }
-//
-//        if (result) {
-//            //进行简历匹配
-//            // 将18-35 转化成数字
-//            String workYears = condition.getExperience();
-//            if (StringUtils.isNotBlank(workYears) && !"不限".equals(workYears)) {
-//                String[] split = workYears.split("-");
-//                int minWorkYears = Integer.parseInt(split[0]);
-//                int maxWorkYears = Integer.parseInt(split[1]);
-//                int resumeWorkYears = amResume.getWorkYears();
-//                if (resumeWorkYears < minWorkYears || resumeWorkYears > maxWorkYears) {
-//                    // 符合工作年限条件
-//                    result = true;
-//                }
-//            }
-//        }
-//
-//        if (result) {
-//            //进行简历匹配
-//            // 将18-35 转化成数字
-//            String salary = condition.getSalary();
-//            if (StringUtils.isNotBlank(salary) && !"不限".equals(salary)) {
-//                String[] split = salary.split("-");
-//                int minSalary = Integer.parseInt(split[0]);
-//                int maxSalary = Integer.parseInt(split[1]);
-//                int resumeSalary = amResume.getLowSalary();
-//                if (resumeSalary < minSalary || resumeSalary > maxSalary) {
-//                    // 符合工资条件
-//                    result = true;
-//                }
-//            }
-        return true;
-        }
 
 
     private void dealErrorGreetTask(String bossId, AmClientTasks tasksServiceOne) {

@@ -159,6 +159,6 @@ public class AmPositionVo {
     private Integer isDeleted;
 
 
-    private AmChatbotGreetConditionVo conditionVo;
+    private AmGreetConditionVo conditionVo;
 
 }
