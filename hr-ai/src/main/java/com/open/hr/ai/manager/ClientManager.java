@@ -79,6 +79,13 @@ public class ClientManager {
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
+
+    @Resource
+    private AmNewMaskServiceImpl amNewMaskService;
+
+    @Resource
+    private AmChatbotOptionsServiceImpl amChatbotOptionsService;
+
     @Resource
     private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
 
@@ -105,7 +112,7 @@ public class ClientManager {
             }
             if (AmLocalAccountStatusEnums.FREE.getStatus().equals(amZpLocalAccouts.getState())) {
                 // 规定超过25秒就认定下线
-                if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 25 * 1000) {
+                if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 3 * 60 * 1000) {
                     return ResultVO.fail(409, "boss_id 已在线");
                 }
             }
@@ -211,6 +218,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("updateClientStatus connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
@@ -292,6 +300,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("loginQrCodeSave connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
@@ -316,6 +325,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("getClientTask connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
@@ -351,6 +361,7 @@ public class ClientManager {
             }
 
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("bossNewMessage connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
 
@@ -382,6 +393,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("finishClientTask connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
 
@@ -492,6 +504,22 @@ public class ClientManager {
             }
             // 加密岗位id, 用于删除岗位状态
             List<String> encryptIds = new ArrayList<>();
+            LambdaQueryWrapper<AmNewMask>  amNewMaskLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            amNewMaskLambdaQueryWrapper.eq(AmNewMask::getAdminId,amZpLocalAccouts.getAdminId());
+            amNewMaskLambdaQueryWrapper.eq(AmNewMask::getSystemExample,1);
+            AmNewMask amNewMask = amNewMaskService.getOne(amNewMaskLambdaQueryWrapper,false);
+
+
+            LambdaQueryWrapper<AmChatbotOptions> amChatbotOptionsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getAdminId,amZpLocalAccouts.getAdminId());
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getSystemExample,1);
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getType,0);
+            // 主动打招呼
+            AmChatbotOptions chatbotOptionsServiceZero = amChatbotOptionsService.getOne(amChatbotOptionsLambdaQueryWrapper, false);
+            amChatbotOptionsLambdaQueryWrapper.eq(AmChatbotOptions::getType,1);
+            AmChatbotOptions chatbotOptionsServiceOne = amChatbotOptionsService.getOne(amChatbotOptionsLambdaQueryWrapper, false);
+
+
             for (int i = 0; i < jobsArray.size(); i++) {
                 try {
                     JSONObject jobData = jobsArray.getJSONObject(i);
@@ -546,9 +574,25 @@ public class ClientManager {
                         Integer deleted = amChatbotGreetTaskService.deleteByAccountIdAndPositionId(bossId,positionId);
                         log.info("amChatbotGreetTaskService update deleted={},bossId={},amPosition={}", deleted, bossId, amPosition);
                     }
+                    AmChatbotPositionOption amChatbotPositionOption = new AmChatbotPositionOption();
+                    amChatbotPositionOption.setAccountId(bossId);
+                    amChatbotPositionOption.setPositionId(positionId);
+                    if (Objects.nonNull(amNewMask)){
+                        amChatbotPositionOption.setAmMaskId(amNewMask.getId());
+                    }
+                    if (Objects.nonNull(chatbotOptionsServiceZero)){
+                        amChatbotPositionOption.setRechatOptionId(chatbotOptionsServiceZero.getId());
+                    }
+                    if (Objects.nonNull(chatbotOptionsServiceOne)){
+                        amChatbotPositionOption.setInquiryRechatOptionId(chatbotOptionsServiceOne.getId());
+                    }
+                    // php 无语
+                    amChatbotPositionOption.setCreateTime((int)System.currentTimeMillis()/1000);
+                    amChatbotPositionOptionService.save(amChatbotPositionOption);
                 } catch (Exception e) {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
                 }
+
             }
 
             LambdaUpdateWrapper<AmPosition> deleteQueryWrapper = new LambdaUpdateWrapper<>();

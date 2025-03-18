@@ -23,6 +23,7 @@ import com.open.hr.ai.bean.vo.AmNewMaskVo;
 import com.open.hr.ai.constant.AmMaskTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.yarn.webapp.hamlet2.Hamlet;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -283,6 +284,32 @@ public class AmNewMaskManager {
         }
         return amNewMaskVo;
 
+    }
+
+
+    /**
+     * 创建默认的面具
+     */
+    public Boolean createDefaultMask(Long adminId) {
+
+        AmNewMask amNewMask = amNewMaskService.getById(1);
+        if (Objects.isNull(amNewMask)){
+            log.error("createDefaultMask error maskId=1 not exist");
+        }
+        AmNewMask copyNewMask = new AmNewMask();
+        BeanUtils.copyProperties(amNewMask, copyNewMask);
+        copyNewMask.setId(null);
+        copyNewMask.setSystemExample(1);
+        copyNewMask.setAdminId(adminId);
+        copyNewMask.setCreateTime(LocalDateTime.now());
+        copyNewMask.setUpdateTime(LocalDateTime.now());
+        copyNewMask.setStatus(MaskStatusEnum.OK.getStatus());
+        boolean save = amNewMaskService.save(copyNewMask);
+        if (!save) {
+            log.error("createDefaultMask error maskId= 1 save fail");
+            return false;
+        }
+        return true;
     }
 
 

@@ -74,4 +74,11 @@ public class AmChatbotOptions implements Serializable {
     private LocalDateTime updateTime;
 
 
+
+    /**
+     * 系统默认的,用于用户注册自动绑定
+     */
+    private Integer systemExample;
+
+
 }

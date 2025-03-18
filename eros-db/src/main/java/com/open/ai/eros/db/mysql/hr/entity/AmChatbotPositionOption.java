@@ -3,7 +3,9 @@ package com.open.ai.eros.db.mysql.hr.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import java.io.Serializable;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -22,9 +24,9 @@ import lombok.experimental.Accessors;
 @TableName("am_chatbot_position_option")
 public class AmChatbotPositionOption implements Serializable {
 
-    private static final long serialVersionUID=1L;
+    private static final long serialVersionUID = 1L;
 
-      @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.AUTO)
     private Integer id;
 
     /**
@@ -46,6 +48,11 @@ public class AmChatbotPositionOption implements Serializable {
      * 复聊方案id
      */
     private Integer rechatOptionId;
+
+    /**
+     * 用户询问后的复聊方案id
+     */
+    private Integer inquiryRechatOptionId;
 
     /**
      * 创建时间

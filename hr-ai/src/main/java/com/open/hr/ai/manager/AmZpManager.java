@@ -4,14 +4,11 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.open.ai.eros.common.util.HttpUtil;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpPlatforms;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmAdminServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmZpPlatformsServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.AmZpAccoutsResultVo;
 import com.open.hr.ai.bean.AmZpPlatformsResultVo;
 import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
@@ -39,6 +36,11 @@ public class AmZpManager {
     @Resource
     private AmAdminServiceImpl amAdminService;
 
+    @Resource
+    private AmNewMaskManager amNewMaskManager;
+
+    @Resource
+    private ChatBotOptionsManager chatBotOptionsManager;
 
     public ResultVO<AmZpAccoutsResultVo> getAccouts(Long id) {
         AmZpAccoutsResultVo resultVo = new AmZpAccoutsResultVo();
@@ -115,6 +117,10 @@ public class AmZpManager {
         }
 
         boolean success = amZpLocalAccoutsService.addAmLocalAccount(uid, platform_id, platforms.getName(), account, amAdmin.getMobile(), city);
+
+       // 添加默认的面具和复聊数据
+        amNewMaskManager.createDefaultMask(uid);
+        chatBotOptionsManager.createDefaultRechat(uid);
         return success ? ResultVO.success() : ResultVO.fail("添加成功！请联系管理员");
     }
 
@@ -183,8 +189,6 @@ public class AmZpManager {
 
     public ResultVO getJson(){
         try {
-
-
             OkHttpClient client = new OkHttpClient().newBuilder()
                     .build();
             Request request = new Request.Builder()
