@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+
+import com.open.ai.eros.common.constants.AmAdminStatusEnums;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -200,5 +203,20 @@ public class AmResume implements Serializable {
      *  是否是学生 1是学生 -1 不是
      */
     private Integer isStudent;
+
+    /**
+     * @param newType 新状态
+     * @param isAlUpdate 是否是ai更新
+     */
+    public void updateType(ReviewStatusEnums newType,Boolean isAlUpdate){
+        if(newType == null || newType.getStatus().equals(this.type)){
+            return;
+        }
+
+        if (!isAlUpdate || (newType.equals(ReviewStatusEnums.ABANDON) || newType.getStatus() > this.type)){
+            this.type = newType.getStatus();
+        }
+
+    }
 
 }
