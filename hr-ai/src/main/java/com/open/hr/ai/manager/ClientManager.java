@@ -105,7 +105,7 @@ public class ClientManager {
             }
             if (AmLocalAccountStatusEnums.FREE.getStatus().equals(amZpLocalAccouts.getState())) {
                 // 规定超过25秒就认定下线
-                if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 25 * 1000) {
+                if (Objects.nonNull(amZpLocalAccouts.getUpdateTime()) && System.currentTimeMillis() - DateUtils.convertLocalDateTimeToTimestamp(amZpLocalAccouts.getUpdateTime()) < 3 * 60 * 1000) {
                     return ResultVO.fail(409, "boss_id 已在线");
                 }
             }
@@ -211,6 +211,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("updateClientStatus connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
@@ -292,6 +293,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("loginQrCodeSave connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
@@ -316,6 +318,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("getClientTask connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
@@ -351,6 +354,7 @@ public class ClientManager {
             }
 
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("bossNewMessage connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
 
@@ -382,6 +386,7 @@ public class ClientManager {
                 return ResultVO.fail(404, "boss_id不存在");
             }
             if (!amZpLocalAccouts.getBrowserId().equals(connectId)) {
+                log.info("finishClientTask connectId={},amZpLocalAccouts.getBrowserId()={}",connectId,amZpLocalAccouts.getBrowserId());
                 return ResultVO.fail(401, "connect_id 不一致");
             }
 
@@ -793,7 +798,7 @@ public class ClientManager {
                     }
 
                     amResume.setZpData(resumeJSONObject.toJSONString());
-                    amResume.setType(0);
+                    amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     amResume.setPostId(positionId);
 
                     // ---- begin 从resume search_data数据结构提取数据 ----
@@ -924,7 +929,7 @@ public class ClientManager {
         // ---- end 从resume数据结构提取数据  ----
 
         // 初筛
-        amResume.setType(0);
+        amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setPlatform(platform);
 
