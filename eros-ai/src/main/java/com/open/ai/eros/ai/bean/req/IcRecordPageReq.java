@@ -28,8 +28,14 @@ public class IcRecordPageReq {
     @ApiModelProperty("职位")
     private String postName;
 
+    @ApiModelProperty("职位id(下拉框用)")
+    private Integer postId;
+
     @ApiModelProperty("部门")
     private String deptName;
+
+    @ApiModelProperty("部门id(下拉框用)")
+    private Integer deptId;
 
     @ApiModelProperty("平台")
     private String platform;

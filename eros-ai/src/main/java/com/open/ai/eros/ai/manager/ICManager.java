@@ -223,6 +223,7 @@ public class ICManager {
                 icRecord.setPositionName(position == null ? "" : position.getName());
                 if(position != null){
                     AmPositionSection section = sectionService.getById(position.getSectionId());
+                    icRecord.setDeptId(section == null ? null : section.getId());
                     icRecord.setDeptName(section == null ? "" : section.getName());
                 }
                 List<AmResume> resumes = resumeService.list(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, req.getEmployeeUid()));
@@ -538,6 +539,8 @@ public class ICManager {
         String employeeName = req.getEmployeeName();
         String postName = req.getPostName();
         String platform = req.getPlatform();
+        Integer deptId = req.getDeptId();
+        Integer postId = req.getPostId();
         queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
                 .eq(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
                 .eq(StringUtils.isNotEmpty(deptName),IcRecord::getDeptName,deptName)
@@ -545,12 +548,14 @@ public class ICManager {
                 .eq(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
                 .eq(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
                 .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
+                .eq(deptId != null,IcRecord::getDeptId,deptId)
+                .eq(postId != null,IcRecord::getPositionId,postId)
                 .orderByDesc(IcRecord::getStartTime);
         if(status != null){
-            if(3 == status){
-                queryWrapper.eq(IcRecord::getCancelStatus,1)
+            if(InterviewStatusEnum.DEPRECATED.getStatus().equals(status)){
+                queryWrapper.eq(IcRecord::getCancelStatus,InterviewStatusEnum.NOT_CANCEL.getStatus())
                         .le(IcRecord::getStartTime,LocalDateTime.now());
-            }else if(1 == status) {
+            }else if(InterviewStatusEnum.NOT_CANCEL.getStatus().equals(status)) {
                 queryWrapper.eq(IcRecord::getCancelStatus,status)
                             .gt(IcRecord::getStartTime,LocalDateTime.now());
             }else {
