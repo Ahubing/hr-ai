@@ -268,7 +268,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         // 如果content为空 重试10次
         String content = "";
         AtomicInteger needToReply = new AtomicInteger(1);
-        AtomicInteger statusCode = new AtomicInteger(-2);
+        AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
             ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus);
@@ -329,23 +329,24 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
 
             // 更新简历状态
-            int status = statusCode.get();
-            if(status != -2){
-                // 状态大于当前状态 不允许回退
-                if(isAiSetStatus.get()){
-                    // 如果是放弃状态则修改简历状态
-                    if (status == ReviewStatusEnums.ABANDON.getStatus()){
-                        amResume.setType(status);
-                    }
-                    if ( status  > amResume.getType()) {
-                        amResume.setType(status);
-                    }
-                }else {
-                    amResume.setType(status);
-                }
-            }
+            amResume.updateType(ReviewStatusEnums.getEnumByStatus(statusCode.get()),isAiSetStatus.get());
+//            int status = statusCode.get();
+//            if(status != -2){
+//                // 状态大于当前状态 不允许回退
+//                if(isAiSetStatus.get()){
+//                    // 如果是放弃状态则修改简历状态
+//                    if (status == ReviewStatusEnums.ABANDON.getStatus()){
+//                        amResume.setType(status);
+//                    }
+//                    if ( status  > amResume.getType()) {
+//                        amResume.setType(status);
+//                    }
+//                }else {
+//                    amResume.setType(status);
+//                }
+//            }
             // 请求微信和手机号
-            generateRequestInfo(status,amNewMask,amZpLocalAccouts,amResume,req);
+            generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,req);
             // 根据状态发起request_info
             boolean updateResume = amResumeService.updateById(amResume);
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);

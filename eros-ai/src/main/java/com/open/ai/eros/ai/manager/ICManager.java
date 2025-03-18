@@ -297,7 +297,7 @@ public class ICManager {
             }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "cancel");
-            resume.setType(ReviewStatusEnums.ABANDON.getStatus());
+            resume.updateType(ReviewStatusEnums.ABANDON,false);
             resumeService.updateById(resume);
         }
         boolean update = icRecordService.updateById(icRecord);
@@ -342,7 +342,7 @@ public class ICManager {
             endTime = System.currentTimeMillis();
             log.info("icRecordService.updateById:{}" ,endTime - startTime);
             startTime = endTime;
-            resume.setType(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
+            resume.updateType(ReviewStatusEnums.INVITATION_FOLLOW_UP,false);
             resumeService.updateById(resume);
             endTime = System.currentTimeMillis();
             log.info("resumeService.updateById:{}" ,endTime - startTime);
