@@ -39,7 +39,7 @@ public class AmAdminServiceImpl extends ServiceImpl<AmAdminMapper, AmAdmin> impl
         return this.baseMapper.getUserByAccount(account);
     }
 
-    public int addUser(String email, String password, String username, String company, String mobile) {
+    public AmAdmin addUser(String email, String password, String username, String company, String mobile) {
         AmAdmin users = new AmAdmin();
         users.setEmail(email);
         users.setPassword(password);
@@ -53,8 +53,11 @@ public class AmAdminServiceImpl extends ServiceImpl<AmAdminMapper, AmAdmin> impl
         users.setSpecialPermission(null);
         users.setRole(AmAdminRoleEnum.COMMON.getType());
         users.setLastLoginClientIp(getClientIpAddress());//获取id
+        int insert = this.getBaseMapper().insert(users);
         // 新增加的是 普通用户
-        return this.getBaseMapper().insert(users);
+        return insert == 1 ? users : null;
+        // 新增加的是 普通用户
+
     }
 
 

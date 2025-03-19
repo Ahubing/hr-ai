@@ -79,19 +79,6 @@ public class LoginManager {
         }
     }
 
-
-    public ResultVO register(HrAddUserReq req) {
-        // 1、查询是否存在该用户
-        QueryWrapper<AmAdmin> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", req.getUsername());
-        AmAdmin amAdmin = amAdminService.getOne(queryWrapper);
-        if (amAdmin != null) {
-            return ResultVO.fail("当前账号已存在");
-        }
-        int addUserResult = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(), req.getMobile());
-        return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
-
-    }
     public ResultVO updateSlack(SlackOffVo req,Long adminId) {
         // 1、查询是否存在该用户
         AmAdmin amAdmin = amAdminService.getById(adminId);
