@@ -32,10 +32,11 @@ public class AmResumeServiceImpl extends ServiceImpl<AmResumeMapper, AmResume> i
 
     public void updateType(AmResume amResume, Boolean isAlUpdate, ReviewStatusEnums newType){
         ReviewStatusEnums oldType = ReviewStatusEnums.getEnumByStatus(amResume.getType());
+        log.info("updateType event：oldType:{},newType :{}", oldType,newType);
         amResume.updateType(newType, isAlUpdate);
         if(!oldType.equals(newType)){
             ReviewTypeUpdatedEvent updatedEvent = new ReviewTypeUpdatedEvent(amResume, oldType, newType);
-            log.info("发布简历状态更新事件事件：{}", JSONObject.toJSONString(updatedEvent));
+            log.info("发布简历状态更新事件：{}", JSONObject.toJSONString(updatedEvent));
             eventPublisher.publishEvent(updatedEvent);
         }
     }
