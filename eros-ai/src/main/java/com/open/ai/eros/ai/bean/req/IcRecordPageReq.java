@@ -42,6 +42,9 @@ public class IcRecordPageReq {
     @ApiModelProperty("平台")
     private String platform;
 
+    @ApiModelProperty("平台Id(下拉框用)")
+    private Integer platformId;
+
     @ApiModelProperty("账号")
     private String employeeName;
 

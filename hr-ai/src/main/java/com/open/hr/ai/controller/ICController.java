@@ -9,10 +9,8 @@ import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.mysql.hr.service.impl.IcRecordServiceImpl;
 import com.open.hr.ai.config.HrAIBaseController;
-import com.open.ai.eros.ai.manager.ICManager;
-import dev.langchain4j.data.message.SystemMessage;
+import com.open.ai.eros.ai.manager.ICAiManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Api(tags = "ic 面试日历")
@@ -32,16 +29,13 @@ import java.util.List;
 public class ICController extends HrAIBaseController {
 
     @Resource
-    private ICManager icManager;
-
-    @Resource
-    private IcRecordServiceImpl recordService;
+    private ICAiManager icAiManager;
 
     @ApiOperation("获取所有空闲时间")
     @VerifyUserToken
     @PostMapping("/getSpareTime")
     public ResultVO<IcSpareTimeVo> getSpareTime(@RequestBody @Valid IcSpareTimeReq spareTimeReq) {
-        return icManager.getSpareTime(spareTimeReq);
+        return icAiManager.getSpareTime(spareTimeReq);
     }
 
     @ApiOperation("预约面试")
@@ -49,7 +43,7 @@ public class ICController extends HrAIBaseController {
     @PostMapping("/appointInterview")
     public ResultVO<String> appointInterview(@RequestBody @Valid IcRecordAddReq req) {
         req.setAdminId(getUserId());
-        return icManager.appointInterview(req);
+        return icAiManager.appointInterview(req);
     }
 
     @ApiOperation("取消面试预约")
@@ -57,7 +51,7 @@ public class ICController extends HrAIBaseController {
     @GetMapping("/cancelInterview")
     public ResultVO<Boolean> cancelInterview(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
                                              @RequestParam(value = "cancelWho") @ApiParam("谁取消了，1-招聘方，2-受聘方") Integer cancelWho) {
-        return icManager.cancelInterview(icUuid,cancelWho);
+        return icAiManager.cancelInterview(icUuid,cancelWho);
     }
 
     @ApiOperation("修改面试时间")
@@ -66,7 +60,7 @@ public class ICController extends HrAIBaseController {
     public ResultVO<Boolean> modifyTime(@RequestParam(value = "icUuid") @ApiParam("面试uuid") String icUuid,
                                         @RequestParam(value = "modifyWho",required = false,defaultValue = "1") @ApiParam("谁修改了，1-招聘方，2-受聘方,默认为招聘方") Integer modifyWho) {
         long startTime = System.currentTimeMillis();
-        ResultVO<Boolean> resultVO = icManager.modifyTime(icUuid, modifyWho, null);
+        ResultVO<Boolean> resultVO = icAiManager.modifyTime(icUuid, modifyWho, null);
         long endTime = System.currentTimeMillis();
         log.info("modifyTime apicall execute:{}", endTime - startTime);
         return resultVO;
@@ -79,7 +73,7 @@ public class ICController extends HrAIBaseController {
                                                         @RequestParam(value = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam("截止日期") LocalDate endDate,
                                                         @RequestParam(value = "deptId",required = false) @ApiParam("部门id") Integer deptId,
                                                         @RequestParam(value = "postId",required = false) @ApiParam("职位id") Integer postId) {
-        return icManager.getGroupDaysIC(getUserId(),startDate,endDate,deptId,postId);
+        return icAiManager.getGroupDaysIC(getUserId(),startDate,endDate,deptId,postId);
     }
 
     @ApiOperation("分页查询所有面试")
@@ -87,6 +81,6 @@ public class ICController extends HrAIBaseController {
     @PostMapping("/pageIcRecord")
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(@RequestBody @Valid IcRecordPageReq req) {
         req.setAdminId(getUserId());
-        return icManager.pageIcRecord(req);
+        return icAiManager.pageIcRecord(req);
     }
 }

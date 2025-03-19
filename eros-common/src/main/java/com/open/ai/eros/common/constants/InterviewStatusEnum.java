@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.constatns;
+package com.open.ai.eros.common.constants;
 
 public enum InterviewStatusEnum {
 

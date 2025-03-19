@@ -66,7 +66,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 amResume.setName(chatInfo.get("name").toString());
             }
             if (Objects.nonNull(chatInfo.get("type"))) {
-                amResume.updateType(ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfo.get("type").toString())),false);
+                ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfo.get("type").toString()));
+                amResumeService.updateType(amResume, false, statusEnums);
             }
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
@@ -98,7 +99,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
-            amResume.updateType(ReviewStatusEnums.RESUME_SCREENING,false);
+            amResumeService.updateType(amResume,false, ReviewStatusEnums.RESUME_SCREENING);
             if (Objects.nonNull(chatInfo.get("toPositionId"))) {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();

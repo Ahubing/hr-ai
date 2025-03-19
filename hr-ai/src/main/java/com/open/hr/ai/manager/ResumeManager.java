@@ -26,6 +26,7 @@ import com.open.hr.ai.convert.AmResumeConvert;
 import com.open.hr.ai.convert.AmUploadResumeConvert;
 import com.open.hr.ai.util.CompetencyModelPromptUtil;
 import com.open.hr.ai.util.ResumeParseUtil;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class ResumeManager {
 
     @Resource
@@ -67,10 +69,8 @@ public class ResumeManager {
     @Resource
     private CommonAIManager commonAIManager;
 
-
     @Resource
     private CompetencyModelPromptUtil competencyModelPromptUtil;
-
 
     public ResultVO<AmResumeVo> resumeDetail(Integer id) {
         try {

@@ -33,7 +33,7 @@ public class HolidayCacheJob {
     @EventListener(ApplicationReadyEvent.class)
     public void initHoliday() {
 
-        Lock lock = DistributedLockUtils.getLock(HOLIDAY_LOCK, 20, TimeUnit.SECONDS);
+        Lock lock = DistributedLockUtils.getLock(HOLIDAY_LOCK, 10, TimeUnit.SECONDS);
         try {
             if (lock.tryLock()) {
                 log.info("HolidayCacheJob init start---");
@@ -50,7 +50,7 @@ public class HolidayCacheJob {
 
     @Scheduled(cron = "0 0 1 * * ?")
     public void flushHoliday(){
-        Lock lock = DistributedLockUtils.getLock(HOLIDAY_LOCK, 20, TimeUnit.SECONDS);
+        Lock lock = DistributedLockUtils.getLock(HOLIDAY_LOCK, 10, TimeUnit.SECONDS);
         try {
             if (lock.tryLock()) {
                 log.info("HolidayCacheJob flush start---");

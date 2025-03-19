@@ -3,7 +3,7 @@ package com.open.hr.ai.util;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
-import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
+import com.open.ai.eros.common.constants.InterviewStatusEnum;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -233,7 +233,7 @@ public class DealUserFirstSendMessageUtil {
             boolean mockSaveResult = amChatMessageService.save(aiMockMessages);
             log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
 
-            amResume.updateType(ReviewStatusEnums.getEnumByStatus(statusCode.get()),isAiSetStatus.get());
+            amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()));
 //            // 更新简历状态
 //            int status = statusCode.get();
 //            if(status != -2){
