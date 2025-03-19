@@ -114,4 +114,9 @@ public class IcRecord implements Serializable {
      */
     private Integer deptId;
 
+    /**
+     * 平台id
+     */
+    private Long platformId;
+
 }

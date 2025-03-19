@@ -231,6 +231,9 @@ public class ICAiManager {
                     AmResume amResume = resumes.get(0);
                     icRecord.setEmployeeName(amResume.getName());
                     icRecord.setPlatform(amResume.getPlatform());
+                    AmZpPlatforms platforms = platformsService.getOne(new LambdaQueryWrapper<AmZpPlatforms>()
+                            .eq(AmZpPlatforms::getName, amResume.getPlatform()),false);
+                    icRecord.setPlatformId(platforms == null ? null : platforms.getId());
                 }
                 AmZpLocalAccouts account = accoutsService.getById(req.getAccountId());
                 if(Objects.nonNull(account)){
@@ -567,6 +570,7 @@ public class ICAiManager {
                 .eq(StringUtils.isNotEmpty(employeeUid),IcRecord::getEmployeeUid,employeeUid)
                 .ge(startTime != null,IcRecord::getStartTime,startTime)
                 .le(endTime != null,IcRecord::getStartTime,endTime)
+                .eq(platformId != null,IcRecord::getPlatformId,platformId)
                 .orderByDesc(IcRecord::getStartTime);
         if(status != null){
             if(InterviewStatusEnum.DEPRECATED.getStatus().equals(status)){
@@ -577,12 +581,6 @@ public class ICAiManager {
                             .gt(IcRecord::getStartTime,LocalDateTime.now());
             }else {
                 queryWrapper.eq(IcRecord::getCancelStatus,status);
-            }
-        }
-        if(platformId != null){
-            AmZpPlatforms platforms = platformsService.getById(platformId);
-            if (platforms != null) {
-                queryWrapper.eq(IcRecord::getPlatform,platforms.getName());
             }
         }
         Page<IcRecord> page = new Page<>(pageNum, pageSize);
