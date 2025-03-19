@@ -1,22 +1,19 @@
 package com.open.ai.eros.ai.manager;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
 import com.open.ai.eros.ai.bean.req.IcRecordPageReq;
 import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcGroupDaysVo;
 import com.open.ai.eros.ai.bean.vo.IcRecordVo;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
-import com.open.ai.eros.ai.constatns.InterviewRoleEnum;
-import com.open.ai.eros.ai.constatns.InterviewStatusEnum;
-import com.open.ai.eros.ai.constatns.InterviewTypeEnum;
+import com.open.ai.eros.common.constants.InterviewRoleEnum;
+import com.open.ai.eros.common.constants.InterviewStatusEnum;
+import com.open.ai.eros.common.constants.InterviewTypeEnum;
 import com.open.ai.eros.ai.convert.IcRecordConvert;
 import com.open.ai.eros.common.constants.CommonConstant;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
@@ -47,7 +44,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Component
-public class ICManager {
+public class ICAiManager {
 
     @Resource
     private IcConfigServiceImpl icConfigService;
@@ -75,6 +72,9 @@ public class ICManager {
 
     @Resource
     private AmChatMessageServiceImpl chatMessageService;
+
+    @Resource
+    private AmZpPlatformsServiceImpl platformsService;
 
     @Resource
     private JedisClientImpl jedisClient;
@@ -231,6 +231,9 @@ public class ICManager {
                     AmResume amResume = resumes.get(0);
                     icRecord.setEmployeeName(amResume.getName());
                     icRecord.setPlatform(amResume.getPlatform());
+                    AmZpPlatforms platforms = platformsService.getOne(new LambdaQueryWrapper<AmZpPlatforms>()
+                            .eq(AmZpPlatforms::getName, amResume.getPlatform()),false);
+                    icRecord.setPlatformId(platforms == null ? null : platforms.getId());
                 }
                 AmZpLocalAccouts account = accoutsService.getById(req.getAccountId());
                 if(Objects.nonNull(account)){
@@ -279,7 +282,15 @@ public class ICManager {
         return flag;
     }
 
+    public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho, Boolean checkOnline) {
+        return doCancelInterview(icUuid, cancelWho, checkOnline);
+    }
+
     public ResultVO<Boolean> cancelInterview(String icUuid, Integer cancelWho) {
+        return doCancelInterview(icUuid, cancelWho, true);
+    }
+
+    private ResultVO<Boolean> doCancelInterview(String icUuid, Integer cancelWho, Boolean checkOnline){
         IcRecord icRecord = icRecordService.getById(icUuid);
         if(InterviewStatusEnum.CANCEL.getStatus().equals(icRecord.getCancelStatus())){
             return ResultVO.fail("已经取消,无法再次取消");
@@ -291,13 +302,15 @@ public class ICManager {
             AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
             AmResume resume = resumeService.getOne(new LambdaQueryWrapper<AmResume>()
                     .eq(AmResume::getUid, icRecord.getEmployeeUid()), false);
-            //如果不在线，则报错
-            if(!Arrays.asList("free","busy").contains(account.getState())){
-                return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
+            if(checkOnline){
+                //如果不在线，则报错
+                if(!Arrays.asList("free","busy").contains(account.getState())){
+                    return ResultVO.fail("请先登录该面试的招聘账号再取消或修改面试");
+                }
             }
             //在线则发送消息通知受聘者
             generateAsyncMessage(resume,account,icRecord, "cancel");
-            resume.updateType(ReviewStatusEnums.ABANDON,false);
+            resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON);
             resumeService.updateById(resume);
         }
         boolean update = icRecordService.updateById(icRecord);
@@ -342,7 +355,7 @@ public class ICManager {
             endTime = System.currentTimeMillis();
             log.info("icRecordService.updateById:{}" ,endTime - startTime);
             startTime = endTime;
-            resume.updateType(ReviewStatusEnums.INVITATION_FOLLOW_UP,false);
+            resumeService.updateType(resume, false, ReviewStatusEnums.INVITATION_FOLLOW_UP);
             resumeService.updateById(resume);
             endTime = System.currentTimeMillis();
             log.info("resumeService.updateById:{}" ,endTime - startTime);
@@ -541,6 +554,7 @@ public class ICManager {
         String platform = req.getPlatform();
         Integer deptId = req.getDeptId();
         Integer postId = req.getPostId();
+        Integer platformId = req.getPlatformId();
         String employeeUid = req.getEmployeeUid();
         LocalDateTime startTime = req.getStartTime();
         LocalDateTime endTime = req.getEndTime();
@@ -556,6 +570,7 @@ public class ICManager {
                 .eq(StringUtils.isNotEmpty(employeeUid),IcRecord::getEmployeeUid,employeeUid)
                 .ge(startTime != null,IcRecord::getStartTime,startTime)
                 .le(endTime != null,IcRecord::getStartTime,endTime)
+                .eq(platformId != null,IcRecord::getPlatformId,platformId)
                 .orderByDesc(IcRecord::getStartTime);
         if(status != null){
             if(InterviewStatusEnum.DEPRECATED.getStatus().equals(status)){

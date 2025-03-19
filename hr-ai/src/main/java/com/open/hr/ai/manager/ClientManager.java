@@ -837,7 +837,7 @@ public class ClientManager {
                     }
 
                     amResume.setZpData(resumeJSONObject.toJSONString());
-                    amResume.updateType(ReviewStatusEnums.RESUME_SCREENING, false);
+                    amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
                     amResume.setPostId(positionId);
 
                     // ---- begin 从resume search_data数据结构提取数据 ----
@@ -968,7 +968,7 @@ public class ClientManager {
         // ---- end 从resume数据结构提取数据  ----
 
         // 初筛
-        amResume.updateType(ReviewStatusEnums.RESUME_SCREENING,false);
+        amResumeService.updateType(amResume,false, ReviewStatusEnums.RESUME_SCREENING);
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setPlatform(platform);
 
@@ -1064,7 +1064,7 @@ public class ClientManager {
                 queryWrapper.eq(AmResume::getUid, userId);
                 queryWrapper.eq(AmResume::getAccountId, bossId);
                 AmResume amResume = amResumeService.getOne(queryWrapper, false);
-                amResume.updateType(ReviewStatusEnums.ABANDON,false);
+                amResumeService.updateType(amResume,false,ReviewStatusEnums.ABANDON);
                 boolean result = amResumeService.updateById(amResume);
                 log.info("sendMessage update result={},amResume={}", result, amResume);
             }
@@ -1136,7 +1136,7 @@ public class ClientManager {
         amResume.setSkills(Objects.nonNull(resumeObject.get("skills")) ? resumeObject.get("skills").toString() : "");
 
         // ---- end 从resume数据结构提取数据  ----
-        amResume.updateType(ReviewStatusEnums.RESUME_SCREENING,false);
+        amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setZpData(resumeObject.toJSONString());
         Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume);

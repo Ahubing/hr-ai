@@ -4,13 +4,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
 import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
-import com.open.ai.eros.ai.constatns.InterviewRoleEnum;
+import com.open.ai.eros.common.constants.InterviewRoleEnum;
 import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
-import dev.ai4j.openai4j.Json;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.AiMessage;
@@ -47,7 +46,7 @@ public class CommonAIManager {
     private ModelConfigManager modelConfigManager;
 
     @Autowired
-    private ICManager icManager;
+    private ICAiManager icAiManager;
 
 
     /**
@@ -175,7 +174,7 @@ public class CommonAIManager {
                             LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             ToolExecutionResultMessage resultMessage = null;
-                            ResultVO<IcSpareTimeVo> resultVO = icManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
+                            ResultVO<IcSpareTimeVo> resultVO = icAiManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
                             if(200 == resultVO.getCode()){
                                 if (CollectionUtils.isEmpty(resultVO.getData().getSpareDateVos())) {
                                     resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(ResultVO.fail(500,"无空闲时间")));
@@ -198,7 +197,7 @@ public class CommonAIManager {
                             String startTime = params.getString("startTime");
                             String maskId = params.getString("maskId");
                             LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            ResultVO<String> resultVO = icManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId), Long.parseLong(adminId), employeeUid, sTime, Long.parseLong(positionId), accountId));
+                            ResultVO<String> resultVO = icAiManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId), Long.parseLong(adminId), employeeUid, sTime, Long.parseLong(positionId), accountId));
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
                             log.info("预约面试: tool={}, appointInterviewStr={}", name, JSONObject.toJSONString(resultVO));
                         }
@@ -207,7 +206,7 @@ public class CommonAIManager {
                             statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
                             JSONObject params = JSONObject.parseObject(result);
                             String interviewId = params.getString("interviewId");
-                            ResultVO<Boolean> resultVO = icManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
+                            ResultVO<Boolean> resultVO = icAiManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
                             log.info("取消面试: tool={}, cancelInterviewStr={}", name, JSONObject.toJSONString(resultVO));
                         }
@@ -217,7 +216,7 @@ public class CommonAIManager {
                             String interviewId = params.getString("interviewId");
                             String newTime = params.getString("newTime");
                             LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            ResultVO<Boolean> resultVO = icManager.modifyTime(interviewId, InterviewRoleEnum.EMPLOYEE.getCode(),sTime);
+                            ResultVO<Boolean> resultVO = icAiManager.modifyTime(interviewId, InterviewRoleEnum.EMPLOYEE.getCode(),sTime);
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
                             log.info("修改面试时间: tool={}, modifyTimeStr={}", name, JSONObject.toJSONString(resultVO));
                         }
