@@ -634,7 +634,9 @@ public class ClientManager {
             // 提取简历信息
             JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
             if (Objects.isNull(resumes) || resumes.isEmpty()) {
-                log.error("greetHandle resumes is null,bossId={}", bossId);
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
+                boolean result = amClientTasksService.updateById(tasksServiceOne);
+                log.error("greetHandle resumes is null,bossId={} updateResult={}", bossId,result);
                 return;
             }
 
@@ -756,9 +758,6 @@ public class ClientManager {
             amChatbotGreetTask.setDoneNum(doneNum);
             if (doneNum >= amChatbotGreetTask.getTaskNum()) {
                 amChatbotGreetTask.setStatus(2);
-            }else {
-                // 未完成,则继续执行
-                amChatbotGreetTask.setStatus(1);
             }
             amChatbotGreetTaskService.updateById(amChatbotGreetTask);
 
