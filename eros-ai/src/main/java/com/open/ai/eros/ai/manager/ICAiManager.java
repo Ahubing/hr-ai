@@ -11,6 +11,7 @@ import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcGroupDaysVo;
 import com.open.ai.eros.ai.bean.vo.IcRecordVo;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.InterviewRoleEnum;
 import com.open.ai.eros.common.constants.InterviewStatusEnum;
 import com.open.ai.eros.common.constants.InterviewTypeEnum;
@@ -309,7 +310,7 @@ public class ICAiManager {
                 }
             }
             //在线则发送消息通知受聘者
-            generateAsyncMessage(resume,account,icRecord, "cancel");
+            SendMessageUtil.generateAsyncMessage(resume,account,icRecord, "cancel");
             resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON);
             resumeService.updateById(resume);
         }
@@ -343,7 +344,7 @@ public class ICAiManager {
                 return ResultVO.fail("面试已取消，无法修改面试时间");
             }
             //在线则发送消息通知受聘者
-            generateAsyncMessage(resume,account,icRecord, "modify");
+            SendMessageUtil.generateAsyncMessage(resume,account,icRecord, "modify");
             endTime = System.currentTimeMillis();
             log.info("generateAsyncMessage:{}" ,endTime - startTime);
             startTime = endTime;
@@ -383,76 +384,6 @@ public class ICAiManager {
         return ResultVO.fail("面试时间修改失败");
     }
 
-    private void generateAsyncMessage(AmResume resume, AmZpLocalAccouts account, IcRecord record, String type) {
-        String content = buildContentByType(record,type);
-        AmClientTasks amClientTasks = new AmClientTasks();
-        JSONObject jsonObject = new JSONObject();
-        JSONObject messageObject = new JSONObject();
-        JSONObject searchObject = new JSONObject();
-        searchObject.put("encrypt_friend_id", resume.getEncryptGeekId());
-        searchObject.put("name", resume.getName());
-        messageObject.put("content", content);
-        jsonObject.put("user_id", resume.getUid());
-        jsonObject.put("message", messageObject);
-        jsonObject.put("search_data", searchObject);
-
-        amClientTasks.setTaskType("send_message");
-        amClientTasks.setOrderNumber(2);
-        amClientTasks.setBossId(resume.getAccountId());
-        amClientTasks.setData(jsonObject.toJSONString());
-        amClientTasks.setStatus(0);
-        amClientTasks.setCreateTime(LocalDateTime.now());
-        long startTime = System.currentTimeMillis();
-        boolean result = clientTasksService.save(amClientTasks);
-        long endTime = System.currentTimeMillis();
-        log.info("clientTasksService.save:{}" ,endTime - startTime);
-        startTime = endTime;
-
-        //更新task临时status的状态
-        log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
-        if (result) {
-            // 生成聊天记录
-            AmChatMessage amChatMessage = new AmChatMessage();
-            amChatMessage.setConversationId(account.getId() + "_" + resume.getUid());
-            amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
-            amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
-            amChatMessage.setType(-1);
-            amChatMessage.setContent(content);
-            amChatMessage.setCreateTime(LocalDateTime.now());
-            boolean save = chatMessageService.save(amChatMessage);
-            endTime = System.currentTimeMillis();
-            log.info("clientTasksService.save:{}" ,endTime - startTime);
-            log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
-        }
-    }
-
-    private String buildContentByType(IcRecord record, String type) {
-        switch (type){
-            case "cancel":
-                String cancelContent =
-                        "感谢您对我们的关注及面试准备。由于我方内部临时出现调整，我们不得不取消原定于[time]的面试安排，对此我们深表歉意。\n" +
-                        "若您仍对该岗位感兴趣，我们将在后续招聘计划明确后优先与您联系。\n" +
-                        "再次感谢您的理解与支持，祝您求职顺利！";
-                return cancelContent.replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-            case "modify":
-                String modifyContent =
-                        "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[time]的面试安排。\n" +
-                        "以下为可协调的新时间段，请您确认是否方便：\n" +
-                        " [newTime]\n" +
-                        "若以上时间均不合适，请您提供方便的时间段，我们将尽力配合。\n" +
-                        "如您需进一步沟通，请随时通过与我联系。对此次调整带来的不便，我们深表歉意，并感谢您的理解与配合！";
-                StringBuilder newTimeStr = new StringBuilder();
-                IcSpareTimeVo spareTimeVo = getSpareTime(new IcSpareTimeReq(record.getMaskId(), LocalDateTime.now(), LocalDateTime.now().plusDays(7))).getData();
-                List<IcSpareTimeVo.SpareDateVo> spareDateVos = spareTimeVo.getSpareDateVos();
-                for (IcSpareTimeVo.SpareDateVo spareDateVo : spareDateVos) {
-                    newTimeStr.append(spareDateVo.getLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).append("：");
-                    newTimeStr.append("   ").append(spareDateVo.getSparePeriodVos().stream().map(sparePeriodVo ->
-                            sparePeriodVo.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "至" + sparePeriodVo.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))).collect(Collectors.joining("，"))).append("\n");
-                }
-                return modifyContent.replace("[newTime]",newTimeStr).replace("[time]", record.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-        }
-        return "";
-    }
 
     public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, LocalDate startDate, LocalDate endDate, Integer deptId, Integer postId) {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();

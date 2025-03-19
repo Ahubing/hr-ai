@@ -1,8 +1,23 @@
 package com.open.ai.eros.ai.util;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
+import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
 import com.open.ai.eros.ai.bean.vo.MaskSseConversationVo;
+import com.open.ai.eros.ai.manager.ICAiManager;
+import com.open.ai.eros.db.constants.AIRoleEnum;
+import com.open.ai.eros.db.mysql.ai.service.IChatMessageService;
+import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.service.IAmChatMessageService;
+import com.open.ai.eros.db.mysql.hr.service.IAmClientTasksService;
+import com.open.ai.eros.db.mysql.hr.service.IAmZpLocalAccoutsService;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmChatMessageServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -10,6 +25,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @类名：SendMessageUtil
@@ -42,6 +61,14 @@ public class SendMessageUtil {
 
 
     public static final String HEART = "data:{\"CONNECT\": \"HEARTBEAT\"}";
+
+    private static final Logger log = LoggerFactory.getLogger(SendMessageUtil.class);
+
+    private static final IAmChatMessageService chatMessageService = SpringUtil.getBean(AmChatMessageServiceImpl.class);
+
+    private static final IAmClientTasksService clientTasksService = SpringUtil.getBean(AmClientTasksServiceImpl.class);
+
+    private static final ICAiManager icAiManager = SpringUtil.getBean(ICAiManager.class);
 
 
     /**
@@ -138,6 +165,91 @@ public class SendMessageUtil {
             }
         }catch (Exception e){
 
+        }
+    }
+
+    private static String generateInterviewCancelContent(LocalDateTime interviewTime){
+        if(interviewTime == null){
+            return "";
+        }
+        String cancelContent =
+                "感谢您对我们的关注及面试准备。由于我方内部临时出现调整，我们不得不取消原定于[time]的面试安排，对此我们深表歉意。\n" +
+                        "若您仍对该岗位感兴趣，我们将在后续招聘计划明确后优先与您联系。\n" +
+                        "再次感谢您的理解与支持，祝您求职顺利！";
+        return cancelContent.replace("[time]", interviewTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+    }
+
+    private static String generateInterviewModifyContent(IcSpareTimeVo spareTimeVo, LocalDateTime interviewTime){
+        String modifyContent =
+                "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[time]的面试安排。\n" +
+                        "以下为可协调的新时间段，请您确认是否方便：\n" +
+                        " [newTime]\n" +
+                        "若以上时间均不合适，请您提供方便的时间段，我们将尽力配合。\n" +
+                        "如您需进一步沟通，请随时通过与我联系。对此次调整带来的不便，我们深表歉意，并感谢您的理解与配合！";
+        StringBuilder newTimeStr = new StringBuilder();
+        List<IcSpareTimeVo.SpareDateVo> spareDateVos = spareTimeVo.getSpareDateVos();
+        for (IcSpareTimeVo.SpareDateVo spareDateVo : spareDateVos) {
+            newTimeStr.append(spareDateVo.getLocalDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))).append("：");
+            newTimeStr.append("   ").append(spareDateVo.getSparePeriodVos().stream().map(sparePeriodVo ->
+                    sparePeriodVo.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + "至" + sparePeriodVo.getEndTime().format(DateTimeFormatter.ofPattern("HH:mm"))).collect(Collectors.joining("，"))).append("\n");
+        }
+        return modifyContent.replace("[newTime]",newTimeStr).replace("[time]", interviewTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+
+    }
+
+    public static void generateAsyncMessage(AmResume resume, AmZpLocalAccouts account, IcRecord record, String type) {
+        String content = "";
+        switch (type){
+            case "cancel":
+                content = generateInterviewCancelContent(record.getStartTime());
+                break;
+            case "modify":
+                IcSpareTimeVo spareTimeVo = icAiManager.getSpareTime(new IcSpareTimeReq(record.getMaskId(), LocalDateTime.now(), LocalDateTime.now().plusDays(7))).getData();
+                content = generateInterviewModifyContent(spareTimeVo, record.getStartTime());
+        }
+        saveAsyncMessage(resume, account, content);
+    }
+
+
+    private static void saveAsyncMessage(AmResume resume, AmZpLocalAccouts account, String content) {
+        AmClientTasks amClientTasks = new AmClientTasks();
+        JSONObject jsonObject = new JSONObject();
+        JSONObject messageObject = new JSONObject();
+        JSONObject searchObject = new JSONObject();
+        searchObject.put("encrypt_friend_id", resume.getEncryptGeekId());
+        searchObject.put("name", resume.getName());
+        messageObject.put("content", content);
+        jsonObject.put("user_id", resume.getUid());
+        jsonObject.put("message", messageObject);
+        jsonObject.put("search_data", searchObject);
+
+        amClientTasks.setTaskType("send_message");
+        amClientTasks.setOrderNumber(2);
+        amClientTasks.setBossId(resume.getAccountId());
+        amClientTasks.setData(jsonObject.toJSONString());
+        amClientTasks.setStatus(0);
+        amClientTasks.setCreateTime(LocalDateTime.now());
+        long startTime = System.currentTimeMillis();
+        boolean result = clientTasksService.save(amClientTasks);
+        long endTime = System.currentTimeMillis();
+        log.info("clientTasksService.save:{}" ,endTime - startTime);
+        startTime = endTime;
+
+        //更新task临时status的状态
+        log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
+        if (result) {
+            // 生成聊天记录
+            AmChatMessage amChatMessage = new AmChatMessage();
+            amChatMessage.setConversationId(account.getId() + "_" + resume.getUid());
+            amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
+            amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+            amChatMessage.setType(-1);
+            amChatMessage.setContent(content);
+            amChatMessage.setCreateTime(LocalDateTime.now());
+            boolean save = chatMessageService.save(amChatMessage);
+            endTime = System.currentTimeMillis();
+            log.info("clientTasksService.save:{}" ,endTime - startTime);
+            log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
         }
     }
 
