@@ -198,6 +198,7 @@ public class SendMessageUtil {
     }
 
     public static void generateAsyncMessage(AmResume resume, AmZpLocalAccouts account, IcRecord record, String type) {
+        log.info("generateAsyncMessage type:{}",type);
         String content = "";
         switch (type){
             case "cancel":
@@ -207,6 +208,7 @@ public class SendMessageUtil {
                 IcSpareTimeVo spareTimeVo = icAiManager.getSpareTime(new IcSpareTimeReq(record.getMaskId(), LocalDateTime.now(), LocalDateTime.now().plusDays(7))).getData();
                 content = generateInterviewModifyContent(spareTimeVo, record.getStartTime());
         }
+        log.info("generateAsyncMessage content:{}",content);
         saveAsyncMessage(resume, account, content);
     }
 

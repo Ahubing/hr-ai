@@ -47,7 +47,7 @@ public class ReviewAbandonStrategy implements ReviewStatusStrategy {
         if(record == null){
             return;
         }
-        //取消面试
+        //发送取消面试消息
         AmZpLocalAccouts account = accoutsService.getById(record.getAccountId());
         SendMessageUtil.generateAsyncMessage(resume,account,record, "cancel");
     }
