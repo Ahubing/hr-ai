@@ -101,9 +101,14 @@ public class AmAdminManager {
         if (amAdmin != null) {
             return ResultVO.fail("当前账号已存在");
         }
-        int addUserResult = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(), req.getMobile());
-        return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
+        AmAdmin user = amAdminService.addUser(req.getEmail(), req.getPassword(), req.getUsername(), req.getCompany(), req.getMobile());
+        if (Objects.nonNull(user)){
+            // 添加默认的面具和复聊数据
+            amNewMaskManager.createDefaultMask(user.getId());
+            chatBotOptionsManager.createDefaultRechat(user.getId());
+        }
 
+        return Objects.nonNull(user)  ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
     }
 
     public ResultVO<PageVO<AmAdminVo>> searchAdmin(SearchAmAdminReq req, Long adminId) {
