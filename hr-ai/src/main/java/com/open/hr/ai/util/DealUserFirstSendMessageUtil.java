@@ -130,13 +130,7 @@ public class DealUserFirstSendMessageUtil {
             amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                IcRecord icRecord = recordService.getOne(new LambdaQueryWrapper<IcRecord>()
-                        .eq(IcRecord::getAdminId, amZpLocalAccouts.getAdminId())
-                        .eq(IcRecord::getPositionId, amResume.getPostId())
-                        .eq(IcRecord::getAccountId, amResume.getAccountId())
-                        .ge(IcRecord::getStartTime, LocalDateTime.now())
-                        .eq(IcRecord::getEmployeeUid, amResume.getUid())
-                        .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
+                IcRecord icRecord = recordService.getOneNormalIcRecord(amResume.getUid(),amZpLocalAccouts.getAdminId(),amResume.getAccountId(),amResume.getPostId());
                 log.info("DealUserFirstSendMessageUtil icRecord={}", JSONObject.toJSONString(icRecord));
                 log.info("DealUserFirstSendMessageUtil icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);

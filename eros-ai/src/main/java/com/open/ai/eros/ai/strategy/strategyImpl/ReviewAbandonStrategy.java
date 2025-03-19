@@ -1,5 +1,6 @@
 package com.open.ai.eros.ai.strategy.strategyImpl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.InterviewRoleEnum;
@@ -13,6 +14,8 @@ import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcRecordServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -23,6 +26,8 @@ import java.util.Arrays;
  */
 @Component
 public class ReviewAbandonStrategy implements ReviewStatusStrategy {
+
+    private static final Logger log = LoggerFactory.getLogger(ReviewAbandonStrategy.class);
 
     @Resource
     private AmZpLocalAccoutsServiceImpl accoutsService;
@@ -38,12 +43,8 @@ public class ReviewAbandonStrategy implements ReviewStatusStrategy {
     @Override
     public void handle(AmResume resume) {
         //获取面试
-        IcRecord record = recordService.getOne(new LambdaQueryWrapper<IcRecord>()
-                .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
-                .eq(IcRecord::getEmployeeUid, resume.getUid())
-                .eq(IcRecord::getAdminId, resume.getAdminId())
-                .eq(IcRecord::getAccountId, resume.getAccountId())
-                .eq(IcRecord::getPositionId, resume.getPostId()),false);
+        IcRecord record = recordService.getOneNormalIcRecord(resume.getUid(), resume.getAdminId(), resume.getAccountId(), resume.getPostId());
+        log.info("查询到的面试为：{}", JSONObject.toJSONString(record));
         if(record == null){
             return;
         }
