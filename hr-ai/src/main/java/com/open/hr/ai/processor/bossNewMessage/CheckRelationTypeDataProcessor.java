@@ -2,6 +2,7 @@ package com.open.hr.ai.processor.bossNewMessage;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -60,6 +61,11 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             log.error("用户信息异常 amResume is null");
             return ResultVO.fail(404, "用户信息异常");
+        }
+
+        if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
+            log.info("用户:{} 主动打招呼,用户状态为不符合,继续流程", amResume.getEncryptGeekId());
+            return ResultVO.fail(404, "用户状态为不符合");
         }
 
         // 从未对此用户发起本请求时请求一次
