@@ -41,6 +41,13 @@ public class AmAdminManager {
     private UserManager userManager;
 
 
+    @Resource
+    private AmNewMaskManager  amNewMaskManager;
+
+    @Resource
+    private ChatBotOptionsManager chatBotOptionsManager;
+
+
     @Autowired
     private RedisClient redisClient;
 
@@ -166,8 +173,14 @@ public class AmAdminManager {
             }
 
             String encodePassWord = Base64.getEncoder().encodeToString(CryptoUtil.encryptMD5(req.getPassword().getBytes("UTF-8")));
-            int addUserResult = amAdminService.createUser(adminId, req.getEmail(), encodePassWord, req.getUsername(), req.getCompany(), req.getMobile(),req.getRole(),req.getExpireTime());
-            return addUserResult > 0 ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
+            AmAdmin user = amAdminService.createUser(adminId, req.getEmail(), encodePassWord, req.getUsername(), req.getCompany(), req.getMobile(), req.getRole(), req.getExpireTime());
+            if (Objects.nonNull(user)){
+                // 添加默认的面具和复聊数据
+                amNewMaskManager.createDefaultMask(user.getId());
+                chatBotOptionsManager.createDefaultRechat(user.getId());
+            }
+
+            return Objects.nonNull(user)  ? ResultVO.success() : ResultVO.fail("注册失败！请联系管理员");
 
         } catch (Exception e) {
             log.error("createUser error req={}", req, e);

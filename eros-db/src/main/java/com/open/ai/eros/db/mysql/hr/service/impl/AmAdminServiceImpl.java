@@ -59,7 +59,7 @@ public class AmAdminServiceImpl extends ServiceImpl<AmAdminMapper, AmAdmin> impl
 
 
 
-    public int createUser(Long adminId,String email, String password, String username, String company, String mobile,String role,LocalDateTime expireTime) {
+    public AmAdmin createUser(Long adminId,String email, String password, String username, String company, String mobile,String role,LocalDateTime expireTime) {
         AmAdmin users = new AmAdmin();
         users.setEmail(email);
         users.setPassword(password);
@@ -75,8 +75,9 @@ public class AmAdminServiceImpl extends ServiceImpl<AmAdminMapper, AmAdmin> impl
         users.setCreatorId(adminId);
         users.setExpireTime(expireTime);
         users.setLastLoginClientIp(getClientIpAddress());//获取id
+        int insert = this.getBaseMapper().insert(users);
         // 新增加的是 普通用户
-        return this.getBaseMapper().insert(users);
+        return insert == 1 ? users : null;
     }
 
     private String generateSalt() {
