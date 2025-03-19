@@ -675,7 +675,7 @@ public class ClientManager {
                     JSONObject resumeObject = resumes.getJSONObject(i);
                     AmResume amResume = dealAmResume(platform,amZpLocalAccouts, resumeObject);
                     Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume);
-                    if (filterAmResumeResult) {
+                    if (!filterAmResumeResult) {
                         log.info("greetHandle filterAmResumeResult is true,bossId={},resume={}", bossId, resumes.get(i));
                         continue;
                     }
