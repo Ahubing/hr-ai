@@ -118,9 +118,9 @@ public class AmZpManager {
 
         boolean success = amZpLocalAccoutsService.addAmLocalAccount(uid, platform_id, platforms.getName(), account, amAdmin.getMobile(), city);
 
-       // 添加默认的面具和复聊数据
-        amNewMaskManager.createDefaultMask(uid);
-        chatBotOptionsManager.createDefaultRechat(uid);
+//       // 添加默认的面具和复聊数据
+//        amNewMaskManager.createDefaultMask(uid);
+//        chatBotOptionsManager.createDefaultRechat(uid);
         return success ? ResultVO.success() : ResultVO.fail("添加成功！请联系管理员");
     }
 
