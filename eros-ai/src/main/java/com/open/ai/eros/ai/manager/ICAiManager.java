@@ -325,7 +325,7 @@ public class ICAiManager {
         long endTime = System.currentTimeMillis();
         log.info("icRecordService.getById:{}" ,endTime - startTime);
         startTime = endTime;
-        //招聘者取消面试
+        //招聘者修改面试
         if(InterviewRoleEnum.EMPLOYER.getCode().equals(modifyWho)){
             AmZpLocalAccouts account = accoutsService.getById(icRecord.getAccountId());
             endTime = System.currentTimeMillis();
