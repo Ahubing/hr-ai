@@ -790,6 +790,9 @@ public class ChatBotManager {
                     amChatbotPositionOption.setAmMaskVo(amMaskVo);
                 }
                 amChatbotPositionOption.setAmChatbotOptions(amChatbotOptionsService.getById(amChatbotPositionOption.getRechatOptionId()));
+                if (Objects.nonNull(amChatbotPositionOption.getInquiryRechatOptionId())) {
+                    amChatbotPositionOption.setInquiryAmChatbotOptions(amChatbotOptionsService.getById(amChatbotPositionOption.getInquiryRechatOptionId()));
+                }
                 LambdaQueryWrapper<AmChatbotGreetConditionNew> optionQueryWrapper = new LambdaQueryWrapper<>();
                 AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(optionQueryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, req.getAccountId()).eq(AmChatbotGreetConditionNew::getPositionId, amChatbotPositionOption.getPositionId()), false);
                 amChatbotPositionOption.setAmGreetConditionVo(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne));

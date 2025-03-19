@@ -46,6 +46,10 @@ public class AmChatbotPositionOptionVo implements Serializable {
      * 复聊方案id
      */
     private Integer rechatOptionId;
+    /**
+     * 用户主动发消息复聊方案id
+     */
+    private Integer inquiryRechatOptionId;
 
     /**
      * 创建时间
@@ -56,6 +60,9 @@ public class AmChatbotPositionOptionVo implements Serializable {
     private AmMaskVo amMaskVo;
 
     private AmChatbotOptions amChatbotOptions;
+
+    private AmChatbotOptions inquiryAmChatbotOptions;
+
 
     private AmGreetConditionVo amGreetConditionVo;
 
