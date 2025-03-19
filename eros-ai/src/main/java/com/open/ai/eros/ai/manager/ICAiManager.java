@@ -305,7 +305,8 @@ public class ICAiManager {
             }
             //在线则发送消息通知受聘者
             resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON);
-            resumeService.updateById(resume);
+            boolean update = resumeService.updateById(resume);
+            return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
         }
         boolean update = icRecordService.updateById(icRecord);
         return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
