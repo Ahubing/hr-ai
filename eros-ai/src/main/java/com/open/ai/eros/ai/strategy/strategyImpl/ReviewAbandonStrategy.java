@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 /**
@@ -48,7 +49,11 @@ public class ReviewAbandonStrategy implements ReviewStatusStrategy {
         if(record == null){
             return;
         }
-        //发送取消面试消息
+        //发送取消面试消息,將面試取消
+        record.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
+        record.setCancelTime(LocalDateTime.now());
+        record.setCancelWho(InterviewRoleEnum.EMPLOYER.getCode());
+        recordService.updateById(record);
         AmZpLocalAccouts account = accoutsService.getById(record.getAccountId());
         SendMessageUtil.generateAsyncMessage(resume,account,record, "cancel");
     }

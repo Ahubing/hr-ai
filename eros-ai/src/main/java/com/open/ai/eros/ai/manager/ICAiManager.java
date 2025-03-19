@@ -304,7 +304,6 @@ public class ICAiManager {
                 }
             }
             //在线则发送消息通知受聘者
-            SendMessageUtil.generateAsyncMessage(resume,account,icRecord, "cancel");
             resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON);
             resumeService.updateById(resume);
         }
