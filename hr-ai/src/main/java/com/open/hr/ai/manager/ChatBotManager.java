@@ -85,6 +85,13 @@ public class ChatBotManager {
 
 
     @Resource
+    private AmNewMaskManager amNewMaskManager;
+
+    @Resource
+    private ChatBotOptionsManager chatBotOptionsManager;
+
+
+    @Resource
     private JedisClientImpl jedisClient;
 
 
@@ -160,6 +167,9 @@ public class ChatBotManager {
             amZpLocalAccouts.setCity(addAccountReq.getCity());
             amZpLocalAccouts.setCreateTime(LocalDateTime.now());
             boolean result = amZpLocalAccoutsService.save(amZpLocalAccouts);
+            // 添加默认的面具和复聊数据
+            amNewMaskManager.createDefaultMask(adminId);
+            chatBotOptionsManager.createDefaultRechat(adminId);
             return result ? ResultVO.success("添加成功") : ResultVO.fail("添加失败");
         } catch (Exception e) {
             log.error("AddAccount error", e);
