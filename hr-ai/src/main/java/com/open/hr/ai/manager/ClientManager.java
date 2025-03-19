@@ -756,6 +756,9 @@ public class ClientManager {
             amChatbotGreetTask.setDoneNum(doneNum);
             if (doneNum >= amChatbotGreetTask.getTaskNum()) {
                 amChatbotGreetTask.setStatus(2);
+            }else {
+                // 未完成,则继续执行
+                amChatbotGreetTask.setStatus(1);
             }
             amChatbotGreetTaskService.updateById(amChatbotGreetTask);
 
