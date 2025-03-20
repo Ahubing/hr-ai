@@ -169,7 +169,7 @@ public class AmResumeFilterUtil {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(criteria.getDegree()) ) {
+        if (CollectionUtils.isNotEmpty(criteria.getDegree()) && !criteria.getDegree().contains(-1)) {
             if (Objects.nonNull(resume.getDegree())) {
                 String valueByType = AmGreetDegreeEnum.getValueByType(resume.getDegree());
                 if (StringUtils.isNotBlank(valueByType) && !criteria.getDegree().contains(valueByType)) {
