@@ -871,6 +871,10 @@ public class ClientManager {
                     // ---- begin 从chat_info结构提取数据  ----
                     amResume.setPhone(Objects.nonNull(chatInfoJSONObject.get("phone")) ? chatInfoJSONObject.get("phone").toString() : "");
                     amResume.setWechat(Objects.nonNull(chatInfoJSONObject.get("weixin")) ? chatInfoJSONObject.get("weixin").toString() : "");
+                    if (Objects.nonNull(chatInfoJSONObject.get("type"))) {
+                        ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfoJSONObject.get("type").toString()));
+                        amResumeService.updateType(amResume, false, statusEnums);
+                    }
                     // ---- end 从chat_info结构提取数据  ----
 
                     boolean result = amResumeService.save(amResume);
@@ -915,13 +919,17 @@ public class ClientManager {
                     if (Objects.nonNull(chatInfoJSONObject.get("weixin"))){
                         amResume.setWechat( chatInfoJSONObject.get("weixin").toString());
                     }
+                    if (Objects.nonNull(chatInfoJSONObject.get("type"))) {
+                        ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfoJSONObject.get("type").toString()));
+                        amResumeService.updateType(amResume, false, statusEnums);
+                    }
                     // ---- end 从chat_info结构提取数据  ----
 
                     boolean result = amResumeService.updateById(amResume);
                     log.info("dealUserAllInfoData update result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
                 AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
-                if (Objects.nonNull(amClientTasks)) {
+                if (Objects.nonNull(amClientTasks) && amResume.getType() != ReviewStatusEnums.ABANDON.getStatus()) {
                     if (amClientTasks.getData().contains("attachment_resume")) {
                         dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
                     }
