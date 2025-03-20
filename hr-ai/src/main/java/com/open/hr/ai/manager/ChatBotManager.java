@@ -168,8 +168,8 @@ public class ChatBotManager {
             amZpLocalAccouts.setCreateTime(LocalDateTime.now());
             boolean result = amZpLocalAccoutsService.save(amZpLocalAccouts);
             // 添加默认的面具和复聊数据
-            amNewMaskManager.createDefaultMask(adminId);
-            chatBotOptionsManager.createDefaultRechat(adminId);
+//            amNewMaskManager.createDefaultMask(adminId);
+//            chatBotOptionsManager.createDefaultRechat(adminId);
             return result ? ResultVO.success("添加成功") : ResultVO.fail("添加失败");
         } catch (Exception e) {
             log.error("AddAccount error", e);

@@ -1102,8 +1102,9 @@ public class ClientManager {
         lambdaQueryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, bossId);
         AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(lambdaQueryWrapper, false);
         if (Objects.isNull(conditionNewServiceOne)) {
+            conditionNewServiceOne = amChatbotGreetConditionNewService.getById(1);
             log.error("switchJobState conditionNewServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
-            return ResultVO.fail(404, "找不到筛选条件");
+//            return ResultVO.fail(404, "找不到筛选条件");
 
         }
         JSONObject searchData = resumeObject.getJSONObject("search_data");
