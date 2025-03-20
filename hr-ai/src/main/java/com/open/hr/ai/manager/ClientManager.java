@@ -587,7 +587,6 @@ public class ClientManager {
                         amChatbotPositionOption.setInquiryRechatOptionId(chatbotOptionsServiceOne.getId());
                     }
                     // php 无语
-                    amChatbotPositionOption.setCreateTime((int)System.currentTimeMillis()/1000);
                     amChatbotPositionOptionService.save(amChatbotPositionOption);
                 } catch (Exception e) {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
