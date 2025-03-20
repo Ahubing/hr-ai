@@ -221,6 +221,7 @@ public class SendMessageUtil {
         searchObject.put("encrypt_friend_id", resume.getEncryptGeekId());
         searchObject.put("name", resume.getName());
         messageObject.put("content", content);
+        jsonObject.put("is_system_message",true);
         jsonObject.put("user_id", resume.getUid());
         jsonObject.put("message", messageObject);
         jsonObject.put("search_data", searchObject);

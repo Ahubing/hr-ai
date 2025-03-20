@@ -194,14 +194,8 @@ public class ICAiManager {
     }
 
     public ResultVO<String> appointInterview(IcRecordAddReq req) {
-         long count = icRecordService.count(new LambdaQueryWrapper<IcRecord>()
-                .eq(IcRecord::getAdminId, req.getAdminId())
-                .eq(IcRecord::getPositionId, req.getPositionId())
-                .eq(IcRecord::getAccountId, req.getAccountId())
-                .eq(IcRecord::getEmployeeUid, req.getEmployeeUid())
-                .ge(IcRecord::getStartTime, LocalDateTime.now())
-                .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
-        if(count > 0){
+        IcRecord record = icRecordService.getOneNormalIcRecord(req.getEmployeeUid(),req.getAdminId(),req.getAccountId(),req.getPositionId());
+        if(record != null){
             return ResultVO.fail("已经预约了面试,无法再次预约");
         }
         if(!req.getStartTime().isAfter(LocalDateTime.now())){
@@ -310,9 +304,9 @@ public class ICAiManager {
                 }
             }
             //在线则发送消息通知受聘者
-            SendMessageUtil.generateAsyncMessage(resume,account,icRecord, "cancel");
             resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON);
-            resumeService.updateById(resume);
+            boolean update = resumeService.updateById(resume);
+            return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
         }
         boolean update = icRecordService.updateById(icRecord);
         return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");

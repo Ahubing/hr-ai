@@ -36,7 +36,6 @@ public class AmResumeServiceImpl extends ServiceImpl<AmResumeMapper, AmResume> i
         amResume.updateType(newType, isAlUpdate);
         if(!oldType.equals(newType)){
             ReviewTypeUpdatedEvent updatedEvent = new ReviewTypeUpdatedEvent(amResume, oldType, newType);
-            log.info("发布简历状态更新事件：{}", JSONObject.toJSONString(updatedEvent));
             eventPublisher.publishEvent(updatedEvent);
         }
     }

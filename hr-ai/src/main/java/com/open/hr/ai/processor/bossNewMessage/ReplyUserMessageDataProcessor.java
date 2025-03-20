@@ -214,13 +214,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 如果有绑定ai角色,则获取ai角色进行回复
              amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
             if (Objects.nonNull(amNewMask)) {
-                IcRecord icRecord = recordService.getOne(new LambdaQueryWrapper<IcRecord>()
-                        .eq(IcRecord::getAdminId, amZpLocalAccouts.getAdminId())
-                        .eq(IcRecord::getPositionId, amResume.getPostId())
-                        .eq(IcRecord::getAccountId, amResume.getAccountId())
-                        .eq(IcRecord::getEmployeeUid, amResume.getUid())
-                        .ge(IcRecord::getStartTime, LocalDateTime.now())
-                        .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus()));
+                IcRecord icRecord = recordService.getOneNormalIcRecord(amResume.getUid(),amZpLocalAccouts.getAdminId(),amResume.getAccountId(),amResume.getPostId());
                 log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
                 log.info("icRecord={}", JSONUtil.toJsonStr(icRecord));
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
