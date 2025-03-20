@@ -59,4 +59,10 @@ public class IcConfig implements Serializable {
      * 下午截止时间
      */
     private Time afternoonEndTime;
+
+
+    /**
+     * 系统默认的,用于用户注册自动绑定
+     */
+    private Integer systemExample;
 }

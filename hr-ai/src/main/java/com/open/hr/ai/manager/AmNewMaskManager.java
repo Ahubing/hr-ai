@@ -309,6 +309,20 @@ public class AmNewMaskManager {
             log.error("createDefaultMask error maskId= 1 save fail");
             return false;
         }
+        LambdaQueryWrapper<IcConfig> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IcConfig::getMaskId, 1);
+        List<IcConfig> icConfigs = icConfigService.list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(icConfigs)) {
+            List<IcConfig> copyIcConfigs = icConfigs.stream().map(icConfig -> {
+                IcConfig copyIcConfig = new IcConfig();
+                BeanUtils.copyProperties(icConfig, copyIcConfig);
+                copyIcConfig.setId(null);
+                copyIcConfig.setSystemExample(1);
+                copyIcConfig.setMaskId(copyNewMask.getId());
+                return copyIcConfig;
+            }).collect(Collectors.toList());
+            icConfigService.saveBatch(copyIcConfigs);
+        }
         return true;
     }
 
