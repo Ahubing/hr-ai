@@ -34,7 +34,6 @@ public class TimeToDecimalConverter {
     }
     public static void convertSlack(SlackOffVo slackOffVo,JSONObject jsonObject) {
         // 创建主 JSON 对象
-
         // 添加 slack_off 属性
         jsonObject.put("slack_off", slackOffVo.getSlackOff());
 
@@ -49,9 +48,11 @@ public class TimeToDecimalConverter {
                 workTimeArray.add(workTimeJson);
             }
         }
+        if (slackOffVo.getSlackSwitch() != null && slackOffVo.getSlackSwitch() == 1) {
+            // 添加 work_time 数组到主 JSON 对象
+            jsonObject.put("work_time", workTimeArray);
+        }
 
-        // 添加 work_time 数组到主 JSON 对象
-        jsonObject.put("work_time", workTimeArray);
     }
 
     public static void main(String[] args) {

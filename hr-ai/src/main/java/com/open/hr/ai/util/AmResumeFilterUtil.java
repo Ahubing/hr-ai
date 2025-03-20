@@ -43,7 +43,7 @@ public class AmResumeFilterUtil {
             }
         }
         // 工作年限
-        if (CollectionUtils.isNotEmpty(criteria.getWorkYears()) && criteria.getWorkYears().contains("不限") && resume.getWorkYears() != null) {
+        if (CollectionUtils.isNotEmpty(criteria.getWorkYears()) && !criteria.getWorkYears().contains("不限") && resume.getWorkYears() != null) {
             if (Objects.nonNull(resume.getIsStudent())) {
                 // 判断是否是学生
                 if (resume.getIsStudent() == 1) {
@@ -169,7 +169,7 @@ public class AmResumeFilterUtil {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(criteria.getDegree()) ) {
+        if (CollectionUtils.isNotEmpty(criteria.getDegree()) && !criteria.getDegree().contains(-1)) {
             if (Objects.nonNull(resume.getDegree())) {
                 String valueByType = AmGreetDegreeEnum.getValueByType(resume.getDegree());
                 if (StringUtils.isNotBlank(valueByType) && !criteria.getDegree().contains(valueByType)) {
