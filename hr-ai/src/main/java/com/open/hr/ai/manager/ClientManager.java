@@ -1094,7 +1094,7 @@ public class ClientManager {
         AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
         if (Objects.isNull(amPositionServiceOne)) {
             log.error("switchJobState amPositionServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
-            return ResultVO.success(true);
+            return ResultVO.fail(404, "找不到职位");
         }
 
 
@@ -1104,7 +1104,8 @@ public class ClientManager {
         AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(lambdaQueryWrapper, false);
         if (Objects.isNull(conditionNewServiceOne)) {
             log.error("switchJobState conditionNewServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
-            return ResultVO.success(true);
+            return ResultVO.fail(404, "找不到筛选条件");
+
         }
         JSONObject searchData = resumeObject.getJSONObject("search_data");
         AmResume amResume = new AmResume();
