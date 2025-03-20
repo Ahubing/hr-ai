@@ -587,7 +587,6 @@ public class ClientManager {
                         amChatbotPositionOption.setInquiryRechatOptionId(chatbotOptionsServiceOne.getId());
                     }
                     // php 无语
-                    amChatbotPositionOption.setCreateTime((int)System.currentTimeMillis()/1000);
                     amChatbotPositionOptionService.save(amChatbotPositionOption);
                 } catch (Exception e) {
                     log.error("savePosition异常 bossId={},platFormId={},i={}", bossId, platForm, i, e);
@@ -1102,7 +1101,7 @@ public class ClientManager {
         AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
         if (Objects.isNull(amPositionServiceOne)) {
             log.error("switchJobState amPositionServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
-            return ResultVO.fail(401, "找不到对应的岗位");
+            return ResultVO.fail(404, "找不到职位");
         }
 
 
@@ -1111,8 +1110,10 @@ public class ClientManager {
         lambdaQueryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, bossId);
         AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(lambdaQueryWrapper, false);
         if (Objects.isNull(conditionNewServiceOne)) {
+            conditionNewServiceOne = amChatbotGreetConditionNewService.getById(1);
             log.error("switchJobState conditionNewServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
-            return ResultVO.fail(401, "找不到对应的岗位筛选条件");
+//            return ResultVO.fail(404, "找不到筛选条件");
+
         }
         JSONObject searchData = resumeObject.getJSONObject("search_data");
         AmResume amResume = new AmResume();
