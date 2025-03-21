@@ -375,6 +375,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
             queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
+            queryWrapper.like(AmClientTasks::getData, req.getUser_id());
             queryWrapper.like(AmClientTasks::getData, "phone");
             // 或者包含weixin
             queryWrapper.or().like(AmClientTasks::getData, "wechat");
