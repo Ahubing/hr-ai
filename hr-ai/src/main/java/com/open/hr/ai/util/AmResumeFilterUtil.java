@@ -279,6 +279,9 @@ public class AmResumeFilterUtil {
                 workYearsRange.add("不限");
                 break;
         }
+        if (workYears > 10) {
+            workYearsRange.add("10年以上");
+        }
 
         return workYearsRange;
     }
