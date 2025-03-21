@@ -207,7 +207,15 @@ public class AmResumeFilterUtil {
          */
         if (CollectionUtils.isNotEmpty(criteria.getExpectPosition())) {
             if (StringUtils.isNotBlank(resume.getExpectPosition())) {
-                if (!criteria.getExpectPosition().contains(resume.getExpectPosition())) {
+                // 匹配期望的职位关键词
+                boolean flag = false;
+                for (String expectPosition : criteria.getExpectPosition()) {
+                    if (resume.getExpectPosition().contains(expectPosition)) {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (!flag) {
                     log.info("AmResumeFilterUtil uid={} 期望的职位关键词不符合", resume.getUid());
                     return false;
                 }
@@ -220,8 +228,16 @@ public class AmResumeFilterUtil {
          */
         if (CollectionUtils.isNotEmpty(criteria.getFilterPosition())) {
             if (StringUtils.isNotBlank(resume.getExpectPosition())) {
-                if (criteria.getFilterPosition().contains(resume.getExpectPosition())) {
-                    log.info("AmResumeFilterUtil uid={} 命中过滤的职位关键词,不符合", resume.getUid());
+                // 匹配期望的职位关键词
+                boolean flag = false;
+                for (String expectPosition : criteria.getFilterPosition()) {
+                    if (resume.getExpectPosition().contains(expectPosition)) {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag) {
+                    log.info("AmResumeFilterUtil uid={} 过滤的职位关键词不符合", resume.getUid());
                     return false;
                 }
             }
