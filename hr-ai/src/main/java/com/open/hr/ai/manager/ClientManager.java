@@ -697,19 +697,6 @@ public class ClientManager {
                     amChatbotGreetResult.setUserId(amResume.getUid());
                     boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
                     doneNum++;
-                    if (saveResult) {
-                        // 生成聊天记录
-                        AmChatMessage amChatMessage = new AmChatMessage();
-                        amChatMessage.setConversationId(amChatbotGreetResult.getAccountId() + "_" + amResume.getUid());
-                        amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
-                        amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
-                        amChatMessage.setType(-1);
-                        amChatMessage.setContent("你好");
-                        amChatMessage.setCreateTime(LocalDateTime.now());
-                        boolean save = amChatMessageService.save(amChatMessage);
-                        log.info("生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
-                    }
-
 
                     //提取岗位id, 获取岗位数据
                     Integer positionId = amChatbotGreetTask.getPositionId();
@@ -757,6 +744,14 @@ public class ClientManager {
             amChatbotGreetTask.setDoneNum(doneNum);
             if (doneNum >= amChatbotGreetTask.getTaskNum()) {
                 amChatbotGreetTask.setStatus(2);
+            }else {
+                // 需要继续任务
+                String data = tasksServiceOne.getData();
+                JSONObject.parseObject(data).put("times",amChatbotGreetTask.getTaskNum()-doneNum);
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
+                boolean result = amClientTasksService.updateById(tasksServiceOne);
+                log.info("greetHandle 已完成 {},继续打招呼 result={},tasksServiceOne={}", doneNum,result, tasksServiceOne);
+
             }
             amChatbotGreetTaskService.updateById(amChatbotGreetTask);
 

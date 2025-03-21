@@ -248,7 +248,7 @@ public class AmAdminManager {
                 return ResultVO.fail("账号不存在,不能操作用户!");
             }
             AmAdmin user = amAdminService.getById(req.getId());
-            if (!Objects.equals(user.getCreatorId(), adminId) &&
+            if ((!Objects.equals(req.getId(), admin.getId())) ||  !Objects.equals(user.getCreatorId(), adminId) ||
                     (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType()) || !admin.getRole().equals(AmAdminRoleEnum.ADMIN.getType()))) {
                 return ResultVO.fail("没有权限更新");
             }
