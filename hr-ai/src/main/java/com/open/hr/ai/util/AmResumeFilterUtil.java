@@ -66,8 +66,8 @@ public class AmResumeFilterUtil {
          * 求职意向(多选）；如：不限,离职/离校-正在找工作，在职/在校-考虑机会，在职/在校-寻找新工作
          */
         if (CollectionUtils.isNotEmpty(criteria.getIntention())) {
-            if (Objects.nonNull(resume.getIntention())  && resume.getIntention() != -1 && !criteria.getIntention().contains(AmIntentionEnum.UM_LIMITED.getType().toString())) {
-                if (!criteria.getIntention().contains(resume.getIntention().toString())) {
+            if (Objects.nonNull(resume.getIntention())  && resume.getIntention() != -1 && !criteria.getIntention().contains(AmIntentionEnum.UM_LIMITED.getType())) {
+                if (!criteria.getIntention().contains(resume.getIntention())) {
                     log.info("AmResumeFilterUtil uid={} 求职意向不符合", resume.getUid());
                     return false;
                 }
