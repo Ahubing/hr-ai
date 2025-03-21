@@ -44,7 +44,6 @@ public class AmZpLocalAccountJob {
     @Resource
     private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
 
-    private static final String GREET_MESSAGE = "你好";
 
     private  LocalDateTime emptyTimestamp = LocalDateTime.of(1970, 1, 1, 0, 0, 0); // 特定的空值标识
 

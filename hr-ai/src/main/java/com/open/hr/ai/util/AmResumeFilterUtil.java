@@ -330,7 +330,7 @@ public class AmResumeFilterUtil {
         AmGreetConditionVo criteria = new AmGreetConditionVo();
         criteria.setAge("18-35");
         criteria.setGender(-1);
-        criteria.setWorkYears(Collections.singletonList("在校/应届"));
+        criteria.setWorkYears(Collections.singletonList("1-3年"));
 //        criteria.setExperience(Collections.singletonList("舆情监测"));
 //        criteria.setFilterExperience(Collections.singletonList("导购员/店员"));
         criteria.setDegree(Collections.singletonList(2));
