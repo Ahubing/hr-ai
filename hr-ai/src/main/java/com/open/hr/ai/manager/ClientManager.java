@@ -1159,7 +1159,7 @@ public class ClientManager {
     public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume) {
         AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne);
         boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo);
-        log.info("filterAmResume result={},amResume={}", result, amResume);
+        log.info("filterAmResume result={},amResume={},amGreetConditionVo={}", result, amResume,amGreetConditionVo);
         return result;
     }
 

@@ -4,11 +4,6 @@ public enum AmGreetExperienceEnum {
 
     UM_LIMITED("不限","不限"),
     AT_SCHOOL("在校/应届","在校/应届"),
-    // 一年以内
-    // 1-3年
-    // 3-5年
-    // 5-10年
-    // 10年以上
     ONE_YEAR("一年以内","一年以内"),
     ONE_TO_THREE("1-3年","1-3年"),
     THREE_TO_FIVE("3-5年","3-5年"),
