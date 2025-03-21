@@ -86,16 +86,18 @@ public class AmResumeFilterUtil {
         if (CollectionUtils.isNotEmpty(criteria.getExperience())) {
             boolean flag = false;
             if (StringUtils.isNotBlank(resume.getExperiences())) {
+                String experiencesLowerCase = resume.getExperiences().toLowerCase();
                 for (String workExperience : criteria.getExperience()) {
-                    if (resume.getExperiences().contains(workExperience)) {
+                    if (experiencesLowerCase.contains(workExperience.toLowerCase())) {
                         flag = true;
                         break;
                     }
                 }
             }
             if (StringUtils.isNotBlank(resume.getProjects())) {
+                String projectsLowerCase = resume.getProjects().toLowerCase();
                 for (String project : criteria.getExperience()) {
-                    if (resume.getProjects().contains(project)) {
+                    if (projectsLowerCase.contains(project.toLowerCase())) {
                         flag = true;
                         break;
                     }
@@ -113,16 +115,18 @@ public class AmResumeFilterUtil {
         if (CollectionUtils.isNotEmpty(criteria.getFilterExperience())) {
             boolean flag = false;
             if (StringUtils.isNotBlank(resume.getExperiences())) {
+                String experiencesLowerCase = resume.getExperiences().toLowerCase();
                 for (String workExperience : criteria.getFilterExperience()) {
-                    if (resume.getExperiences().contains(workExperience)) {
+                    if (experiencesLowerCase.contains(workExperience)) {
                         flag = true;
                         break;
                     }
                 }
             }
             if (StringUtils.isNotBlank(resume.getProjects())) {
+                String projectsLowerCase = resume.getProjects().toLowerCase();
                 for (String project : criteria.getFilterExperience()) {
-                    if (resume.getProjects().contains(project)) {
+                    if (projectsLowerCase.contains(project)) {
                         flag = true;
                         break;
                     }
@@ -140,8 +144,9 @@ public class AmResumeFilterUtil {
         if (CollectionUtils.isNotEmpty(criteria.getSkills())) {
             boolean flag = false;
             if (StringUtils.isNotBlank(resume.getSkills())) {
+                String resumeLowerCase = resume.getSkills().toLowerCase();
                 for (String skill : criteria.getSkills()) {
-                    if (resume.getSkills().contains(skill)) {
+                    if (resumeLowerCase.contains(skill.toLowerCase())) {
                         flag = true;
                         break;
                     }
@@ -207,10 +212,11 @@ public class AmResumeFilterUtil {
          */
         if (CollectionUtils.isNotEmpty(criteria.getExpectPosition())) {
             if (StringUtils.isNotBlank(resume.getExpectPosition())) {
+                String ExpectPositionLowerCase = resume.getExpectPosition().toLowerCase();
                 // 匹配期望的职位关键词
                 boolean flag = false;
                 for (String expectPosition : criteria.getExpectPosition()) {
-                    if (resume.getExpectPosition().contains(expectPosition)) {
+                    if (ExpectPositionLowerCase.contains(expectPosition.toLowerCase())) {
                         flag = true;
                         break;
                     }
@@ -228,10 +234,11 @@ public class AmResumeFilterUtil {
          */
         if (CollectionUtils.isNotEmpty(criteria.getFilterPosition())) {
             if (StringUtils.isNotBlank(resume.getExpectPosition())) {
+                String ExpectPositionLowerCase = resume.getExpectPosition().toLowerCase();
                 // 匹配期望的职位关键词
                 boolean flag = false;
                 for (String expectPosition : criteria.getFilterPosition()) {
-                    if (resume.getExpectPosition().contains(expectPosition)) {
+                    if (ExpectPositionLowerCase.contains(expectPosition.toLowerCase())) {
                         flag = true;
                         break;
                     }
@@ -310,7 +317,10 @@ public class AmResumeFilterUtil {
         JSONObject resumeJSONObject = JSONObject.parseObject(jsonStr);
 
 
-    JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
+        String search_data = "PYSthon 工程师";
+        System.out.println(search_data.toLowerCase());
+
+        JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
         AmResume amResume = new AmResume();
         amResume.setZpData(resumeJSONObject.toJSONString());
 
