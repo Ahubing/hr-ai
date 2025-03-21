@@ -113,7 +113,7 @@ public class AmResumeFilterUtil {
         if (CollectionUtils.isNotEmpty(criteria.getFilterExperience())) {
             boolean flag = false;
             if (StringUtils.isNotBlank(resume.getExperiences())) {
-                for (String workExperience : criteria.getExperience()) {
+                for (String workExperience : criteria.getFilterExperience()) {
                     if (resume.getExperiences().contains(workExperience)) {
                         flag = true;
                         break;
@@ -121,7 +121,7 @@ public class AmResumeFilterUtil {
                 }
             }
             if (StringUtils.isNotBlank(resume.getProjects())) {
-                for (String project : criteria.getExperience()) {
+                for (String project : criteria.getFilterExperience()) {
                     if (resume.getProjects().contains(project)) {
                         flag = true;
                         break;
@@ -129,7 +129,7 @@ public class AmResumeFilterUtil {
                 }
             }
             if (flag) {
-                log.info("AmResumeFilterUtil uid={} 工作经验不符合", resume.getUid());
+                log.info("AmResumeFilterUtil uid={} 工作经验不符合,命中过滤词", resume.getUid());
                 return false;
             }
         }
@@ -346,15 +346,15 @@ public class AmResumeFilterUtil {
         AmGreetConditionVo criteria = new AmGreetConditionVo();
         criteria.setAge("18-35");
         criteria.setGender(-1);
-        criteria.setWorkYears(Collections.singletonList("1-3年"));
-//        criteria.setExperience(Collections.singletonList("舆情监测"));
-//        criteria.setFilterExperience(Collections.singletonList("导购员/店员"));
+        criteria.setWorkYears(Collections.singletonList("在校/应届"));
+//        criteria.setExperience(Collections.singletonList("java"));
+        criteria.setFilterExperience(Collections.singletonList("导购员/店员"));
         criteria.setDegree(Collections.singletonList(2));
         criteria.setSalary("5k以上");
         criteria.setIntention(Collections.singletonList(0));
         criteria.setSkills(Collections.singletonList("Python"));
-        criteria.setExpectPosition(Collections.singletonList("数据标注/AI训练师"));
-//        criteria.setFilterPosition(Collections.singletonList("数据标注/AI训练师"));
+        criteria.setExpectPosition(Collections.singletonList("数据"));
+//        criteria.setFilterPosition(Collections.singletonList("数据"));
 
         System.out.println(filterResume(amResume, criteria));
 
