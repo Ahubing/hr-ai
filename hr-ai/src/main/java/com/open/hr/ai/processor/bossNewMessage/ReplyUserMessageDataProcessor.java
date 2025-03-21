@@ -340,7 +340,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 //                }
 //            }
             // 请求微信和手机号
-            generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,req);
+            generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,req.getUser_id());
             // 根据状态发起request_info
             boolean updateResume = amResumeService.updateById(amResume);
             log.info("ReplyUserMessageDataProcessor dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
@@ -350,33 +350,32 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     }
 
     // 生成 request_info
-    private void generateRequestInfo(Integer status,AmNewMask amNewMask,AmZpLocalAccouts amZpLocalAccouts,AmResume amResume,ClientBossNewMessageReq req){
+    public void generateRequestInfo(Integer status,AmNewMask amNewMask,AmZpLocalAccouts amZpLocalAccouts,AmResume amResume,String userId){
         String aiRequestParam = amNewMask.getAiRequestParam();
         if (StringUtils.isNotBlank(aiRequestParam)) {
             AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
 
             Integer code = amNewMaskAddReq.getCode();
             if (Objects.isNull(code)) {
-                log.info("用户:{} ,没有设置获取微信和手机号码", req.getUser_id());
+                log.info("用户:{} ,没有设置获取微信和手机号码", userId);
                 return;
             }
 
             //当前状态在1, 2 , 3范围 且当前状态>=目标状态
             if ( status < ReviewStatusEnums.BUSINESS_SCREENING.getStatus() || status > ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus() || status < code) {
-                log.info("用户:{} ,请��用户信息,但是状态不匹配 code={}, status={}", req.getUser_id(),code,status);
+                log.info("用户:{} ,请��用户信息,但是状态不匹配 code={}, status={}", userId,code,status);
                 return;
             }
 
             if (!amNewMaskAddReq.getOpenInterviewSwitch() && !amNewMaskAddReq.getOpenExchangePhone()) {
-                log.info("用户:{} ,请求用户信息,但是没有开启面试或者交换电话号码", req.getUser_id());
+                log.info("用户:{} ,请求用户信息,但是没有开启面试或者交换电话号码", userId);
                 return;
             }
 
             LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
             queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
-            queryWrapper.like(AmClientTasks::getData, req.getUser_id());
-            queryWrapper.like(AmClientTasks::getData, req.getUser_id());
+            queryWrapper.like(AmClientTasks::getData, userId);
             queryWrapper.and(wrapper ->
                     wrapper.like(AmClientTasks::getData, "phone")
                             .or()
@@ -391,7 +390,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
                 HashMap<String, Object> hashMap = new HashMap<>();
                 HashMap<String, Object> searchDataMap = new HashMap<>();
-                hashMap.put("user_id", req.getUser_id());
+                hashMap.put("user_id", userId);
                 List<String> infoType = new ArrayList<>();
                 if (amNewMaskAddReq.getOpenExchangePhone()) {
                     infoType.add("phone");
@@ -412,9 +411,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 amClientTasks.setCreateTime(LocalDateTime.now());
                 amClientTasks.setUpdateTime(LocalDateTime.now());
                 amClientTasksService.save(amClientTasks);
-                log.info("用户:{} 主动打招呼,请求用户信息", req.getUser_id());
+                log.info("用户:{} 主动打招呼,请求用户信息",userId);
             }   else {
-                log.info("用户:{} 主动打招呼,请求用户信息,但是已经存在请求信息任务", req.getUser_id());
+                log.info("用户:{} 主动打招呼,请求用户信息,但是已经存在请求信息任务",userId);
             }
 
         }

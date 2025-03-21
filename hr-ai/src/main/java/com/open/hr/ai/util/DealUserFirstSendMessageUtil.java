@@ -12,6 +12,7 @@ import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.hr.ai.processor.bossNewMessage.ReplyUserMessageDataProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -65,6 +66,8 @@ public class DealUserFirstSendMessageUtil {
 
     @Resource
     private AmChatbotOptionsConfigServiceImpl amChatbotOptionsConfigService;
+    @Resource
+    private ReplyUserMessageDataProcessor replyUserMessageDataProcessor;
 
     /**
      * 处理临时任务,一次性塞到队列里面执行
@@ -241,7 +244,8 @@ public class DealUserFirstSendMessageUtil {
 //                }
 //            }
 
-            // 根据状态发起request_info
+            // 请求微信和手机号
+            replyUserMessageDataProcessor.generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,amResume.getUid());
             boolean updateResume = amResumeService.updateById(amResume);
             log.info("DealUserFirstSendMessageUtil dealBossNewMessage updateResume={} save result={}", JSONObject.toJSONString(amResume), updateResume);
         }
