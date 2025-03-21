@@ -361,11 +361,11 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 return;
             }
 
-            if (!code.equals(status)) {
-                log.info("用户:{} ,请求用户信息,但是状态不匹配 code={}, status={}", req.getUser_id(),code,status);
+            //当前状态在1, 2 , 3范围 且当前状态>=目标状态
+            if ( status < ReviewStatusEnums.BUSINESS_SCREENING.getStatus() || status > ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus() || status < code) {
+                log.info("用户:{} ,请��用户信息,但是状态不匹配 code={}, status={}", req.getUser_id(),code,status);
                 return;
             }
-
 
             if (!amNewMaskAddReq.getOpenInterviewSwitch() && !amNewMaskAddReq.getOpenExchangePhone()) {
                 log.info("用户:{} ,请求用户信息,但是没有开启面试或者交换电话号码", req.getUser_id());
