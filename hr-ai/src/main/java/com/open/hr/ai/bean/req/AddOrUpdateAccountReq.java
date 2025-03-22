@@ -10,8 +10,14 @@ import javax.validation.constraints.NotNull;
  * @Date 2025/1/4 14:27
  */
 @Data
-public class AddAccountReq {
+public class AddOrUpdateAccountReq {
 
+
+    /**
+     * id
+     */
+    @ApiModelProperty(value = "id")
+    private Long id;
 
     /**
      * 招聘平台id

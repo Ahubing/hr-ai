@@ -6,14 +6,18 @@ import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.config.HrAIBaseController;
+import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.hr.ai.manager.AmClientTaskManager;
 import com.open.hr.ai.manager.ChatBotManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,6 +34,10 @@ public class ChatBotController extends HrAIBaseController {
 
     @Resource
     private ChatBotManager chatBotManager;
+
+
+    @Autowired
+    private AmClientTaskManager amClientTaskManager;
 
     @VerifyUserToken
     @GetMapping("chatbot/get_local_accounts")
@@ -51,11 +59,56 @@ public class ChatBotController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("chatbot/add_account")
     @ApiOperation(value = "添加本地招聘账号", notes = "添加本地招聘账号", httpMethod = "POST", response = ResultVO.class)
-    public ResultVO AddAccount(@RequestBody @Valid AddAccountReq addAccountReq) {
-        if (Objects.isNull(addAccountReq)) {
+    public ResultVO AddAccount(@RequestBody @Valid AddOrUpdateAccountReq addOrUpdateAccountReq) {
+        if (Objects.isNull(addOrUpdateAccountReq)) {
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotManager.AddAccount(addAccountReq, getUserId());
+        return chatBotManager.AddAccount(addOrUpdateAccountReq, getUserId());
+    }
+
+    /**
+     * 修改本地招聘账号
+     *
+     * @return
+     */
+    @VerifyUserToken
+    @PostMapping("/chatbot/modify_account")
+    @ApiOperation(value = "修改本地招聘账号", notes = "修改本地招聘账号", httpMethod = "POST", response = ResultVO.class)
+    public ResultVO modifyAccount(@RequestBody @Valid AddOrUpdateAccountReq modifyAccountReq) {
+        if (Objects.isNull(modifyAccountReq)) {
+            return ResultVO.fail("参数不能为空");
+        }
+        if (Objects.isNull(modifyAccountReq.getId())) {
+            return ResultVO.fail("账号id不能为空");
+        }
+        return chatBotManager.updateAccount(modifyAccountReq, getUserId());
+    }
+
+
+    @ApiOperation(value = "获取boss任务数", notes = "获取boss任务数", httpMethod = "GET", response = ResultVO.class)
+    @VerifyUserToken
+    @GetMapping("/zp/get/taskData")
+    public ResultVO getTaskData(@RequestParam(value = "id", required = true) String bossId) {
+        return amClientTaskManager.getTaskList(bossId);
+    }
+
+    @ApiOperation(value = "删除boss任务", notes = "删除boss任务", httpMethod = "GET", response = ResultVO.class)
+    @VerifyUserToken
+    @GetMapping("/zp/delete/clientTask")
+    public ResultVO getTaskData(@RequestParam(value = "id", required = true) String bossId, @RequestParam(value = "taskType", required = false) String taskType) {
+        return amClientTaskManager.deleteAmClientTask(bossId, taskType);
+    }
+
+
+    @ApiOperation(value = "获取boss任务类型", notes = "获取boss任务类型", httpMethod = "GET", response = ResultVO.class)
+    @VerifyUserToken
+    @GetMapping("/zp/get/clientTask/type")
+    public ResultVO getClientTaskType() {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("rechat", "复聊任务");
+        map.put(ClientTaskTypeEnums.GREET.getType(), ClientTaskTypeEnums.GREET.getDesc());
+        map.put(ClientTaskTypeEnums.SEND_MESSAGE.getType(), ClientTaskTypeEnums.SEND_MESSAGE.getDesc());
+        return ResultVO.success(map);
     }
 
 

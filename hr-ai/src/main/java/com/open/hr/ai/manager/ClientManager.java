@@ -644,6 +644,7 @@ public class ClientManager {
                     //开始提取简历数据
                     JSONObject resumeObject = resumes.getJSONObject(i);
                     AmResume amResume = dealAmResume(platform,amZpLocalAccouts, resumeObject);
+                    doneNum++;
                     Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume);
                     if (!filterAmResumeResult) {
                         log.info("greetHandle filterAmResumeResult is true,bossId={},resume={}", bossId, resumes.get(i));
@@ -654,7 +655,7 @@ public class ClientManager {
                     greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, amZpLocalAccouts.getId());
                     AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                     if (Objects.isNull(one) || one.getIsGreetOn() == 0) {
-                        log.info("greetHandle isGreetOn is 0,bossId={},resume={}", bossId, resumes.get(i));
+                        log.info("AmChatbotGreetConfig isGreetOn is 0,bossId={},resume={}", bossId, resumes.get(i));
                         return;
                     }
 
@@ -667,7 +668,6 @@ public class ClientManager {
                     amChatbotGreetResult.setTaskId(Integer.parseInt(greetId));
                     amChatbotGreetResult.setUserId(amResume.getUid());
                     boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
-                    doneNum++;
 
                     //提取岗位id, 获取岗位数据
                     Integer positionId = amChatbotGreetTask.getPositionId();

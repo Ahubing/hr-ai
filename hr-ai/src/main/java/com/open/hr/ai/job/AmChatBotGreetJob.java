@@ -526,9 +526,10 @@ public class AmChatBotGreetJob {
         }
 
         jsonObject.put("rechat",true);
-        amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
+        amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getType());
         //复聊任务优先级最低
-        amClientTasks.setOrderNumber(0);
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getOrder());
+        amClientTasks.setSubType("rechat");
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());

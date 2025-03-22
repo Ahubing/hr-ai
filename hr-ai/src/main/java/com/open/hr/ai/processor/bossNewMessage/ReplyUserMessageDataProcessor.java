@@ -289,6 +289,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
+        amClientTasks.setSubType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setCreateTime(LocalDateTime.now());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         HashMap<String, Object> hashMap = new HashMap<>();
@@ -363,7 +364,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
             //当前状态在1, 2 , 3范围 且当前状态>=目标状态
             if ( status < ReviewStatusEnums.BUSINESS_SCREENING.getStatus() || status > ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus() || status < code) {
-                log.info("用户:{} ,请��用户信息,但是状态不匹配 code={}, status={}", userId,code,status);
+                log.info("用户:{} ,请求用户信息,但是状态不匹配 code={}, status={}", userId,code,status);
                 return;
             }
 
