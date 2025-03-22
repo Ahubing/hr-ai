@@ -364,38 +364,13 @@ public class ICAiManager {
     public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, LocalDate startDate, LocalDate endDate, Integer deptId, Integer postId) {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
 
-        //所有职位
-        List<AmPosition> positions = positionService
-                .list(new LambdaQueryWrapper<AmPosition>()
-                        .eq(deptId != null, AmPosition::getSectionId,deptId)
-                        .eq(postId != null, AmPosition::getId,postId)
-                        .ne(AmPosition::getIsDeleted,0)
-                        .eq(AmPosition::getAdminId, adminId));
-        if(CollectionUtil.isEmpty(positions)){
-            buildEmptyDays(icGroupDaysVos, startDate, endDate);
-            return ResultVO.success(icGroupDaysVos);
-        }
-
-        List<AmPositionSection> sectionList = sectionService
-                .listByIds(positions.stream().map(AmPosition::getSectionId).collect(Collectors.toSet()));
-        if(CollectionUtil.isEmpty(sectionList)){
-            buildEmptyDays(icGroupDaysVos, startDate, endDate);
-            return ResultVO.success(icGroupDaysVos);
-        }
-
-        Map<Long, String> positionMap = new HashMap<>();
-        positions.forEach(position -> sectionList.forEach(section -> {
-            if(position.getSectionId().equals(section.getId())){
-                positionMap.put((long)position.getId(), section.getName());
-            }
-        }));
-
         //查询出管理员在时间范围内的所有面试
         List<IcRecord> icRecords = icRecordService.lambdaQuery()
                 .eq(IcRecord::getAdminId,adminId)
                 .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
                 .ge(IcRecord::getStartTime, startDate.atStartOfDay())
                 .lt(IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay())
+                .ge(IcRecord::getStartTime,LocalDateTime.now())
                 .list();
         if(CollectionUtil.isEmpty(icRecords)){
             icRecords = new ArrayList<>();
@@ -411,11 +386,11 @@ public class ICAiManager {
                             !record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
             for (IcRecord morningRecord : morningRecords) {
-                String positionName = positionMap.get(morningRecord.getPositionId());
-                if(StringUtils.isEmpty(positionName)){
+                String deptName = morningRecord.getDeptName();
+                if(StringUtils.isEmpty(deptName)){
                     continue;
                 }
-                morningMap.put(positionName, morningMap.getOrDefault(positionName, 0) + 1);
+                morningMap.put(deptName, morningMap.getOrDefault(deptName, 0) + 1);
             }
 
 
@@ -425,11 +400,11 @@ public class ICAiManager {
                             record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
             for (IcRecord afternoonRecord : afternoonRecords) {
-                String positionName = positionMap.get(afternoonRecord.getPositionId());
-                if(StringUtils.isEmpty(positionName)){
+                String deptName = afternoonRecord.getDeptName();
+                if(StringUtils.isEmpty(deptName)){
                     continue;
                 }
-                afternoonMap.put(positionName, afternoonMap.getOrDefault(positionName, 0) + 1);
+                afternoonMap.put(deptName, afternoonMap.getOrDefault(deptName, 0) + 1);
             }
 
             icGroupDaysVos.add(new IcGroupDaysVo(date, morningMap, afternoonMap));
