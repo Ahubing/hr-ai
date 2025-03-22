@@ -158,10 +158,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             }
         }
 
-//        if (firstTime.get() == 1){
-//            log.info("用户第一次发送消息 status={}",firstTime.get());
-//            return ResultVO.success();
-//        }
+        if (firstTime.get() == 1){
+            log.info("用户第一次发送消息 status={}",firstTime.get());
+            return ResultVO.success();
+        }
         if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
             log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
             return ResultVO.success();
