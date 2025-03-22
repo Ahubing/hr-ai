@@ -226,7 +226,7 @@ public class ChatBotPositionManager {
      * @param adminId
      * @return
      */
-    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name) {
+    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name,String positionPostName) {
         try {
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmPositionSection::getAdminId, adminId);
@@ -237,9 +237,15 @@ public class ChatBotPositionManager {
             List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
             for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos) {
                 LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
-                lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSectionVo.getId());
+                lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSectionVo.getId())
+                                  .like(StringUtils.isNotEmpty(positionPostName),AmPositionPost::getName, positionPostName);
                 List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
                 amPositionSectionVo.setPost_list(amPositionPosts);
+            }
+            if(StringUtils.isNotEmpty(positionPostName) && CollectionUtils.isNotEmpty(amPositionSectionVos)){
+                List<AmPositionSectionVo> sectionVos = amPositionSectionVos.stream()
+                        .filter(vo -> CollectionUtils.isNotEmpty(vo.getPost_list())).collect(Collectors.toList());
+                return ResultVO.success(sectionVos);
             }
             return ResultVO.success(amPositionSectionVos);
         } catch (Exception e) {
@@ -503,6 +509,10 @@ public class ChatBotPositionManager {
             }
             if (Objects.nonNull(req.getPositionId())) {
                 amPositionQueryWrapper.like(AmPosition::getPostId, req.getPositionId());
+            }
+
+            if(StringUtils.isNotEmpty(req.getPositionName())){
+                amPositionQueryWrapper.like(AmPosition::getName, req.getPositionName());
             }
 
             if (Objects.nonNull(req.getAccountId())) {
