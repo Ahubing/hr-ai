@@ -99,12 +99,16 @@ public class LoginManager {
         }
         AmAdminVo amAdminVo = new AmAdminVo();
         amAdminVo.setId(amAdmin.getId());
+        amAdminVo.setEmail(amAdmin.getEmail());
+        amAdminVo.setUsername(amAdmin.getUsername());
         amAdminVo.setMobile(amAdmin.getMobile());
         amAdminVo.setStatus(amAdmin.getStatus());
         amAdminVo.setRole(amAdmin.getRole());
         amAdminVo.setCreateTime(amAdmin.getCreateTime());
+        amAdminVo.setExpireTime(amAdmin.getExpireTime());
+        amAdminVo.setCompany(amAdmin.getCompany());
+        amAdminVo.setCreatorId(amAdmin.getCreatorId());
         amAdminVo.setSlackOff(JSONObject.parseObject(amAdmin.getSlackOff(),SlackOffVo.class));
-        amAdminVo.setEmail(amAdminVo.getEmail());
         return ResultVO.success(amAdminVo);
     }
 }
