@@ -153,9 +153,9 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("查询部门列表")
     @VerifyUserToken
     @GetMapping("position/get_section_list")
-    public ResultVO<List<AmPositionSection>> getSectionList() {
+    public ResultVO<List<AmPositionSection>> getSectionList(@RequestParam(value = "deptName",required = false) @ApiParam("部门名称") String deptName) {
         Long userId = getUserId();
-        return chatBotPositionManager.getSectionList(userId);
+        return chatBotPositionManager.getSectionList(userId,deptName);
     }
 
     @ApiOperation("新增/编辑部门")

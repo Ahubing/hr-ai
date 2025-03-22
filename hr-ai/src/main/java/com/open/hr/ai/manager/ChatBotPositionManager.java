@@ -388,13 +388,14 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO<List<AmPositionSection>> getSectionList(Long adminId) {
+    public ResultVO<List<AmPositionSection>> getSectionList(Long adminId, String deptName) {
         try {
             if (Objects.isNull(adminId)) {
                 return ResultVO.fail("adminId不能为空");
             }
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmPositionSection::getAdminId, adminId);
+            queryWrapper.eq(AmPositionSection::getAdminId, adminId)
+                        .like(StringUtils.isNotEmpty(deptName), AmPositionSection::getName, deptName);
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
             return ResultVO.success(amPositionSections);
         } catch (Exception e) {
