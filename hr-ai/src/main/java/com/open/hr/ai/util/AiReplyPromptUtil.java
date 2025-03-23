@@ -132,7 +132,9 @@ public class AiReplyPromptUtil {
             "no_further_reply\n" +
             "set_status\n";
 
-
+    private static String communicationScript =
+            "# 候选人沟通脚本\n" +
+            "{CommunicationScript}\n";
 
     /**
      *  示例对话
@@ -277,6 +279,8 @@ public class AiReplyPromptUtil {
                 ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
                 stringBuilder.append(processControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
 
+                String communicationScriptStr = communicationScript.replace("{CommunicationScript}", amNewMaskAddReq.getCommunicationScript());
+                stringBuilder.append(communicationScriptStr);
                 // 示例对话
                 String exampleDialogs = amNewMaskAddReq.getExampleDialogues();
                 if (StringUtils.isNotBlank(exampleDialogs)) {
