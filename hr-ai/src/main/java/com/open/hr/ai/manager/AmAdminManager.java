@@ -380,4 +380,32 @@ public class AmAdminManager {
         }
         return ResultVO.fail("更新失败");
     }
+
+
+    public ResultVO updateUserInfo(UpdateUserInfoReq req, Long adminId) {
+        try {
+            if (!Objects.equals(req.getId(), adminId)) {
+                return ResultVO.fail("没有权限更新");
+            }
+            AmAdmin user = amAdminService.getById(req.getId());
+            if (Objects.isNull(user)) {
+                return ResultVO.fail("账号不存在,不能操作用户!");
+            }
+            if (StringUtils.isNotBlank(req.getCompany())) {
+                user.setCompany(req.getCompany());
+            }
+            if (StringUtils.isNotBlank(req.getEmail())) {
+                user.setEmail(req.getEmail());
+            }
+            if (StringUtils.isNotBlank(req.getMobile())) {
+                user.setMobile(req.getMobile());
+            }
+
+            boolean result = amAdminService.updateById(user);
+            return result ? ResultVO.success() : ResultVO.fail("updateUserInfo 更新失败");
+        } catch (Exception e) {
+            log.error("updateUserInfo 更新异常 req={},adminId={}", req, adminId, e);
+        }
+        return ResultVO.fail("updateUserInfo 更新失败");
+    }
 }
