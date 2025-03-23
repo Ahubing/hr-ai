@@ -371,7 +371,7 @@ public class AmResumeFilterUtil {
         criteria.setExpectPosition(Collections.singletonList("数据"));
 //        criteria.setFilterPosition(Collections.singletonList("数据"));
 
-        System.out.println(filterResume(amResume, criteria));
+        System.out.println(filterResume(amResume, criteria,false));
 
         JSONObject conditions = new JSONObject();
         conditions.put("学历要求", criteria.getDegree() != null ? criteria.getDegree() : Collections.singletonList(-1));

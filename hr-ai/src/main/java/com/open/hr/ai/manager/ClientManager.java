@@ -645,7 +645,7 @@ public class ClientManager {
                     JSONObject resumeObject = resumes.getJSONObject(i);
                     AmResume amResume = dealAmResume(platform,amZpLocalAccouts, resumeObject);
                     doneNum++;
-                    Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume);
+                    Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume,false);
                     if (!filterAmResumeResult) {
                         log.info("greetHandle filterAmResumeResult is true,bossId={},resume={}", bossId, resumes.get(i));
                         continue;
@@ -1124,7 +1124,7 @@ public class ClientManager {
 
     public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume,Boolean isGreet) {
         AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne);
-        boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo);
+        boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo,isGreet);
         log.info("filterAmResume result={},amResume={},amGreetConditionVo={}", result, amResume,amGreetConditionVo);
         return result;
     }
