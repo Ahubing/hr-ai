@@ -17,7 +17,7 @@ public class AddOrUpdateAccountReq {
      * id
      */
     @ApiModelProperty(value = "id")
-    private Long id;
+    private String id;
 
     /**
      * 招聘平台id
