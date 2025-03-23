@@ -38,6 +38,9 @@ public class SearchPositionListReq {
     @ApiModelProperty("选填，职位名称")
     private String positionName;
 
+    @ApiModelProperty("选填，城市")
+    private String city;
+
     @ApiModelProperty("选填，页面，从1开始。默认1")
     private Integer page = 1;
 
