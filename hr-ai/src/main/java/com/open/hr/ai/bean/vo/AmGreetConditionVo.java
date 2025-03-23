@@ -91,5 +91,10 @@ public class AmGreetConditionVo {
      */
     private List<String> skills;
 
+    /**
+     * 是否开启打招呼特殊处理
+     */
+    private Integer greetHandle;
+
 
 }

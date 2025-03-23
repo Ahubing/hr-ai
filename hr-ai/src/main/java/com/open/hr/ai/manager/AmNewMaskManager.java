@@ -154,6 +154,7 @@ public class AmNewMaskManager {
         amNewMask.setStatus(req.getStatus());
         amNewMask.setUpdateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
+        amNewMask.setAvatar(req.getAvatar());
         amNewMask.setGreetMessage(req.getGreetMessage());
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {

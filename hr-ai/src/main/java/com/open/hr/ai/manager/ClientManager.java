@@ -895,7 +895,7 @@ public class ClientManager {
                     log.info("dealUserAllInfoData update result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
                 AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
-                if (Objects.nonNull(amClientTasks) && amResume.getType() != ReviewStatusEnums.ABANDON.getStatus()) {
+                if (Objects.nonNull(amClientTasks) && !Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())) {
                     if (amClientTasks.getData().contains("attachment_resume")) {
                         dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
                     }
@@ -1050,7 +1050,7 @@ public class ClientManager {
 
     }
 
-    public ResultVO filterAmResume(String platform,String bossId, String connectId, String encryptId,JSONObject resumeObject) {
+    public ResultVO filterAmResume(String platform,String bossId, String connectId, String encryptId,JSONObject resumeObject,Boolean isGreet) {
 
         AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
         if (Objects.isNull(amZpLocalAccouts)) {
@@ -1116,13 +1116,13 @@ public class ClientManager {
         amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setZpData(resumeObject.toJSONString());
-        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume);
+        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,isGreet);
         log.info("filterAmResume result={},amResume={}", result, resumeObject);
         return ResultVO.success(result);
     }
 
 
-    public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume) {
+    public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume,Boolean isGreet) {
         AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne);
         boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo);
         log.info("filterAmResume result={},amResume={},amGreetConditionVo={}", result, amResume,amGreetConditionVo);

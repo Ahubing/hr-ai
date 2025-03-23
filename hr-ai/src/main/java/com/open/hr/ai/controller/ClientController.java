@@ -120,13 +120,13 @@ public class ClientController extends HrAIBaseController {
 
 
     @ApiOperation("客户端请求过滤简历")
-    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}")
-    public ResultVO filterResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId, @RequestBody @Valid JSONObject resume) {
-        log.info("filterResume bossId={},connectId={},clientBossNewMessageReq={}", bossId, connectId, resume);
+    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}/{is_greet}")
+    public ResultVO filterResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId,@PathVariable("is_greet") Boolean isGreet,@RequestBody @Valid JSONObject resume) {
+        log.info("filterResume bossId={},connectId={},encryptId={},isGreet={} clientBossNewMessageReq={}", bossId, connectId, encryptId,isGreet,resume);
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
-        return clientManager.filterAmResume(platform,bossId, connectId,encryptId, resume);
+        return clientManager.filterAmResume(platform,bossId, connectId,encryptId, resume,isGreet);
     }
 
 }

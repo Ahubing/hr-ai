@@ -163,6 +163,14 @@ public class AmNewMaskAddReq {
     @ApiModelProperty(value = "是否开启交换手机号")
     private Boolean openExchangePhone;
 
+
+
+    /**
+     * 交换附件简历
+     */
+    @ApiModelProperty(value = "是否交换附件简历")
+    private Boolean openExchangeAttachmentResume;
+
     @ApiModelProperty(value = "single-单面，group-群面",required = true)
     private String interviewType;
 

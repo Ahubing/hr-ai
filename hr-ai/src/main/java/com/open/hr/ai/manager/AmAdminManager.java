@@ -248,7 +248,7 @@ public class AmAdminManager {
                 return ResultVO.fail("账号不存在,不能操作用户!");
             }
             AmAdmin user = amAdminService.getById(req.getId());
-            if ((!Objects.equals(req.getId(), admin.getId())) ||  !Objects.equals(user.getCreatorId(), adminId) ||
+            if (!Objects.equals(user.getCreatorId(), adminId) ||
                     (!admin.getRole().equals(AmAdminRoleEnum.SYSTEM.getType()) || !admin.getRole().equals(AmAdminRoleEnum.ADMIN.getType()))) {
                 return ResultVO.fail("没有权限更新");
             }
@@ -262,6 +262,31 @@ public class AmAdminManager {
             log.error("更新异常 req={},adminId={}", req, adminId, e);
         }
         return ResultVO.fail("更新失败");
+    }
+    public ResultVO userUpdatePassword(UpdatePasswordReq req, Long adminId) {
+        try {
+            AmAdmin admin = amAdminService.getById(adminId);
+            if (Objects.isNull(admin)) {
+                return ResultVO.fail("账号不存在,不能操作用户!");
+            }
+            AmAdmin user = amAdminService.getById(req.getId());
+            if ((!Objects.equals(req.getId(), admin.getId())) ) {
+                return ResultVO.fail("不是用户本人,没有权限更新");
+            }
+
+            String password = req.getOldPassword();
+            if (!user.getPassword().equals(password)) {
+                return ResultVO.fail("原密码输入错误");
+            }
+            password = req.getNewPassword();
+            String encodePassWord = Base64.getEncoder().encodeToString(CryptoUtil.encryptMD5(password.getBytes("UTF-8")));
+            user.setPassword(encodePassWord);
+            boolean result = amAdminService.updateById(user);
+            return result ? ResultVO.success() : ResultVO.fail("更新失败");
+        } catch (Exception e) {
+            log.error("userUpdatePassword更新异常 req={},adminId={}", req, adminId, e);
+        }
+        return ResultVO.fail("userUpdatePassword更新失败");
     }
 
 
