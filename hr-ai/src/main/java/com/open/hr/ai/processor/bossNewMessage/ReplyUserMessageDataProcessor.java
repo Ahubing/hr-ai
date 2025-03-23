@@ -462,15 +462,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         if (Objects.isNull(tasksServiceOne)) {
             if (Objects.nonNull(openExchangeAttachmentResume) && openExchangeAttachmentResume){
                 log.info("开启交换附件简历");
-                buildRequestTask(amZpLocalAccouts, uid, amResume);
+                buildRequestTask(amZpLocalAccouts, uid, amResume,true);
+            }else {
+                buildRequestTask(amZpLocalAccouts, uid, amResume,false);
             }
             dealReChatTask(amResume,amZpLocalAccouts);
-            log.info("用户:{} 主动打招呼,请求用户信息", uid);
+            log.info("用户:{} 主动打招呼,请求用户附件简历信息和复聊任务", uid);
         }
     }
 
 
-    private void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, Integer uid, AmResume amResume) {
+    private void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, Integer uid, AmResume amResume,Boolean needAttachmentResume) {
         AmClientTasks amClientTasks = new AmClientTasks();
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
@@ -478,7 +480,12 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         HashMap<String, Object> hashMap = new HashMap<>();
         HashMap<String, Object> searchDataMap = new HashMap<>();
         hashMap.put("user_id", uid);
-        hashMap.put("info_type", Collections.singletonList("attachment_resume"));
+        if (needAttachmentResume) {
+            hashMap.put("info_type", Collections.singletonList("attachment_resume"));
+        }else {
+            //空数组
+            hashMap.put("info_type", Collections.emptyList());
+        }
         if (Objects.nonNull(amResume.getEncryptGeekId())) {
             searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
         }
