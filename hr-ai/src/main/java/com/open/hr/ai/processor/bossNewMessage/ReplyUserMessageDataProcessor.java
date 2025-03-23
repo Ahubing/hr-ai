@@ -171,7 +171,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
 
         if (firstTime.get() == 1){
-            log.info("用户第一次发送消息,需要获取简历信息后再进行条 status={}",firstTime.get());
+            log.info("用户第一次发送消息,需要获取简历信息后再进行下面流程 status={}",firstTime.get());
             return ResultVO.success();
         }
         if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
@@ -439,7 +439,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     }
 
     /**
-     *
+     * 处理附件简历逻辑
      */
     private void dealAttchmentResume(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, Integer uid,Boolean openExchangeAttachmentResume) {
 
@@ -472,7 +472,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     }
 
 
-    private void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, Integer uid, AmResume amResume,Boolean needAttachmentResume) {
+    public void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, Integer uid, AmResume amResume,Boolean needAttachmentResume) {
         AmClientTasks amClientTasks = new AmClientTasks();
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
