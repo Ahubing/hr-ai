@@ -275,7 +275,9 @@ public class AmAdminManager {
             }
 
             String password = req.getOldPassword();
-            if (!user.getPassword().equals(password)) {
+            String oldPassword = Base64.getEncoder().encodeToString(CryptoUtil.encryptMD5(password.getBytes("UTF-8")));
+
+            if (!user.getPassword().equals(oldPassword)) {
                 return ResultVO.fail("原密码输入错误");
             }
             password = req.getNewPassword();
