@@ -3,6 +3,8 @@ package com.open.ai.eros.db.mysql.hr.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
@@ -203,6 +205,11 @@ public class AmResume implements Serializable {
      *  是否是学生 1是学生 -1 不是
      */
     private Integer isStudent;
+
+    /**
+     * 分数
+     */
+    private BigDecimal score;
 
     /**
      * @param newType 新状态

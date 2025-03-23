@@ -1,5 +1,6 @@
 package com.open.hr.ai.controller;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -15,8 +16,10 @@ import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ResumeManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.*;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -60,8 +65,18 @@ public class ResumeController extends HrAIBaseController {
     @ApiOperation("获取简历列表")
     @VerifyUserToken
     @GetMapping("resume/list")
-    public ResultVO<PageVO<AmResumeVo>> promptList(@RequestParam(value = "type", required = true) Integer type, @RequestParam(value = "post_id", required = false) Integer post_id, @RequestParam(value = "name", required = false) String name, @RequestParam(value = "page", required = true) Integer page, @RequestParam(value = "size", required = true) Integer size) {
-        return resumeManager.resumeList(getUserId(), type, post_id, name, page, size);
+    public ResultVO<PageVO<AmResumeVo>> promptList(@RequestParam(value = "type", required = true) Integer type,
+                                                   @RequestParam(value = "post_id", required = false) Integer post_id,
+                                                   @RequestParam(value = "name", required = false) String name,
+                                                   @RequestParam(value = "page", required = true) Integer page,
+                                                   @RequestParam(value = "size", required = true) Integer size,
+                                                   @RequestParam(value = "startTime", required = false) @ApiParam("开始时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+                                                   @RequestParam(value = "endTime", required = false) @ApiParam("截止时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
+                                                   @RequestParam(value = "expectPosition", required = false) @ApiParam("预期职位") String expectPosition,
+                                                   @RequestParam(value = "postName", required = false) @ApiParam("职位名称") String postName,
+                                                   @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
+                                                   @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) {
+        return resumeManager.resumeList(getUserId(), type, post_id, name, page, size, startTime, endTime, expectPosition, postName, platformId, score);
     }
 
     @ApiOperation("统计简历数据")
