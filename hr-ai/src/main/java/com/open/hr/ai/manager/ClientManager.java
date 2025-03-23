@@ -536,6 +536,7 @@ public class ClientManager {
                         amPosition.setIsOpen(jobStatus);
                         amPosition.setName(jobName);
                         amPosition.setExtendParams(jobData.toJSONString());
+                        amPosition.setCity(jobData.getString("locationName"));
                         amPositionService.updateById(amPosition);
                     } else {
                         AmPosition newAmPosition = new AmPosition();
@@ -549,6 +550,7 @@ public class ClientManager {
                         newAmPosition.setIsOpen(jobStatus);
                         newAmPosition.setCreateTime(LocalDateTime.now());
                         newAmPosition.setExtendParams(jobData.toJSONString());
+                        newAmPosition.setCity(jobData.getString("locationName"));
                         boolean saveResult = amPositionService.save(newAmPosition);
                         positionId = newAmPosition.getId();
                         log.info("amPositionService save result={}, amPosition={}", saveResult, newAmPosition);

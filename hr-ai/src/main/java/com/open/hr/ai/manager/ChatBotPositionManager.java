@@ -516,6 +516,10 @@ public class ChatBotPositionManager {
                 amPositionQueryWrapper.like(AmPosition::getName, req.getPositionName());
             }
 
+            if(StringUtils.isNotEmpty(req.getCity())){
+                amPositionQueryWrapper.like(AmPosition::getCity, req.getCity());
+            }
+
             if (Objects.nonNull(req.getAccountId())) {
                 amPositionQueryWrapper.like(AmPosition::getBossId, req.getAccountId());
             } else {
