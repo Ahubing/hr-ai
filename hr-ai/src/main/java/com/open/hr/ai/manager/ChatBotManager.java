@@ -210,6 +210,10 @@ public class ChatBotManager {
     public ResultVO deleteAccount(String id) {
         try {
             boolean result = amZpLocalAccoutsService.removeById(id);
+            if (result){
+                //删除绑定的复聊任务 ai 面具
+                amChatbotPositionOptionService.remove(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, id));
+            }
             return result ? ResultVO.success("删除成功") : ResultVO.fail("删除失败");
         } catch (Exception e) {
             log.error("deleteAccount error", e);
