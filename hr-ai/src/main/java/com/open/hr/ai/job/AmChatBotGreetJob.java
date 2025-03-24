@@ -190,6 +190,10 @@ public class AmChatBotGreetJob {
 
                     // 批量查询任务和职位
                     Set<Integer> taskIds = greetResults.stream().map(AmChatbotGreetResult::getTaskId).collect(Collectors.toSet());
+                    if (CollectionUtils.isEmpty(taskIds)) {
+                        log.info("复聊任务跳过: 账号:{},taskIds 为null 未找到打招呼的任务", accountId);
+                        continue;
+                    }
                     Map<Integer, AmChatbotGreetTask> taskMap = amChatbotGreetTaskService.lambdaQuery()
                             .in(AmChatbotGreetTask::getId, taskIds).list().stream()
                             .collect(Collectors.toMap(AmChatbotGreetTask::getId, task -> task));

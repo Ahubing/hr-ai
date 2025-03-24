@@ -643,10 +643,6 @@ public class ClientManager {
                     tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
                     log.info("greetHandle 已完成 {},继续打招呼 tasksServiceOne={}", doneNum, tasksServiceOne);
                 }
-                tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
-                if (!canGreet) {
-                    tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
-                }
                 boolean result = amClientTasksService.updateById(tasksServiceOne);
                 log.error("greetHandle resumes is null,bossId={} updateResult={}", bossId, result);
                 return;
