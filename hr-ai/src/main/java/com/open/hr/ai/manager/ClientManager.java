@@ -776,6 +776,11 @@ public class ClientManager {
         // 开始提取保存用户简历信息
         // 提取拼接用户简历数据
         try {
+            if (Objects.isNull(jsonObject)){
+                boolean result = amClientTasksService.removeById(taskId);
+                log.info("dealUserAllInfoData jsonObject is null,taskId={},result={}",taskId,result);
+                return;
+            }
             JSONObject resumeJSONObject = jsonObject.getJSONObject("resume");
             JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
             JSONObject chatInfoJSONObject = jsonObject.getJSONObject("chat_info");

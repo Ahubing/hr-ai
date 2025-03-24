@@ -75,15 +75,17 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "用户状态为不符合");
         }
 
-        // 从未对此用户发起本请求时请求一次
+        // 从未对此用户发起本请求在线简历时请求一次在线简历
         LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
         queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
         queryWrapper.like(AmClientTasks::getData, req.getUser_id());
+        queryWrapper.like(AmClientTasks::getData, "[]");
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             statusCode.set(1);
             replyUserMessageDataProcessor.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
+            replyUserMessageDataProcessor.dealReChatTask( amResume,amZpLocalAccouts);
             log.info("用户:{} 主动打招呼,没有用户信息, 需要拦截本次请求, ", req.getUser_id());
         }
         else {

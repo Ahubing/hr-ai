@@ -457,17 +457,20 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
         queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
+        queryWrapper.like(AmClientTasks::getData, "attachment_resume");
         queryWrapper.like(AmClientTasks::getData, uid);
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             if (Objects.nonNull(openExchangeAttachmentResume) && openExchangeAttachmentResume){
-                log.info("开启交换附件简历");
                 buildRequestTask(amZpLocalAccouts, uid, amResume,true);
-            }else {
-                buildRequestTask(amZpLocalAccouts, uid, amResume,false);
+                log.info("用户:{} 主动打招呼,请求用户附件简历信息", uid);
             }
-            dealReChatTask(amResume,amZpLocalAccouts);
-            log.info("用户:{} 主动打招呼,请求用户附件简历信息和复聊任务", uid);
+//            else {
+//                buildRequestTask(amZpLocalAccouts, uid, amResume,false);
+//            }
+//            dealReChatTask(amResume,amZpLocalAccouts);
+        }else {
+            log.info("用户:{} 主动打招呼,请求用户附件简历信息,但是已经存在请求信息任务,taskId={}", uid,tasksServiceOne.getId());
         }
     }
 
