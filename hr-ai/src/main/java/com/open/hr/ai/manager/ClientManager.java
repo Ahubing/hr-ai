@@ -1091,30 +1091,7 @@ public class ClientManager {
             log.error("filterAmResume amPositionServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
             return ResultVO.fail(404, "找不到职位");
         }
-        AmClientTasks amClientTasks = amClientTasksService.getById(greet_task_id);
-        if (Objects.isNull(amClientTasks)) {
-            log.error("filterAmResume amClientTasks is null,bossId={},greet_task_id={}", bossId, greet_task_id);
-            return ResultVO.fail(404, "找不到客户端任务");
-        }
 
-        //提取任务里面的打招呼任务id, 目的是为了获取岗位数据
-        JSONObject jsonObject = JSONObject.parseObject(amClientTasks.getData());
-        if (!jsonObject.containsKey("greetId")) {
-            log.info("filterAmResume greetHandle greetId is null,bossId={}", bossId);
-            return ResultVO.fail(404, "找不到打招呼任务Id");
-        }
-
-        //保存打招呼任务结果
-        String greetId = jsonObject.get("greetId").toString();
-
-        //查询打招呼任务数据
-        AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(greetId);
-        if (Objects.isNull(amChatbotGreetTask)) {
-            log.info("greetHandle amChatbotGreetTask is null,bossId={},greetId={}", bossId, greetId);
-            return ResultVO.fail(404, "找不到打招呼任务");
-        }
-        // 增加打招呼任务的执行次数统计
-        Integer doneNum = amChatbotGreetTask.getDoneNum();
 
 
 
@@ -1170,6 +1147,30 @@ public class ClientManager {
             queryWrapper.eq(AmResume::getAccountId, amResume.getAccountId());
             AmResume amResumeServiceOne = amResumeService.getOne(queryWrapper, false);
             if (Objects.isNull(amResumeServiceOne)) {
+                AmClientTasks amClientTasks = amClientTasksService.getById(greet_task_id);
+                if (Objects.isNull(amClientTasks)) {
+                    log.error("filterAmResume amClientTasks is null,bossId={},greet_task_id={}", bossId, greet_task_id);
+                    return ResultVO.fail(404, "找不到客户端任务");
+                }
+
+                //提取任务里面的打招呼任务id, 目的是为了获取岗位数据
+                JSONObject jsonObject = JSONObject.parseObject(amClientTasks.getData());
+                if (!jsonObject.containsKey("greetId")) {
+                    log.info("filterAmResume greetHandle greetId is null,bossId={}", bossId);
+                    return ResultVO.fail(404, "找不到打招呼任务Id");
+                }
+
+                //保存打招呼任务结果
+                String greetId = jsonObject.get("greetId").toString();
+
+                //查询打招呼任务数据
+                AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(greetId);
+                if (Objects.isNull(amChatbotGreetTask)) {
+                    log.info("greetHandle amChatbotGreetTask is null,bossId={},greetId={}", bossId, greetId);
+                    return ResultVO.fail(404, "找不到打招呼任务");
+                }
+                // 增加打招呼任务的执行次数统计
+                Integer doneNum = amChatbotGreetTask.getDoneNum();
                 boolean amResumeResult = amResumeService.save(amResume);
                 log.info("filterAmResume amResumeResult={},amResume={}", amResumeResult, amResume);
                 doneNum++;
