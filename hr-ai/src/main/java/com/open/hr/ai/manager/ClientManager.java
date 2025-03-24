@@ -605,18 +605,6 @@ public class ClientManager {
                     tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
                 }
             }
-            // 提取简历信息
-            JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
-            if (Objects.isNull(resumes) || resumes.isEmpty()) {
-                tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
-                if (!canGreet) {
-                    tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
-                }
-                boolean result = amClientTasksService.updateById(tasksServiceOne);
-                log.error("greetHandle resumes is null,bossId={} updateResult={}", bossId, result);
-                return;
-            }
-
             //查询账号信息
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
             if (Objects.isNull(amZpLocalAccouts)) {
@@ -640,10 +628,33 @@ public class ClientManager {
                 log.info("greetHandle amChatbotGreetTask is null,bossId={},greetId={}", bossId, greetId);
                 return;
             }
-            Integer conditionsId = amChatbotGreetTask.getConditionsId();
-            AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(conditionsId);
             // 增加打招呼任务的执行次数统计
             Integer doneNum = amChatbotGreetTask.getDoneNum();
+            // 提取简历信息
+            JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
+            if (Objects.isNull(resumes) || resumes.isEmpty()) {
+                if (doneNum >= amChatbotGreetTask.getTaskNum()) {
+                    amChatbotGreetTask.setStatus(2);
+                    log.info("greetHandle 任务已完成 taskId={}", tasksServiceOne.getId());
+                } else {
+                    // 需要继续任务
+                    String data = tasksServiceOne.getData();
+                    JSONObject.parseObject(data).put("times", amChatbotGreetTask.getTaskNum() - doneNum);
+                    tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
+                    log.info("greetHandle 已完成 {},继续打招呼 tasksServiceOne={}", doneNum, tasksServiceOne);
+                }
+                tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
+                if (!canGreet) {
+                    tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
+                }
+                boolean result = amClientTasksService.updateById(tasksServiceOne);
+                log.error("greetHandle resumes is null,bossId={} updateResult={}", bossId, result);
+                return;
+            }
+
+            Integer conditionsId = amChatbotGreetTask.getConditionsId();
+            AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(conditionsId);
+
             // 开始处理打招呼的简历数据
             for (int i = 0; i < resumes.size(); i++) {
                 // 开始提取简历数据, 异常捕捉,让流程继续下去
