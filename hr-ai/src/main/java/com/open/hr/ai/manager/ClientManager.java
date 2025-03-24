@@ -650,12 +650,11 @@ public class ClientManager {
                 try {
                     //开始提取简历数据
                     JSONObject resumeObject = resumes.getJSONObject(i);
-
+                    doneNum++;
                     AmResume amResume = dealAmResume(platform, amZpLocalAccouts, resumeObject);
                     if (Objects.isNull(amResume)) {
                         continue;
                     }
-                    doneNum++;
                     Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume, false);
                     if (!filterAmResumeResult) {
                         log.info("greetHandle filterAmResumeResult is true,bossId={},resume={}", bossId, resumes.get(i));
@@ -965,7 +964,7 @@ public class ClientManager {
         queryWrapper.eq(AmResume::getExpectPosition, amResume.getExpectPosition());
         AmResume amResumeServiceOne = amResumeService.getOne(queryWrapper, false);
         if (Objects.nonNull(amResumeServiceOne)) {
-            log.info("已经存在相同简历, ,amResumeId={}", amResume.getId());
+            log.info("已经存在相同简历, ,amResumeId={}", amResumeServiceOne.getId());
            return null;
         }
 
@@ -1180,8 +1179,28 @@ public class ClientManager {
                 log.info("filterAmResume amResumeResult={},amResume={}", amResumeResult, amResume);
                 doneNum++;
                 amChatbotGreetTask.setDoneNum(doneNum);
+                amClientTasksService.updateById(amClientTasks);
                 boolean updateGreetTask = amChatbotGreetTaskService.updateById(amChatbotGreetTask);
                 log.info("filterAmResume updateGreetTask={},amChatbotGreetTask={}", updateGreetTask, amChatbotGreetTask);
+                AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId()).eq(AmChatbotPositionOption::getPositionId, amPositionServiceOne.getId()), false);
+                if (Objects.nonNull(amChatbotPositionOption)) {
+                    Long amMaskId = amChatbotPositionOption.getAmMaskId();
+                    AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                    if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
+                        // 生成聊天记录
+                        AmChatMessage amChatMessage = new AmChatMessage();
+                        amChatMessage.setConversationId( amZpLocalAccouts.getId() + "_" + amResume.getUid());
+                        amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
+                        amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+                        amChatMessage.setType(-1);
+                        amChatMessage.setContent(amNewMask.getGreetMessage());
+                        amChatMessage.setCreateTime(LocalDateTime.now());
+                        boolean save = amChatMessageService.save(amChatMessage);
+                        log.info("过滤简历, 生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
+                    }
+
+                }
+
             }
         }
         log.info("filterAmResume result={},amResume={}", result, resumeObject);
