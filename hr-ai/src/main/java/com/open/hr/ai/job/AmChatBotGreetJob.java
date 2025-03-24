@@ -476,7 +476,7 @@ public class AmChatBotGreetJob {
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
                         JSONObject messageObject = new JSONObject();
 //                        messageObject.put("content", GREET_MESSAGE);
-                        jsonObject.put("message", messageObject);
+
 
 
                         AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
@@ -490,6 +490,7 @@ public class AmChatBotGreetJob {
                             if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage()))
                                 messageObject.put("content", amNewMask.getGreetMessage());
                         }
+                        jsonObject.put("message", messageObject);
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
                         amClientTasks.setUpdateTime(LocalDateTime.now());
