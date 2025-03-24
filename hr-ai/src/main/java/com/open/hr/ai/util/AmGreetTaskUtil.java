@@ -13,6 +13,7 @@ import com.open.hr.ai.constant.MessageTypeEnums;
 import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
 import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -51,6 +52,15 @@ public class AmGreetTaskUtil {
     private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
 
 
+    @Resource
+    private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
+
+
+
+    @Resource
+    private AmNewMaskServiceImpl amNewMaskService;
+
+
     private static final String GREET_MESSAGE = "你好";
 
     /**
@@ -68,14 +78,7 @@ public class AmGreetTaskUtil {
                 return;
             }
 
-            AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
-            amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
-            amChatbotGreetMessages.setTaskType(MessageTypeEnums.temporary_greet.getCode());
-            amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
-            amChatbotGreetMessages.setIsSystemSend(1);
-            amChatbotGreetMessages.setContent(GREET_MESSAGE);
-            amChatbotGreetMessages.setCreateTime(LocalDateTime.now());
-            amChatbotGreetMessagesService.save(amChatbotGreetMessages);
+
             //更新task临时status的状态
             amChatbotGreetTask.setStatus(1);
             amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
@@ -124,7 +127,33 @@ public class AmGreetTaskUtil {
             jsonObject.put("greetId", amChatbotGreetTask.getId());
             JSONObject messageObject = new JSONObject();
 //            messageObject.put("content", GREET_MESSAGE);
+
+            AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
+                    .eq(AmChatbotPositionOption::getAccountId, amChatbotGreetTask.getAccountId())
+                    .eq(AmChatbotPositionOption::getPositionId, amChatbotGreetTask.getPositionId())
+                    .one();
+
+
+            if (positionOption != null) {
+                Long amMaskId = positionOption.getAmMaskId();
+                AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
+                    messageObject.put("content", amNewMask.getGreetMessage());
+                }
+
+                AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
+                amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
+                amChatbotGreetMessages.setTaskType(MessageTypeEnums.temporary_greet.getCode());
+                amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
+                amChatbotGreetMessages.setIsSystemSend(1);
+                amChatbotGreetMessages.setContent(GREET_MESSAGE);
+                amChatbotGreetMessages.setCreateTime(LocalDateTime.now());
+                amChatbotGreetMessagesService.save(amChatbotGreetMessages);
+            }else {
+                log.info("打招呼任务追加消息失败,未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
+            }
             jsonObject.put("message", messageObject);
+
             amClientTasks.setData(jsonObject.toJSONString());
             amClientTasks.setCreateTime(LocalDateTime.now());
             amClientTasks.setUpdateTime(LocalDateTime.now());
