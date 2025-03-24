@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 用于分析当前用户的prompt
+ * 提取简历信息
  */
 @Order(1)
 @Component

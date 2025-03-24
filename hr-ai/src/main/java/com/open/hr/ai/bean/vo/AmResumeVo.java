@@ -14,6 +14,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -222,6 +223,9 @@ public class AmResumeVo  {
      */
     @ApiModelProperty(value = "招聘者id")
     private String recruiterId;
+
+    @ApiModelProperty(value = "分数")
+    private BigDecimal score;
 
     /**
      * 1、 系统自动获取

@@ -12,16 +12,19 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
+import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.AiReplyPromptUtil;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
@@ -54,10 +57,8 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     @Resource
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
 
-
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
-
 
     @Resource
     private AmNewMaskServiceImpl amNewMaskService;
@@ -72,12 +73,23 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     @Resource
     private CommonAIManager commonAIManager;
 
-
     @Resource
     private AmChatbotOptionsConfigServiceImpl amChatbotOptionsConfigService;
 
     @Resource
     private IcRecordServiceImpl recordService;
+
+    @Resource
+    private AmChatbotGreetResultServiceImpl amChatbotGreetResultService;
+
+    @Resource
+    private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
+
+    @Resource
+    private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
+
+    @Resource
+    private JedisClientImpl jedisClient;
 
 
     private Map<String,DefaultToolExecutor> toolExecutorMap = new HashMap<>();
@@ -159,7 +171,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
 
         if (firstTime.get() == 1){
-            log.info("用户第一次发送消息 status={}",firstTime.get());
+            log.info("用户第一次发送消息,需要获取简历信息后再进行下面流程 status={}",firstTime.get());
             return ResultVO.success();
         }
         if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
@@ -235,6 +247,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "未找到对应的amChatbotPositionOption配置,不继续下一个流程");
         }
 
+
         for (AmChatMessage message : amChatMessages) {
             if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
                 messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), message.getContent().toString()));
@@ -289,6 +302,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
+        amClientTasks.setSubType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setCreateTime(LocalDateTime.now());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         HashMap<String, Object> hashMap = new HashMap<>();
@@ -349,11 +363,16 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         return ResultVO.success();
     }
 
-    // 生成 request_info
+    /**
+     * 生成 request_info
+      */
     public void generateRequestInfo(Integer status,AmNewMask amNewMask,AmZpLocalAccouts amZpLocalAccouts,AmResume amResume,String userId){
         String aiRequestParam = amNewMask.getAiRequestParam();
         if (StringUtils.isNotBlank(aiRequestParam)) {
             AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
+
+            // 判断是否要获取附件简历信息
+            dealAttchmentResume(amResume, amZpLocalAccouts, Integer.parseInt(userId),amNewMaskAddReq.getOpenExchangeAttachmentResume());
 
             Integer code = amNewMaskAddReq.getCode();
             if (Objects.isNull(code)) {
@@ -363,7 +382,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
             //当前状态在1, 2 , 3范围 且当前状态>=目标状态
             if ( status < ReviewStatusEnums.BUSINESS_SCREENING.getStatus() || status > ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus() || status < code) {
-                log.info("用户:{} ,请��用户信息,但是状态不匹配 code={}, status={}", userId,code,status);
+                log.info("用户:{} ,请求用户信息,但是状态不匹配 code={}, status={}", userId,code,status);
                 return;
             }
 
@@ -418,6 +437,125 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
         }
     }
+
+    /**
+     * 处理附件简历逻辑
+     */
+    private void dealAttchmentResume(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, Integer uid,Boolean openExchangeAttachmentResume) {
+
+        if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
+            log.error("用户信息异常 amResume is null");
+            return ;
+        }
+
+        if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
+            log.info("用户:{} 主动打招呼,用户状态为不符合", amResume.getEncryptGeekId());
+            return ;
+        }
+
+        // 从未对此用户发起本请求时请求一次
+        LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
+        queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
+        queryWrapper.like(AmClientTasks::getData, "attachment_resume");
+        queryWrapper.like(AmClientTasks::getData, uid);
+        AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
+        if (Objects.isNull(tasksServiceOne)) {
+            if (Objects.nonNull(openExchangeAttachmentResume) && openExchangeAttachmentResume){
+                buildRequestTask(amZpLocalAccouts, uid, amResume,true);
+                log.info("用户:{} 主动打招呼,请求用户附件简历信息", uid);
+            }
+//            else {
+//                buildRequestTask(amZpLocalAccouts, uid, amResume,false);
+//            }
+//            dealReChatTask(amResume,amZpLocalAccouts);
+        }else {
+            log.info("用户:{} 主动打招呼,请求用户附件简历信息,但是已经存在请求信息任务,taskId={}", uid,tasksServiceOne.getId());
+        }
+    }
+
+
+    public void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, Integer uid, AmResume amResume,Boolean needAttachmentResume) {
+        AmClientTasks amClientTasks = new AmClientTasks();
+        amClientTasks.setBossId(amZpLocalAccouts.getId());
+        amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
+        HashMap<String, Object> hashMap = new HashMap<>();
+        HashMap<String, Object> searchDataMap = new HashMap<>();
+        hashMap.put("user_id", uid);
+        if (needAttachmentResume) {
+            hashMap.put("info_type", Collections.singletonList("attachment_resume"));
+        }else {
+            //空数组
+            hashMap.put("info_type", Collections.emptyList());
+        }
+        if (Objects.nonNull(amResume.getEncryptGeekId())) {
+            searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
+        }
+        if (StringUtils.isNotBlank(amResume.getName())) {
+            searchDataMap.put("name", amResume.getName());
+        }
+
+        hashMap.put("search_data", searchDataMap);
+        amClientTasks.setData(JSONObject.toJSONString(hashMap));
+        amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+        amClientTasks.setCreateTime(LocalDateTime.now());
+        amClientTasks.setUpdateTime(LocalDateTime.now());
+        amClientTasksService.save(amClientTasks);
+    }
+
+
+
+    public void dealReChatTask(AmResume amResume,AmZpLocalAccouts amZpLocalAccouts){
+        Integer postId = amResume.getPostId();
+        if (Objects.isNull(postId)) {
+            log.error("用户:{} 主动打招呼,岗位id为空, 不生成打招呼任务,请求用户信息 postId is null", amResume.getEncryptGeekId());
+            return;
+        }
+
+        String accoutsId = amZpLocalAccouts.getId();
+        LambdaQueryWrapper<AmChatbotGreetTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmChatbotGreetTask::getAccountId,accoutsId);
+        queryWrapper.eq(AmChatbotGreetTask::getPositionId, postId);
+        AmChatbotGreetTask one = amChatbotGreetTaskService.getOne(queryWrapper, false);
+        if (Objects.isNull(one)){
+            log.info("打招呼任务为空,不支持复聊 bossId={},postId={}",accoutsId,postId);
+            return;
+        }
+
+        AmChatbotGreetResult amChatbotGreetResult = new AmChatbotGreetResult();
+        amChatbotGreetResult.setRechatItem(0);
+        amChatbotGreetResult.setSuccess(1);
+        amChatbotGreetResult.setAccountId(accoutsId);
+        amChatbotGreetResult.setCreateTime(LocalDateTime.now());
+        amChatbotGreetResult.setTaskId(one.getId());
+        amChatbotGreetResult.setUserId(amResume.getUid());
+        /**
+         * 3、生成复聊任务, 如果存在复聊方案
+         */
+        AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId()).eq(AmChatbotPositionOption::getPositionId, postId), false);
+        if (Objects.isNull(amChatbotPositionOption)) {
+            log.info("复聊任务处理开始, 账号:{}, 未找到对应的职位", amZpLocalAccouts.getId());
+            return;
+        }
+        // 查询第一天的复聊任务
+        List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getInquiryRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
+        if (Objects.isNull(amChatbotOptionsItems) || amChatbotOptionsItems.isEmpty()) {
+            log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
+            return;
+        }
+
+        for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
+            // 处理复聊任务, 存入队列里面, 用于定时任务处理
+            amChatbotGreetResult.setRechatItem(amChatbotOptionsItem.getId());
+            amChatbotGreetResult.setTaskId(one.getId());
+            amChatbotGreetResultService.updateById(amChatbotGreetResult);
+            Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime())* 1000L;
+            Long zadd = jedisClient.zadd(RedisKyeConstant.AmChatBotReChatTask, operateTime, JSONObject.toJSONString(amChatbotGreetResult));
+            log.info("复聊任务处理开始, 账号:{}, 复聊任务添加结果:{}", amZpLocalAccouts.getId(), zadd);
+        }
+    }
+
 
 
 

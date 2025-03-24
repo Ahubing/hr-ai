@@ -147,12 +147,12 @@ public class ChatBotManager {
         return ResultVO.fail("获取平台列表失败");
     }
 
-    public ResultVO<AmZpLocalAccouts> AddAccount(AddAccountReq addAccountReq, Long adminId) {
+    public ResultVO<AmZpLocalAccouts> AddAccount(AddOrUpdateAccountReq addOrUpdateAccountReq, Long adminId) {
         try {
 
             LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
-            queryWrapper.eq(AmZpLocalAccouts::getAccount, addAccountReq.getAccount());
+            queryWrapper.eq(AmZpLocalAccouts::getAccount, addOrUpdateAccountReq.getAccount());
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper);
             if (Objects.nonNull(zpLocalAccouts)) {
                 return ResultVO.fail("账号已存在");
@@ -161,15 +161,12 @@ public class ChatBotManager {
             AmZpLocalAccouts amZpLocalAccouts = new AmZpLocalAccouts();
             amZpLocalAccouts.setId(uuid);
             amZpLocalAccouts.setAdminId(adminId);
-            amZpLocalAccouts.setPlatformId(addAccountReq.getPlatformId());
-            amZpLocalAccouts.setAccount(addAccountReq.getAccount());
-            amZpLocalAccouts.setMobile(addAccountReq.getMobile());
-            amZpLocalAccouts.setCity(addAccountReq.getCity());
+            amZpLocalAccouts.setPlatformId(addOrUpdateAccountReq.getPlatformId());
+            amZpLocalAccouts.setAccount(addOrUpdateAccountReq.getAccount());
+            amZpLocalAccouts.setMobile(addOrUpdateAccountReq.getMobile());
+            amZpLocalAccouts.setCity(addOrUpdateAccountReq.getCity());
             amZpLocalAccouts.setCreateTime(LocalDateTime.now());
             boolean result = amZpLocalAccoutsService.save(amZpLocalAccouts);
-            // 添加默认的面具和复聊数据
-//            amNewMaskManager.createDefaultMask(adminId);
-//            chatBotOptionsManager.createDefaultRechat(adminId);
             return result ? ResultVO.success("添加成功") : ResultVO.fail("添加失败");
         } catch (Exception e) {
             log.error("AddAccount error", e);
@@ -177,9 +174,46 @@ public class ChatBotManager {
         return ResultVO.fail("添加账号失败");
     }
 
+
+    public ResultVO<AmZpLocalAccouts> updateAccount(AddOrUpdateAccountReq addOrUpdateAccountReq, Long adminId) {
+        try {
+
+            AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getById(addOrUpdateAccountReq.getId());
+            if (Objects.isNull(zpLocalAccouts)) {
+                return ResultVO.fail("账号不存在");
+            }
+            if (!Objects.equals(zpLocalAccouts.getAdminId(), adminId)) {
+                return ResultVO.fail("无权限修改");
+            }
+
+            if (Objects.nonNull(addOrUpdateAccountReq.getAccount())){
+                zpLocalAccouts.setAccount(addOrUpdateAccountReq.getAccount());
+            }
+            if (Objects.nonNull(addOrUpdateAccountReq.getMobile())){
+                zpLocalAccouts.setMobile(addOrUpdateAccountReq.getMobile());
+            }
+            if (Objects.nonNull(addOrUpdateAccountReq.getCity())){
+                zpLocalAccouts.setCity(addOrUpdateAccountReq.getCity());
+            }
+            if (Objects.nonNull(addOrUpdateAccountReq.getPlatformId())){
+                zpLocalAccouts.setPlatformId(addOrUpdateAccountReq.getPlatformId());
+            }
+            zpLocalAccouts.setUpdateTime(LocalDateTime.now());
+            boolean result = amZpLocalAccoutsService.updateById(zpLocalAccouts);
+            return result ? ResultVO.success("修改成功") : ResultVO.fail("修改失败");
+        } catch (Exception e) {
+            log.error("updateAccount error", e);
+        }
+        return ResultVO.fail("修改账号失败");
+    }
+
     public ResultVO deleteAccount(String id) {
         try {
             boolean result = amZpLocalAccoutsService.removeById(id);
+            if (result){
+                //删除绑定的复聊任务 ai 面具
+                amChatbotPositionOptionService.remove(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, id));
+            }
             return result ? ResultVO.success("删除成功") : ResultVO.fail("删除失败");
         } catch (Exception e) {
             log.error("deleteAccount error", e);

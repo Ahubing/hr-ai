@@ -154,6 +154,7 @@ public class AmNewMaskManager {
         amNewMask.setStatus(req.getStatus());
         amNewMask.setUpdateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
+        amNewMask.setAvatar(req.getAvatar());
         amNewMask.setGreetMessage(req.getGreetMessage());
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {
@@ -254,6 +255,7 @@ public class AmNewMaskManager {
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
         amNewMaskVo.setStatus(amNewMask.getStatus());
+        amNewMaskVo.setAvatar(amNewMask.getAvatar());
         amNewMaskVo.setGreetMessage(amNewMask.getGreetMessage());
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
@@ -280,6 +282,7 @@ public class AmNewMaskManager {
             amNewMaskVo.setOpenExchangeWeChat(amNewMaskAddReq.getOpenExchangeWeChat());
             amNewMaskVo.setOpenExchangePhone(amNewMaskAddReq.getOpenExchangePhone());
             amNewMaskVo.setExampleDialogues(amNewMaskAddReq.getExampleDialogues());
+            amNewMaskVo.setOpenExchangeAttachmentResume(amNewMaskAddReq.getOpenExchangeAttachmentResume());
             amNewMaskVo.setCode(amNewMaskAddReq.getCode());
         }
         return amNewMaskVo;

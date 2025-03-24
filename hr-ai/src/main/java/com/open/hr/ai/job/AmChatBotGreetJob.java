@@ -476,7 +476,7 @@ public class AmChatBotGreetJob {
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
                         JSONObject messageObject = new JSONObject();
 //                        messageObject.put("content", GREET_MESSAGE);
-                        jsonObject.put("message", messageObject);
+
 
 
                         AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
@@ -487,13 +487,18 @@ public class AmChatBotGreetJob {
                         if (positionOption != null) {
                             Long amMaskId = positionOption.getAmMaskId();
                             AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
-                            if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage()))
+                            if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
                                 messageObject.put("content", amNewMask.getGreetMessage());
+                            }
+                        }else {
+                            log.info("打招呼任务追加消息失败,未找到对应的职位:{}", chatbotGreetTask.getPositionId());
                         }
+                        jsonObject.put("message", messageObject);
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
                         amClientTasks.setUpdateTime(LocalDateTime.now());
                         amClientTasksService.save(amClientTasks);
+                        log.info("打招呼任务处理结果  amClientTask={}",JSONObject.toJSONString(amClientTasks));
                     } catch (Exception e) {
                         log.error("打招呼任务处理失败,未找到打招呼的任务任务:{}", greetTask);
                     }
@@ -526,9 +531,10 @@ public class AmChatBotGreetJob {
         }
 
         jsonObject.put("rechat",true);
-        amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
+        amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getType());
         //复聊任务优先级最低
-        amClientTasks.setOrderNumber(0);
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getOrder());
+        amClientTasks.setSubType("rechat");
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());

@@ -28,10 +28,12 @@ import com.open.hr.ai.util.CompetencyModelPromptUtil;
 import com.open.hr.ai.util.ResumeParseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +67,9 @@ public class ResumeManager {
     @Resource
     private AmZpLocalAccoutsServiceImpl amZpLocalAccoutsService;
 
+    @Resource
+    private AmZpPlatformsServiceImpl platformsService;
+
 
     @Resource
     private CommonAIManager commonAIManager;
@@ -97,7 +102,9 @@ public class ResumeManager {
      * @param size
      * @return
      */
-    public ResultVO<PageVO<AmResumeVo>> resumeList(Long adminId, Integer type, Integer post_id, String name, Integer page, Integer size) {
+    public ResultVO<PageVO<AmResumeVo>> resumeList(Long adminId, Integer type, Integer post_id, String name,
+                                                   Integer page, Integer size, LocalDateTime startTime, LocalDateTime endTime,
+                                                   String expectPosition, String postName, Integer platformId, BigDecimal score) {
         try {
             Page<AmResume> pageList = new Page<>(page, size);
 
@@ -116,7 +123,24 @@ public class ResumeManager {
             if (StringUtils.isNotBlank(name)) {
                 queryWrapper.like(AmResume::getName, name);
             }
-            queryWrapper.orderByDesc(AmResume::getCreateTime);
+            queryWrapper.orderByDesc(AmResume::getCreateTime)
+                        .like(StringUtils.isNotEmpty(expectPosition),AmResume::getExpectPosition,expectPosition)
+                        .like(StringUtils.isNotEmpty(postName),AmResume::getPosition,postName);
+
+            if(platformId != null){
+                AmZpPlatforms platforms = platformsService.getById(platformId);
+                queryWrapper.eq(AmResume::getPlatform,platforms.getName());
+            }
+
+            if(score != null){
+                if(score.compareTo(new BigDecimal("-1")) == 0){
+                    queryWrapper.isNull(AmResume::getScore);
+                }else {
+                    queryWrapper.ge(AmResume::getScore,score);
+                }
+            }
+            queryWrapper.ge(startTime != null,AmResume::getCreateTime,startTime)
+                        .le(endTime != null,AmResume::getCreateTime,endTime);
             Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
             List<AmResumeVo> resumeVos = amResumePage.getRecords().stream().map(AmResumeConvert.I::convertAmResumeVo).collect(Collectors.toList());
             return ResultVO.success(PageVO.build(amResumePage.getTotal(), resumeVos));
@@ -338,6 +362,10 @@ public class ResumeManager {
             if (StringUtils.isBlank(amResumeCompetencyModel)){
                 return ResultVO.fail("生成失败!, 请稍后重试");
             }
+            JSONObject jsonObject = JSONObject.parseObject(amResumeCompetencyModel);
+            JSONObject obj = jsonObject.getObject("专业技能", JSONObject.class);
+            String score = obj.getString("分数");
+            amResume.setScore(new BigDecimal(score));
             amResume.setCompetencyModel(amResumeCompetencyModel);
             boolean result = amResumeService.updateById(amResume);
             log.info("执行胜任力模型 data={},result={}", JSONObject.toJSONString(amResume), result);
@@ -347,8 +375,5 @@ public class ResumeManager {
         }
         return ResultVO.fail("执行胜任力模型异常");
     }
-
-
-
 
 }

@@ -17,7 +17,7 @@ import java.util.*;
 @Slf4j
 public class AmResumeFilterUtil {
 
-    public static boolean filterResume(AmResume resume, AmGreetConditionVo criteria) {
+    public static boolean filterResume(AmResume resume, AmGreetConditionVo criteria,Boolean isGreet) {
 
         // 年龄
         if (StringUtils.isNotBlank(criteria.getAge())) {
@@ -210,22 +210,27 @@ public class AmResumeFilterUtil {
         /**
          * 期望的职位关键词
          */
+        // 如果主动打招呼,并且开启了没有开启打招呼特殊处理
         if (CollectionUtils.isNotEmpty(criteria.getExpectPosition())) {
-            if (StringUtils.isNotBlank(resume.getExpectPosition())) {
-                String ExpectPositionLowerCase = resume.getExpectPosition().toLowerCase();
-                // 匹配期望的职位关键词
-                boolean flag = false;
-                for (String expectPosition : criteria.getExpectPosition()) {
-                    if (ExpectPositionLowerCase.contains(expectPosition.toLowerCase())) {
-                        flag = true;
-                        break;
+            // 需要处理主动打招呼, 并且开启了没有开启打招呼特殊处理
+            if (!isGreet ||  criteria.getGreetHandle() != 1){
+                if (StringUtils.isNotBlank(resume.getExpectPosition())) {
+                    String ExpectPositionLowerCase = resume.getExpectPosition().toLowerCase();
+                    // 匹配期望的职位关键词
+                    boolean flag = false;
+                    for (String expectPosition : criteria.getExpectPosition()) {
+                        if (ExpectPositionLowerCase.contains(expectPosition.toLowerCase())) {
+                            flag = true;
+                            break;
+                        }
+                    }
+                    if (!flag) {
+                        log.info("AmResumeFilterUtil uid={} 期望的职位关键词不符合", resume.getUid());
+                        return false;
                     }
                 }
-                if (!flag) {
-                    log.info("AmResumeFilterUtil uid={} 期望的职位关键词不符合", resume.getUid());
-                    return false;
-                }
             }
+
 
         }
 
@@ -366,7 +371,7 @@ public class AmResumeFilterUtil {
         criteria.setExpectPosition(Collections.singletonList("数据"));
 //        criteria.setFilterPosition(Collections.singletonList("数据"));
 
-        System.out.println(filterResume(amResume, criteria));
+        System.out.println(filterResume(amResume, criteria,false));
 
         JSONObject conditions = new JSONObject();
         conditions.put("学历要求", criteria.getDegree() != null ? criteria.getDegree() : Collections.singletonList(-1));

@@ -91,7 +91,7 @@ public class AmAdminController extends HrAIBaseController {
         return amAdminManager.unbanAdmin(id, adminId);
     }
 
-    @ApiOperation("更新用户密码")
+    @ApiOperation("管理员更新用户密码")
     @VerifyUserToken
     @PostMapping("admin/update/password")
     public ResultVO updateAdminPassWord(@RequestBody @Valid UpdateAmAdminPasswordReq req) {
@@ -100,6 +100,14 @@ public class AmAdminController extends HrAIBaseController {
             return ResultVO.fail("密码不能为空");
         }
         return amAdminManager.updatePassword(req, adminId);
+    }
+
+    @ApiOperation("用户更新自己的密码")
+    @VerifyUserToken
+    @PostMapping("user/update/password")
+    public ResultVO userUpdatePassWord(@RequestBody @Valid UpdatePasswordReq req) {
+        Long adminId = getUserId();
+        return amAdminManager.userUpdatePassword(req, adminId);
     }
 
 //    @ApiOperation("更新用户角色")
@@ -114,8 +122,18 @@ public class AmAdminController extends HrAIBaseController {
     @VerifyUserToken
     @PostMapping("admin/update/info")
     public ResultVO updateAdminInfo(@RequestBody @Valid UpdateAmAdminInfoReq req) {
+        log.info("更新用户信息，req={}", JSONObject.toJSONString(req));
         Long adminId = getUserId();
         return amAdminManager.updateBaseInfo(req, adminId);
+    }
+
+    @ApiOperation("用户更新自己信息")
+    @VerifyUserToken
+    @PostMapping("user/update/info")
+    public ResultVO updateUserInfo(@RequestBody @Valid UpdateUserInfoReq req) {
+        log.info("用户更新自己信息，req={}", JSONObject.toJSONString(req));
+        Long adminId = getUserId();
+        return amAdminManager.updateUserInfo(req, adminId);
     }
 
 

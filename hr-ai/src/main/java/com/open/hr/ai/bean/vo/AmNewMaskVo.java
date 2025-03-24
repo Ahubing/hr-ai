@@ -184,6 +184,12 @@ public class AmNewMaskVo {
     @ApiModelProperty(value = "是否开启交换手机号")
     private Boolean openExchangePhone;
 
+    /**
+     * 交换附件简历
+     */
+    @ApiModelProperty(value = "是否交换附件简历")
+    private Boolean openExchangeAttachmentResume;
+
     @ApiModelProperty(value = "面试时段配置",required = true)
     private List<IcConfigVo> icConfigVos = new ArrayList<>();
 

@@ -12,6 +12,7 @@ import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotPositionManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -91,8 +92,9 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取组织架构")
     @VerifyUserToken
     @GetMapping("position/get_structures")
-    public ResultVO<List<AmPositionSectionVo>> getStructures(@RequestParam(value = "name", required = false) String name) {
-        return chatBotPositionManager.getStructures(getUserId(),name);
+    public ResultVO<List<AmPositionSectionVo>> getStructures(@RequestParam(value = "name", required = false) @ApiParam("部门名称") String name,
+                                                             @RequestParam(value = "positionPostName", required = false) @ApiParam("岗位名称") String positionPostName) {
+        return chatBotPositionManager.getStructures(getUserId(),name,positionPostName);
     }
 
 
@@ -151,9 +153,9 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("查询部门列表")
     @VerifyUserToken
     @GetMapping("position/get_section_list")
-    public ResultVO<List<AmPositionSection>> getSectionList() {
+    public ResultVO<List<AmPositionSection>> getSectionList(@RequestParam(value = "deptName",required = false) @ApiParam("部门名称") String deptName) {
         Long userId = getUserId();
-        return chatBotPositionManager.getSectionList(userId);
+        return chatBotPositionManager.getSectionList(userId,deptName);
     }
 
     @ApiOperation("新增/编辑部门")

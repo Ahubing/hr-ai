@@ -121,5 +121,10 @@ public class AmPosition implements Serializable {
      */
     private String jobStandard;
 
+    /**
+     * 城市
+     */
+    private String city;
+
 
 }

@@ -173,6 +173,13 @@ public class AmNewMaskUpdateReq {
     private Boolean openExchangePhone;
 
 
+    /**
+     * 交换附件简历
+     */
+    @ApiModelProperty(value = "是否交换附件简历")
+    private Boolean openExchangeAttachmentResume;
+
+
     @ApiModelProperty(value = "面试时段配置",required = true)
     private List<IcConfigUpdateReq> icConfigUpdateReqs = new ArrayList<>();
 

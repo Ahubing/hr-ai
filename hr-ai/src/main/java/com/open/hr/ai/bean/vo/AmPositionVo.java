@@ -145,6 +145,11 @@ public class AmPositionVo {
      */
     private JSONObject detail;
 
+    /**
+     * 城市
+     */
+    private String city;
+
 
     /**
      * 是否正在更改中 0否 1是

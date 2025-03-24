@@ -107,4 +107,10 @@ public class AddOrUpdateChatbotGreetConditionNew {
     @ApiModelProperty(value = "python,java",required = false,notes = "空为不限")
     private List<String> skills;
 
+    /**
+     * 是否开启打招呼特殊处理
+     */
+    @ApiModelProperty(value = "是否开启用户打招呼的时候不进行期望岗位的过滤,1开启, 0 关闭",required = false,notes = "是否开启用户打招呼的时候不进行期望岗位的过滤 系统默认开启为1")
+    private Integer greetHandle;
+
 }

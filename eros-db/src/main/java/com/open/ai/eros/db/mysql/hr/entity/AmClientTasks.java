@@ -81,4 +81,8 @@ public class AmClientTasks implements Serializable {
      */
     private Integer orderNumber;
 
+    /**
+     * 子类型,比如发消息有正常回话消息 也有 复聊任务消息
+     */
+    private String subType;
 }
