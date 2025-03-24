@@ -166,6 +166,7 @@ public class AmZpManager {
 
     public ResultVO getLoginQrcode(String bossId) {
         LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
         queryWrapper.eq(AmZpLocalAccouts::getId, bossId);
         AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
         if (zpLocalAccouts == null) {

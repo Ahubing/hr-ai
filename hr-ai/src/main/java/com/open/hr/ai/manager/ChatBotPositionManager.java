@@ -524,6 +524,7 @@ public class ChatBotPositionManager {
                 amPositionQueryWrapper.like(AmPosition::getBossId, req.getAccountId());
             } else {
                 LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
+                accoutsQueryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
                 accoutsQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(accoutsQueryWrapper);
                 List<String> bossIds = localAccouts.stream().map(AmZpLocalAccouts::getId).collect(Collectors.toList());
@@ -539,6 +540,7 @@ public class ChatBotPositionManager {
 
             LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
             accoutsQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
+            accoutsQueryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
             List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(accoutsQueryWrapper);
 
 

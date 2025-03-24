@@ -91,6 +91,7 @@ public class AmZpLocalAccountJob {
         if (lock.tryLock()) {
             try {
                 LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new QueryWrapper<AmZpLocalAccouts>().lambda();
+                queryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
                 queryWrapper.ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus());
                 List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list();
                 for (AmZpLocalAccouts localAccout : localAccouts) {
