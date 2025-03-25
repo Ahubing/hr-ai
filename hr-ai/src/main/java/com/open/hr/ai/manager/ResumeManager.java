@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,8 +104,9 @@ public class ResumeManager {
      * @return
      */
     public ResultVO<PageVO<AmResumeVo>> resumeList(Long adminId, Integer type, Integer post_id, String name,
-                                                   Integer page, Integer size, LocalDateTime startTime, LocalDateTime endTime,
-                                                   String expectPosition, String postName, Integer platformId, BigDecimal score) {
+                                                   Integer page, Integer size, LocalDate startTime, LocalDate endTime,
+                                                   String expectPosition, String postName, Integer platformId, BigDecimal score,
+                                                   Integer deptId, String deptName,Integer positionId, String positionName) {
         try {
             Page<AmResume> pageList = new Page<>(page, size);
 
@@ -125,7 +127,11 @@ public class ResumeManager {
             }
             queryWrapper.orderByDesc(AmResume::getCreateTime)
                         .like(StringUtils.isNotEmpty(expectPosition),AmResume::getExpectPosition,expectPosition)
-                        .like(StringUtils.isNotEmpty(postName),AmResume::getPosition,postName);
+                        .like(StringUtils.isNotEmpty(postName),AmResume::getPosition,postName)
+                        .eq(deptId != null,AmResume::getDeptId,deptId)
+                        .like(StringUtils.isNotEmpty(deptName),AmResume::getDeptName,deptName)
+                        .eq(positionId != null,AmResume::getPositionId,positionId)
+                        .like(StringUtils.isNotEmpty(positionName),AmResume::getPositionName,positionName);
 
             if(platformId != null){
                 AmZpPlatforms platforms = platformsService.getById(platformId);
@@ -139,8 +145,8 @@ public class ResumeManager {
                     queryWrapper.ge(AmResume::getScore,score);
                 }
             }
-            queryWrapper.ge(startTime != null,AmResume::getCreateTime,startTime)
-                        .le(endTime != null,AmResume::getCreateTime,endTime);
+            queryWrapper.ge(startTime != null,AmResume::getCreateTime,startTime.atStartOfDay())
+                        .le(endTime != null,AmResume::getCreateTime,endTime.plusDays(1).atStartOfDay());
             Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
             List<AmResumeVo> resumeVos = amResumePage.getRecords().stream().map(AmResumeConvert.I::convertAmResumeVo).collect(Collectors.toList());
             return ResultVO.success(PageVO.build(amResumePage.getTotal(), resumeVos));

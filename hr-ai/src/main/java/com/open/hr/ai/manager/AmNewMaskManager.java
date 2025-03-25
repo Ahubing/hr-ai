@@ -156,6 +156,8 @@ public class AmNewMaskManager {
         amNewMask.setAdminId(adminId);
         amNewMask.setAvatar(req.getAvatar());
         amNewMask.setGreetMessage(req.getGreetMessage());
+        amNewMask.setInterviewType(req.getInterviewType());
+        amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {
             log.info("updateNewMask error mask={}", JSONObject.toJSONString(amNewMask));

@@ -180,6 +180,13 @@ public class AmNewMaskUpdateReq {
     private Boolean openExchangeAttachmentResume;
 
 
+    @ApiModelProperty(value = "single-单面，group-群面",required = true)
+    private String interviewType;
+
+    @ApiModelProperty(value = "是否跳过节假日，1-是，2-否",required = true)
+    private Integer skipHolidayStatus;
+
+
     @ApiModelProperty(value = "面试时段配置",required = true)
     private List<IcConfigUpdateReq> icConfigUpdateReqs = new ArrayList<>();
 

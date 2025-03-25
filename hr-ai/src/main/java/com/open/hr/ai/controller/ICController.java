@@ -72,8 +72,9 @@ public class ICController extends HrAIBaseController {
     public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(@RequestParam(value = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam("开始日期") LocalDate startDate,
                                                         @RequestParam(value = "endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @ApiParam("截止日期") LocalDate endDate,
                                                         @RequestParam(value = "deptId",required = false) @ApiParam("部门id") Integer deptId,
-                                                        @RequestParam(value = "postId",required = false) @ApiParam("职位id") Integer postId) {
-        return icAiManager.getGroupDaysIC(getUserId(),startDate,endDate,deptId,postId);
+                                                        @RequestParam(value = "postId",required = false) @ApiParam("职位id") Integer postId,
+                                                        @RequestParam(value = "postName",required = false) @ApiParam("职位名称") String postName) {
+        return icAiManager.getGroupDaysIC(getUserId(),startDate,endDate,deptId,postId,postName);
     }
 
     @ApiOperation("分页查询所有面试")

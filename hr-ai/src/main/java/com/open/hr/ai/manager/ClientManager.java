@@ -55,6 +55,9 @@ public class ClientManager {
     private AmClientTasksServiceImpl amClientTasksService;
 
     @Resource
+    private AmPositionPostServiceImpl positionPostService;
+
+    @Resource
     private AmPositionSyncTaskServiceImpl amPositionSyncTaskService;
     @Resource
     private AmResumeServiceImpl amResumeService;
@@ -490,9 +493,24 @@ public class ClientManager {
                 amPositionSection.setAdminId(amZpLocalAccouts.getAdminId());
                 amPositionSectionService.save(amPositionSection);
             }
-
             //开始
             Integer sectionId = amPositionSection.getId();
+            String sectionName = amPositionSection.getName();
+
+            //查询岗位信息
+            LambdaQueryWrapper<AmPositionPost> postQueryWrapper = new LambdaQueryWrapper<>();
+            postQueryWrapper.eq(AmPositionPost::getSectionId, sectionId);
+            AmPositionPost amPositionPost = positionPostService.getOne(postQueryWrapper, false);
+            if (Objects.isNull(amPositionPost)) {
+                amPositionPost = new AmPositionPost();
+                amPositionPost.setName("默认");
+                amPositionPost.setSectionId(sectionId);
+                positionPostService.save(amPositionPost);
+            }
+            //岗位信息
+            Integer positionPostId = amPositionPost.getId();
+            String postName = amPositionPost.getName();
+
             // 同步结束
             amZpLocalAccouts.setIsSync(2);
 
@@ -543,6 +561,9 @@ public class ClientManager {
                         newAmPosition.setAdminId(amZpLocalAccouts.getAdminId());
                         newAmPosition.setName(jobName);
                         newAmPosition.setSectionId(sectionId);
+                        newAmPosition.setSectionName(sectionName);
+                        newAmPosition.setPostId(positionPostId);
+                        newAmPosition.setPostName(postName);
                         newAmPosition.setBossId(bossId);
                         newAmPosition.setUid(0);
                         newAmPosition.setChannel(amZpPlatforms.getId());
@@ -689,6 +710,10 @@ public class ClientManager {
                     if (Objects.nonNull(amPosition)) {
                         amResume.setPostId(amPosition.getId());
                         amResume.setPosition(amPosition.getName());
+                        amResume.setPositionId(amPosition.getPostId());
+                        amResume.setPositionName(amPosition.getPostName());
+                        amResume.setDeptId(amResume.getDeptId());
+                        amResume.setDeptName(amResume.getDeptName());
                         boolean result = amResumeService.updateById(amResume);
                         log.info("amResumeService update result={},amResume={}", result, amResume);
                     }
@@ -783,7 +808,12 @@ public class ClientManager {
 //            JSONObject showExpectPositionSONObject = resumeJSONObject.getJSONObject("showExpectPosition");
 //            JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
 //            JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
-            Integer positionId = 0;
+            Integer postId = 0;
+            String position = null;
+            Integer positionId = null;
+            String positionName = null;
+            Integer deptId = null;
+            String deptName = null;
             if (Objects.nonNull(chatInfoJSONObject.get("toPositionId"))) {
                 String toPositionId = chatInfoJSONObject.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
@@ -791,7 +821,12 @@ public class ClientManager {
                 positionQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
-                    positionId = amPositionServiceOne.getId();
+                    postId = amPositionServiceOne.getId();
+                    position = amPositionServiceOne.getName();
+                    positionId = amPositionServiceOne.getPostId();
+                    positionName = amPositionServiceOne.getPostName();
+                    deptId = amPositionServiceOne.getSectionId();
+                    deptName = amPositionServiceOne.getSectionName();
                 }
             }
 
@@ -816,7 +851,13 @@ public class ClientManager {
 
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
-                    amResume.setPostId(positionId);
+                    amResume.setPostId(postId);
+                    amResume.setPosition(position);
+                    amResume.setPositionId(positionId);
+                    amResume.setPositionName(positionName);
+                    amResume.setDeptId(deptId);
+                    amResume.setDeptName(deptName);
+
 
                     // ---- begin 从resume search_data数据结构提取数据 ----
                     amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
@@ -858,7 +899,12 @@ public class ClientManager {
                     log.info("dealUserAllInfoData result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
                 else {
-                    amResume.setPostId(positionId);
+                    amResume.setPostId(postId);
+                    amResume.setPosition(position);
+                    amResume.setPositionId(positionId);
+                    amResume.setPositionName(positionName);
+                    amResume.setDeptId(deptId);
+                    amResume.setDeptName(deptName);
                     amResume.setZpData(resumeJSONObject.toJSONString());
 
 

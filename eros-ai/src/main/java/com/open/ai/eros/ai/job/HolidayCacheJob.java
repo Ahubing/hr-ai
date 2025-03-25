@@ -8,6 +8,7 @@ import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.common.util.TimeUtil;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -67,7 +68,24 @@ public class HolidayCacheJob {
 
     // 初始化未来一个月holiday缓存
     private void flushHolidayCache() {
-        String jsonString = HttpUtil.get(CommonConstant.HOLIDAY_API_URL);
+        String jsonString = null;
+        //简单重试 todo 采用本地缓存+网络获取的形式
+        for (int i = 0; i < 10; i++) {
+            try {
+                jsonString = HttpUtil.get(CommonConstant.HOLIDAY_API_URL);
+                break;
+            }catch (Exception e){
+                log.error("获取节假日文件失败：{}",e.getMessage());
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException interruptedException) {
+                    interruptedException.printStackTrace();
+                }
+            }
+        }
+        if(StringUtils.isEmpty(jsonString)){
+            return;
+        }
         JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
         JsonObject holidays = json.getAsJsonObject("holidays");
         LocalDate now = LocalDate.now();

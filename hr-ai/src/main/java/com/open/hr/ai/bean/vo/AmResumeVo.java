@@ -227,6 +227,18 @@ public class AmResumeVo  {
     @ApiModelProperty(value = "分数")
     private BigDecimal score;
 
+    @ApiModelProperty(value = "部门名称")
+    private String deptName;
+
+    @ApiModelProperty(value = "部门id")
+    private Integer deptId;
+
+    @ApiModelProperty(value = "岗位名称")
+    private String positionName;
+
+    @ApiModelProperty(value = "岗位id")
+    private Integer positionId;
+
     /**
      * 1、 系统自动获取
      * 2、用户自定义上传

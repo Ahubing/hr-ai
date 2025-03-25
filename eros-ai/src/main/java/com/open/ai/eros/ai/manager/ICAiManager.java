@@ -361,15 +361,18 @@ public class ICAiManager {
     }
 
 
-    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, LocalDate startDate, LocalDate endDate, Integer deptId, Integer postId) {
+    public ResultVO<List<IcGroupDaysVo>> getGroupDaysIC(Long adminId, LocalDate startDate, LocalDate endDate, Integer deptId, Integer postId,String postName) {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
 
         //查询出管理员在时间范围内的所有面试
         List<IcRecord> icRecords = icRecordService.lambdaQuery()
                 .eq(IcRecord::getAdminId,adminId)
                 .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
-                .ge(IcRecord::getStartTime, startDate.atStartOfDay())
-                .lt(IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay())
+                .ge(startDate != null, IcRecord::getStartTime, startDate.atStartOfDay())
+                .lt(endDate != null, IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay())
+                .eq(deptId != null, IcRecord::getDeptId, deptId)
+                .eq(postId != null, IcRecord::getPositionId, postId)
+                .eq(StringUtils.isNotEmpty(postName), IcRecord::getPositionName, postName)
                 .ge(IcRecord::getStartTime,LocalDateTime.now())
                 .list();
         if(CollectionUtil.isEmpty(icRecords)){

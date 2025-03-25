@@ -125,7 +125,7 @@ public class AmResume implements Serializable {
     private String projects;
 
     /**
-     * 绑定的岗位id
+     * 绑定的职位id
      */
     private Integer postId;
 
@@ -210,6 +210,26 @@ public class AmResume implements Serializable {
      * 分数
      */
     private BigDecimal score;
+
+    /**
+     * 岗位id
+     */
+    private Integer positionId;
+
+    /**
+     * 岗位名称
+     */
+    private String positionName;
+
+    /**
+     * 部门id
+     */
+    private Integer deptId;
+
+    /**
+     * 部门名称
+     */
+    private String deptName;
 
     /**
      * @param newType 新状态
