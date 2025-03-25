@@ -550,7 +550,7 @@ public class AmChatBotGreetJob {
         jsonObject.put("message", messageObject);
         jsonObject.put("search_data", searchObject);
         if (StringUtils.isNotBlank(chatId)){
-            jsonObject.put("rechat_last_message_id", searchObject);
+            jsonObject.put("rechat_last_message_id", chatId);
         }
 
         jsonObject.put("rechat",true);

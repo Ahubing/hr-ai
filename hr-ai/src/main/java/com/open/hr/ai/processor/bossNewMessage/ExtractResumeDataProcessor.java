@@ -88,6 +88,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 if (Objects.nonNull(amPositionServiceOne)) {
                     // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
                     if (!Objects.equals(amPositionServiceOne.getId(), amResume.getPostId())){
+                        amResumeService.updateType(amResume, false, ReviewStatusEnums.RESUME_SCREENING);
                         // 重新发起请求
                         amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
 
@@ -98,6 +99,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                         boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
                         log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
                     }
+                    amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     amResume.setPostId(amPositionServiceOne.getId());
                     amResume.setPosition(amPositionServiceOne.getName());
                 }
