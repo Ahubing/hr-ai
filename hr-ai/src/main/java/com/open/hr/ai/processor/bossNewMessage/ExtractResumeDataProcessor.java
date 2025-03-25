@@ -4,13 +4,16 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.entity.AmChatMessage;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmChatMessageServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmPositionServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmResumeServiceImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.AmClientTaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -34,6 +37,10 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
 
     @Resource
     private AmPositionServiceImpl amPositionService;
+    @Resource
+    private AmChatMessageServiceImpl amChatMessageService;
+    @Resource
+    private AmClientTaskUtil amClientTaskUtil;
 
     /**
      * 根据聊天内容,用来提取用户手机和微信号
@@ -79,6 +86,20 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 positionQueryWrapper.eq(AmPosition::getBossId, amZpLocalAccouts.getId());
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
+                    // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
+                    if (!Objects.equals(amPositionServiceOne.getId(), amResume.getPostId())){
+                        amResumeService.updateType(amResume, false, ReviewStatusEnums.ABANDON);
+                        // 重新发起请求
+                        amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
+
+                        // 清空聊天记录
+                        LambdaQueryWrapper<AmChatMessage> amChatMessageLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                        String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
+                        amChatMessageLambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+                        boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
+                        log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
+                    }
+                    amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     amResume.setPostId(amPositionServiceOne.getId());
                     amResume.setPosition(amPositionServiceOne.getName());
                     amResume.setPositionId(amPositionServiceOne.getPostId());

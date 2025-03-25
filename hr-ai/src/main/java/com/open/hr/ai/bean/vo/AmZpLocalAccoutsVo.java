@@ -113,4 +113,9 @@ public class AmZpLocalAccoutsVo implements Serializable {
     private String extra;
 
 
+    /**
+     * 状态, -1为删除 1为正常
+     */
+    private Integer status;
+
 }

@@ -117,5 +117,10 @@ public class AmZpLocalAccouts implements Serializable {
      */
     private Integer logined;
 
+    /**
+     * 状态, -1为删除 1为正常
+     */
+    private Integer status;
+
 
 }

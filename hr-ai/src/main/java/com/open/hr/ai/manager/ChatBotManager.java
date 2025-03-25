@@ -101,7 +101,7 @@ public class ChatBotManager {
             AmZmLocalAccountsListVo amZmLocalAccountsListVo = new AmZmLocalAccountsListVo();
             LambdaQueryWrapper<AmZpLocalAccouts> lambdaQueryWrapper = new LambdaQueryWrapper<>();
             lambdaQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
-
+            lambdaQueryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
             lambdaQueryWrapper.orderByAsc(AmZpLocalAccouts::getId);
             List<AmZpLocalAccouts> localAccounts = amZpLocalAccoutsService.list(lambdaQueryWrapper);
             if (CollectionUtils.isEmpty(localAccounts)) {
@@ -152,6 +152,7 @@ public class ChatBotManager {
 
             LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
+            queryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
             queryWrapper.eq(AmZpLocalAccouts::getAccount, addOrUpdateAccountReq.getAccount());
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper);
             if (Objects.nonNull(zpLocalAccouts)) {
@@ -209,7 +210,16 @@ public class ChatBotManager {
 
     public ResultVO deleteAccount(String id) {
         try {
-            boolean result = amZpLocalAccoutsService.removeById(id);
+            AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(id);
+            if (Objects.isNull(amZpLocalAccouts)) {
+                return ResultVO.fail("账号不存在");
+            }
+            amZpLocalAccouts.setStatus(-1);
+            boolean result = amZpLocalAccoutsService.updateById(amZpLocalAccouts);
+            if (result){
+                //删除绑定的复聊任务 ai 面具
+                amChatbotPositionOptionService.remove(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, id));
+            }
             return result ? ResultVO.success("删除成功") : ResultVO.fail("删除失败");
         } catch (Exception e) {
             log.error("deleteAccount error", e);
@@ -408,6 +418,7 @@ public class ChatBotManager {
         try {
             LambdaQueryWrapper<AmZpLocalAccouts> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmZpLocalAccouts::getId, req.getAccountId());
+            queryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
             queryWrapper.ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus());
             AmZpLocalAccouts zpLocalAccouts = amZpLocalAccoutsService.getOne(queryWrapper, false);
             if (Objects.isNull(zpLocalAccouts)) {

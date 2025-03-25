@@ -190,6 +190,10 @@ public class AmChatBotGreetJob {
 
                     // 批量查询任务和职位
                     Set<Integer> taskIds = greetResults.stream().map(AmChatbotGreetResult::getTaskId).collect(Collectors.toSet());
+                    if (CollectionUtils.isEmpty(taskIds)) {
+                        log.info("复聊任务跳过: 账号:{},taskIds 为null 未找到打招呼的任务", accountId);
+                        continue;
+                    }
                     Map<Integer, AmChatbotGreetTask> taskMap = amChatbotGreetTaskService.lambdaQuery()
                             .in(AmChatbotGreetTask::getId, taskIds).list().stream()
                             .collect(Collectors.toMap(AmChatbotGreetTask::getId, task -> task));
@@ -324,6 +328,25 @@ public class AmChatBotGreetJob {
                         AmChatbotGreetConfig greetConfig = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                         if (greetConfig == null || greetConfig.getIsRechatOn() == 0) {
                             log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或 全部开关关闭中 或 未开启复聊 greetConfig={}", accountId, greetConfig);
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+                            continue;
+                        }
+
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
+                                .eq(AmChatbotPositionOption::getAccountId, accountId)
+                                .eq(AmChatbotPositionOption::getPositionId, amResume.getPostId())
+                                .one();
+
+                        if (positionOption != null) {
+                            Long amMaskId = positionOption.getAmMaskId();
+                            AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                            if (Objects.isNull(amNewMask)) {
+                                log.error("复聊任务处理失败,未找到对应的maskId:{}", amMaskId);
+                                jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+                                continue;
+                            }
+                        }else {
+                            log.info("复聊任务处理失败,未找到对应positionOption配置 bossId={},positionId={}",accountId,amResume.getPostId());
                             jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
@@ -476,7 +499,7 @@ public class AmChatBotGreetJob {
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
                         JSONObject messageObject = new JSONObject();
 //                        messageObject.put("content", GREET_MESSAGE);
-                        jsonObject.put("message", messageObject);
+
 
 
                         AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
@@ -487,13 +510,18 @@ public class AmChatBotGreetJob {
                         if (positionOption != null) {
                             Long amMaskId = positionOption.getAmMaskId();
                             AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
-                            if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage()))
+                            if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
                                 messageObject.put("content", amNewMask.getGreetMessage());
+                            }
+                        }else {
+                            log.info("打招呼任务追加消息失败,未找到对应的职位:{}", chatbotGreetTask.getPositionId());
                         }
+                        jsonObject.put("message", messageObject);
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
                         amClientTasks.setUpdateTime(LocalDateTime.now());
                         amClientTasksService.save(amClientTasks);
+                        log.info("打招呼任务处理结果  amClientTask={}",JSONObject.toJSONString(amClientTasks));
                     } catch (Exception e) {
                         log.error("打招呼任务处理失败,未找到打招呼的任务任务:{}", greetTask);
                     }
@@ -522,7 +550,7 @@ public class AmChatBotGreetJob {
         jsonObject.put("message", messageObject);
         jsonObject.put("search_data", searchObject);
         if (StringUtils.isNotBlank(chatId)){
-            jsonObject.put("rechat_last_message_id", searchObject);
+            jsonObject.put("rechat_last_message_id", chatId);
         }
 
         jsonObject.put("rechat",true);
