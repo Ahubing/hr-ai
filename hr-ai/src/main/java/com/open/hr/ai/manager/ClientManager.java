@@ -928,7 +928,6 @@ public class ClientManager {
 //                        boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
 //                        log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
 //                    }
-                    amResume.setPostId(positionId);
                     amResume.setZpData(resumeJSONObject.toJSONString());
 
 
@@ -1162,9 +1161,6 @@ public class ClientManager {
             return ResultVO.fail(404, "找不到职位");
         }
 
-
-
-
         LambdaQueryWrapper<AmChatbotGreetConditionNew> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, amPositionServiceOne.getId());
         lambdaQueryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, bossId);
@@ -1179,6 +1175,10 @@ public class ClientManager {
 
         amResume.setPostId(amPositionServiceOne.getId());
         amResume.setPosition(amPositionServiceOne.getName());
+        amResume.setPositionId(amPositionServiceOne.getPostId());
+        amResume.setPositionName(amPositionServiceOne.getPostName());
+        amResume.setDeptId(amPositionServiceOne.getSectionId());
+        amResume.setDeptName(amPositionServiceOne.getSectionName());
         amResume.setAdminId(amZpLocalAccouts.getAdminId());
         amResume.setAccountId(amZpLocalAccouts.getId());
 
