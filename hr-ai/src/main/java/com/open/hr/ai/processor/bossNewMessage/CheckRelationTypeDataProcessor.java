@@ -12,6 +12,7 @@ import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.AmClientTaskUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,7 +40,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
 
 
     @Resource
-    private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
+    private AmClientTaskUtil amClientTaskUtil;
     @Resource
     private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
     @Resource
@@ -63,6 +64,10 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
     @Override
     public ResultVO dealBossNewMessage(AtomicInteger statusCode, String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
 
+        if (statusCode.get() == 1){
+            log.info("用户:{} 主动打招呼,其他流程已经完成拦截请求", req.getUser_id());
+            return ResultVO.success();
+        }
 
         log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(), amResume, amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
@@ -84,7 +89,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             statusCode.set(1);
-            replyUserMessageDataProcessor.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
+            amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
             replyUserMessageDataProcessor.dealReChatTask( amResume,amZpLocalAccouts);
             log.info("用户:{} 主动打招呼,没有用户信息, 需要拦截本次请求, ", req.getUser_id());
         }

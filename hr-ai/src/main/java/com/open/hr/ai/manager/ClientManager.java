@@ -20,6 +20,7 @@ import com.open.hr.ai.bean.vo.SlackOffVo;
 import com.open.hr.ai.constant.*;
 import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
+import com.open.hr.ai.util.AmClientTaskUtil;
 import com.open.hr.ai.util.AmResumeFilterUtil;
 import com.open.hr.ai.util.DealUserFirstSendMessageUtil;
 import com.open.hr.ai.util.TimeToDecimalConverter;
@@ -84,7 +85,7 @@ public class ClientManager {
     private AmNewMaskServiceImpl amNewMaskService;
 
     @Resource
-    private AmChatbotOptionsServiceImpl amChatbotOptionsService;
+    private AmClientTaskUtil amClientTaskUtil;
 
     @Resource
     private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
@@ -869,6 +870,17 @@ public class ClientManager {
                     log.info("dealUserAllInfoData result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
                 else {
+                    // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
+//                    if (!Objects.equals(positionId, amResume.getPostId())){
+//                        // 重新发起请求
+//                        amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
+//                        // 清空聊天记录
+//                        LambdaQueryWrapper<AmChatMessage> amChatMessageLambdaQueryWrapper = new LambdaQueryWrapper<>();
+//                        String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
+//                        amChatMessageLambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+//                        boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
+//                        log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
+//                    }
                     amResume.setPostId(positionId);
                     amResume.setZpData(resumeJSONObject.toJSONString());
 
@@ -1117,6 +1129,9 @@ public class ClientManager {
         }
         JSONObject searchData = resumeObject.getJSONObject("search_data");
         AmResume amResume = new AmResume();
+
+        amResume.setPostId(amPositionServiceOne.getId());
+        amResume.setPosition(amPositionServiceOne.getName());
         amResume.setAdminId(amZpLocalAccouts.getAdminId());
         amResume.setAccountId(amZpLocalAccouts.getId());
 

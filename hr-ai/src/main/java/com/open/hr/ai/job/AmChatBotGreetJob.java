@@ -332,6 +332,25 @@ public class AmChatBotGreetJob {
                             continue;
                         }
 
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
+                                .eq(AmChatbotPositionOption::getAccountId, accountId)
+                                .eq(AmChatbotPositionOption::getPositionId, amResume.getPostId())
+                                .one();
+
+                        if (positionOption != null) {
+                            Long amMaskId = positionOption.getAmMaskId();
+                            AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                            if (Objects.isNull(amNewMask)) {
+                                log.error("复聊任务处理失败,未找到对应的maskId:{}", amMaskId);
+                                jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+                                continue;
+                            }
+                        }else {
+                            log.info("复聊任务处理失败,未找到对应positionOption配置 bossId={},positionId={}",accountId,amResume.getPostId());
+                            jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+                            continue;
+                        }
+
                         String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
 
                         // 查询今天是否已经回复过消息

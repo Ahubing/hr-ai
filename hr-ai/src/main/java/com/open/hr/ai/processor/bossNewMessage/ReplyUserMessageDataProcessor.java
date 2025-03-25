@@ -20,6 +20,7 @@ import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.AiReplyPromptUtil;
+import com.open.hr.ai.util.AmClientTaskUtil;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
@@ -88,6 +89,8 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
     @Resource
     private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
 
+    @Resource
+    private AmClientTaskUtil amClientTaskUtil;
     @Resource
     private JedisClientImpl jedisClient;
 
@@ -462,46 +465,12 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             if (Objects.nonNull(openExchangeAttachmentResume) && openExchangeAttachmentResume){
-                buildRequestTask(amZpLocalAccouts, uid, amResume,true);
+                amClientTaskUtil.buildRequestTask(amZpLocalAccouts, uid, amResume,true);
                 log.info("用户:{} 主动打招呼,请求用户附件简历信息", uid);
             }
-//            else {
-//                buildRequestTask(amZpLocalAccouts, uid, amResume,false);
-//            }
-//            dealReChatTask(amResume,amZpLocalAccouts);
         }else {
             log.info("用户:{} 主动打招呼,请求用户附件简历信息,但是已经存在请求信息任务,taskId={}", uid,tasksServiceOne.getId());
         }
-    }
-
-
-    public void buildRequestTask(AmZpLocalAccouts amZpLocalAccouts, Integer uid, AmResume amResume,Boolean needAttachmentResume) {
-        AmClientTasks amClientTasks = new AmClientTasks();
-        amClientTasks.setBossId(amZpLocalAccouts.getId());
-        amClientTasks.setTaskType(ClientTaskTypeEnums.REQUEST_INFO.getType());
-        amClientTasks.setOrderNumber(ClientTaskTypeEnums.REQUEST_INFO.getOrder());
-        HashMap<String, Object> hashMap = new HashMap<>();
-        HashMap<String, Object> searchDataMap = new HashMap<>();
-        hashMap.put("user_id", uid);
-        if (needAttachmentResume) {
-            hashMap.put("info_type", Collections.singletonList("attachment_resume"));
-        }else {
-            //空数组
-            hashMap.put("info_type", Collections.emptyList());
-        }
-        if (Objects.nonNull(amResume.getEncryptGeekId())) {
-            searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
-        }
-        if (StringUtils.isNotBlank(amResume.getName())) {
-            searchDataMap.put("name", amResume.getName());
-        }
-
-        hashMap.put("search_data", searchDataMap);
-        amClientTasks.setData(JSONObject.toJSONString(hashMap));
-        amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
-        amClientTasks.setCreateTime(LocalDateTime.now());
-        amClientTasks.setUpdateTime(LocalDateTime.now());
-        amClientTasksService.save(amClientTasks);
     }
 
 
