@@ -1151,6 +1151,7 @@ public class ClientManager {
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setZpData(resumeObject.toJSONString());
         Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,isGreet);
+
         if (isGreet && result) {
             // 根据bossId 和uid 查询任务是否存在, 不存在则插入
             LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
@@ -1205,33 +1206,31 @@ public class ClientManager {
                         boolean save = amChatMessageService.save(amChatMessage);
                         log.info("过滤简历, 生成聊天记录结果 amChatMessage={} result={}", JSONObject.toJSONString(amChatMessage), save);
                     }
-
-                }
-                // 处理复聊任务
-                AmChatbotGreetResult amChatbotGreetResult = new AmChatbotGreetResult();
-                amChatbotGreetResult.setRechatItem(0);
-                amChatbotGreetResult.setSuccess(1);
-                amChatbotGreetResult.setAccountId(bossId);
-                amChatbotGreetResult.setCreateTime(LocalDateTime.now());
-                amChatbotGreetResult.setTaskId(Integer.parseInt(greetId));
-                amChatbotGreetResult.setUserId(amResume.getUid());
-                boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
-                log.info("filterAmResume saveResult={},amChatbotGreetResult={}", saveResult, amChatbotGreetResult);
-                // 查询第一天的复聊任务
-                List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
-                if (Objects.nonNull(amChatbotOptionsItems) &&  !amChatbotOptionsItems.isEmpty()) {
-                    log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
-                    for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
-                        // 处理复聊任务, 存入队列里面, 用于定时任务处理
-                        amChatbotGreetResult.setRechatItem(amChatbotOptionsItem.getId());
-                        amChatbotGreetResult.setTaskId(amChatbotGreetTask.getId());
-                        amChatbotGreetResultService.updateById(amChatbotGreetResult);
-                        Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime()) * 1000L;
-                        Long zadd = jedisClient.zadd(RedisKyeConstant.AmChatBotReChatTask, operateTime, JSONObject.toJSONString(amChatbotGreetResult));
-                        log.info("复聊任务处理开始, 账号:{}, 复聊任务添加结果:{}", amZpLocalAccouts.getId(), zadd);
+                    // 处理复聊任务
+                    AmChatbotGreetResult amChatbotGreetResult = new AmChatbotGreetResult();
+                    amChatbotGreetResult.setRechatItem(0);
+                    amChatbotGreetResult.setSuccess(1);
+                    amChatbotGreetResult.setAccountId(bossId);
+                    amChatbotGreetResult.setCreateTime(LocalDateTime.now());
+                    amChatbotGreetResult.setTaskId(Integer.parseInt(greetId));
+                    amChatbotGreetResult.setUserId(amResume.getUid());
+                    boolean saveResult = amChatbotGreetResultService.save(amChatbotGreetResult);
+                    log.info("filterAmResume saveResult={},amChatbotGreetResult={}", saveResult, amChatbotGreetResult);
+                    // 查询第一天的复聊任务
+                    List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
+                    if (Objects.nonNull(amChatbotOptionsItems) &&  !amChatbotOptionsItems.isEmpty()) {
+                        for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
+                            // 处理复聊任务, 存入队列里面, 用于定时任务处理
+                            amChatbotGreetResult.setRechatItem(amChatbotOptionsItem.getId());
+                            amChatbotGreetResult.setTaskId(amChatbotGreetTask.getId());
+                            amChatbotGreetResultService.updateById(amChatbotGreetResult);
+                            Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime()) * 1000L;
+                            Long zadd = jedisClient.zadd(RedisKyeConstant.AmChatBotReChatTask, operateTime, JSONObject.toJSONString(amChatbotGreetResult));
+                            log.info("复聊任务处理开始, 账号:{}, 复聊任务添加结果:{}", amZpLocalAccouts.getId(), zadd);
+                        }
+                    }else {
+                        log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
                     }
-                }else {
-                    log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
                 }
             }
         }
