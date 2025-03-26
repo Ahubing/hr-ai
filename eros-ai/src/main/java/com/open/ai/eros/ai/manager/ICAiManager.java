@@ -391,8 +391,17 @@ public class ICAiManager {
 
             for (IcRecord morningRecord : morningRecords) {
                 AmPosition position = positionService.getById(morningRecord.getPositionId());
+                if(position == null){
+                    continue;
+                }
                 AmPositionPost positionPost = postService.getById(position.getPostId());
+                if(positionPost == null){
+                    continue;
+                }
                 AmPositionSection section = sectionService.getById(positionPost.getSectionId());
+                if(section == null){
+                    continue;
+                }
                 String deptName = section.getName();
                 if(StringUtils.isEmpty(deptName)){
                     continue;
@@ -408,8 +417,17 @@ public class ICAiManager {
 
             for (IcRecord afternoonRecord : afternoonRecords) {
                 AmPosition position = positionService.getById(afternoonRecord.getPositionId());
+                if(position == null){
+                    continue;
+                }
                 AmPositionPost positionPost = postService.getById(position.getPostId());
+                if(positionPost == null){
+                    continue;
+                }
                 AmPositionSection section = sectionService.getById(positionPost.getSectionId());
+                if(section == null){
+                    continue;
+                }
                 String deptName = section.getName();
                 if(StringUtils.isEmpty(deptName)){
                     continue;
