@@ -26,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -231,31 +233,76 @@ public class ChatBotPositionManager {
      * @param adminId
      * @return
      */
-    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name,String positionPostName) {
+    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name) {
         try {
+
+            List<AmPositionSectionVo> amPositionSectionVos = new ArrayList<>();
+
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmPositionSection::getAdminId, adminId);
-            if (StringUtils.isNotBlank(name)) {
-                queryWrapper.like(AmPositionSection::getName, name);
-            }
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
-            List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
-            for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos) {
-                LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
-                lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSectionVo.getId())
-                                  .like(StringUtils.isNotEmpty(positionPostName),AmPositionPost::getName, positionPostName);
-                List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
-                amPositionSectionVo.setPost_list(amPositionPosts);
+            List<AmPositionPost> amPositionPosts = amPositionPostService.list();
+
+            if(StringUtils.isEmpty(name)){
+                amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
+                for (AmPositionSectionVo amPositionSection : amPositionSectionVos) {
+                    amPositionSection.setPost_list(amPositionPosts.stream().filter(amPositionPost ->
+                            amPositionPost.getSectionId().equals(amPositionSection.getId())).collect(Collectors.toList()));
+                }
+                return ResultVO.success(amPositionSectionVos);
             }
-            if(StringUtils.isNotEmpty(positionPostName) && CollectionUtils.isNotEmpty(amPositionSectionVos)){
-                List<AmPositionSectionVo> sectionVos = amPositionSectionVos.stream()
-                        .filter(vo -> CollectionUtils.isNotEmpty(vo.getPost_list())).collect(Collectors.toList());
-                return ResultVO.success(sectionVos);
+
+            if(CollectionUtils.isNotEmpty(amPositionSections)){
+                List<AmPositionSection> sections = amPositionSections.stream()
+                        .filter(amPositionSection -> amPositionSection.getName().contains(name)).collect(Collectors.toList());
+                List<AmPositionSectionVo> sectionVos = sections.stream()
+                        .map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
+                for (AmPositionSectionVo amPositionSectionVo : sectionVos) {
+                    if(CollectionUtils.isNotEmpty(amPositionPosts)){
+                        amPositionSectionVo.setPost_list(amPositionPosts.stream().filter(amPositionPost ->
+                                amPositionPost.getSectionId().equals(amPositionSectionVo.getId())).collect(Collectors.toList()));
+                        amPositionSectionVos.add(amPositionSectionVo);
+                    }
+                }
+            }
+
+            if(CollectionUtils.isNotEmpty(amPositionPosts)){
+                List<AmPositionPost> posts = amPositionPosts.stream().filter(amPositionPost -> amPositionPost.getName().contains(name)).collect(Collectors.toList());
+                if(CollectionUtils.isNotEmpty(posts)){
+                    for (AmPositionPost post : posts){
+                        boolean flag = false;
+                        for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos){
+                            if(post.getSectionId().equals(amPositionSectionVo.getId())){
+                                List<AmPositionPost> postList = amPositionSectionVo.getPost_list();
+                                if(CollectionUtils.isNotEmpty(postList)){
+                                    postList.add(post);
+                                    amPositionSectionVo.setPost_list(postList);
+                                }else{
+                                    List<AmPositionPost> positionPost = new ArrayList<>();
+                                    positionPost.add(post);
+                                    amPositionSectionVo.setPost_list(positionPost);
+                                }
+                                flag = true;
+                            }
+                        }
+                        if(!flag){
+                            if(CollectionUtils.isNotEmpty(amPositionSections)){
+                                AmPositionSection section = amPositionSections.stream()
+                                        .filter(amPositionSection -> amPositionSection.getId().equals(post.getSectionId())).findFirst().orElse(null);
+                                if(section != null){
+                                    AmPositionSectionVo sectionVo = AmPositionSetionConvert.I.converAmPositionSectionVo(section);
+                                    sectionVo.setPost_list(Collections.singletonList(post));
+                                    amPositionSectionVos.add(sectionVo);
+                                }
+                            }
+                        }
+                    }
+                }
             }
             return ResultVO.success(amPositionSectionVos);
         } catch (Exception e) {
             log.error("获取失败 adminId={}", adminId, e);
-            return ResultVO.fail("系统异常,更新失败");
+            return ResultVO.fail("系统异常,部门岗位信息获取失败");
         }
     }
 
