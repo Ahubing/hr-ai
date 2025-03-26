@@ -444,10 +444,10 @@ public class ChatBotPositionManager {
                 return ResultVO.fail("职位不存在");
             }
             AmPositionVo amPositionVo = AmPositionConvert.I.converAmPositionVo(amPosition);
-            AmPositionSection section = amPositionSectionService.getById(amPosition.getSectionId());
-            if (Objects.isNull(section)) {
-                return ResultVO.fail("部门不存在, 请先去建立部门");
-            }
+//            AmPositionSection section = amPositionSectionService.getById(amPosition.getSectionId());
+//            if (Objects.isNull(section)) {
+//                return ResultVO.fail("部门不存在, 请先去建立部门");
+//            }
             MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
             if (Objects.isNull(miniUniUser)) {
                 return ResultVO.fail("招聘用户不存在");
@@ -456,7 +456,7 @@ public class ChatBotPositionManager {
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail("boss账号不存在");
             }
-            amPositionVo.setSection(section.getName());
+//            amPositionVo.setSection(section.getName());
             amPositionVo.setDetail(JSONObject.parseObject(amPosition.getExtendParams()));
             amPositionVo.setUserName(miniUniUser.getName());
             amPositionVo.setChannelName("BOSS直聘");
@@ -490,9 +490,9 @@ public class ChatBotPositionManager {
             // 查询未删除的数据
             amPositionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
 
-            if (Objects.nonNull(req.getSectionId())) {
-                amPositionQueryWrapper.eq(AmPosition::getSectionId, req.getSectionId());
-            }
+//            if (Objects.nonNull(req.getSectionId())) {
+//                amPositionQueryWrapper.eq(AmPosition::getSectionId, req.getSectionId());
+//            }
             if (Objects.nonNull(req.getStatus())) {
                 amPositionQueryWrapper.like(AmPosition::getStatus, req.getStatus());
             }
@@ -505,9 +505,9 @@ public class ChatBotPositionManager {
             if (Objects.nonNull(req.getChannel())) {
                 amPositionQueryWrapper.like(AmPosition::getChannel, req.getChannel());
             }
-            if (Objects.nonNull(req.getSectionId())) {
-                amPositionQueryWrapper.like(AmPosition::getSectionId, req.getSectionId());
-            }
+//            if (Objects.nonNull(req.getSectionId())) {
+//                amPositionQueryWrapper.like(AmPosition::getSectionId, req.getSectionId());
+//            }
             if (Objects.nonNull(req.getPositionId())) {
                 amPositionQueryWrapper.like(AmPosition::getPostId, req.getPositionId());
             }

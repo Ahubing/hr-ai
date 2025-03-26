@@ -40,24 +40,9 @@ public class AmPosition implements Serializable {
     private String name;
 
     /**
-     * 部门id
-     */
-    private Integer sectionId;
-
-    /**
-     * 部门名称
-     */
-    private String sectionName;
-
-    /**
      * 岗位id
      */
     private Integer postId;
-
-    /**
-     * 岗位名称
-     */
-    private String postName;
 
     /**
      * 用户id，招聘人员的id

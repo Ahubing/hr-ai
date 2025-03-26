@@ -101,11 +101,6 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                     }
                     amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     amResume.setPostId(amPositionServiceOne.getId());
-                    amResume.setPosition(amPositionServiceOne.getName());
-                    amResume.setPositionId(amPositionServiceOne.getPostId());
-                    amResume.setPositionName(amPositionServiceOne.getPostName());
-                    amResume.setDeptId(amPositionServiceOne.getSectionId());
-                    amResume.setDeptName(amPositionServiceOne.getSectionName());
                 }
             }
             boolean result = amResumeService.updateById(amResume);
@@ -133,11 +128,6 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
                     amResume.setPostId(amPositionServiceOne.getId());
-                    amResume.setPosition(amPositionServiceOne.getName());
-                    amResume.setPositionId(amPositionServiceOne.getPostId());
-                    amResume.setPositionName(amPositionServiceOne.getPostName());
-                    amResume.setDeptId(amPositionServiceOne.getSectionId());
-                    amResume.setDeptName(amPositionServiceOne.getSectionName());
                 }
             }
 

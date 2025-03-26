@@ -33,7 +33,7 @@ public class AmPositionPost implements Serializable {
     private Integer sectionId;
 
     /**
-     * 部门名称
+     * 岗位名称
      */
     private String name;
 

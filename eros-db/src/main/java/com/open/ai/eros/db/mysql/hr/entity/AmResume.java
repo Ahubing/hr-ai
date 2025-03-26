@@ -81,11 +81,6 @@ public class AmResume implements Serializable {
     private String city;
 
     /**
-     * 应聘职位
-     */
-    private String  position;
-
-    /**
      * 期望职位
      */
     private String expectPosition;
@@ -100,8 +95,6 @@ public class AmResume implements Serializable {
      * 平台，来源
      */
     private String platform;
-
-
 
     /**
      * 教育学历
@@ -129,14 +122,11 @@ public class AmResume implements Serializable {
      */
     private Integer postId;
 
-
-
     /**
      * 申请状态
      */
     @TableField("applyStatus")
     private String applyStatus;
-
 
 
     /**
@@ -210,26 +200,6 @@ public class AmResume implements Serializable {
      * 分数
      */
     private BigDecimal score;
-
-    /**
-     * 岗位id
-     */
-    private Integer positionId;
-
-    /**
-     * 岗位名称
-     */
-    private String positionName;
-
-    /**
-     * 部门id
-     */
-    private Integer deptId;
-
-    /**
-     * 部门名称
-     */
-    private String deptName;
 
     /**
      * @param newType 新状态

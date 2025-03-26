@@ -63,6 +63,9 @@ public class ICAiManager {
     private AmPositionServiceImpl positionService;
 
     @Resource
+    private AmPositionPostServiceImpl postService;
+
+    @Resource
     private AmResumeServiceImpl resumeService;
 
     @Resource
@@ -214,13 +217,6 @@ public class ICAiManager {
                 BeanUtils.copyProperties(req, icRecord);
                 icRecord.setInterviewType(newMask.getInterviewType());
                 icRecord.setCancelStatus(InterviewStatusEnum.NOT_CANCEL.getStatus());
-                AmPosition position = positionService.getById(req.getPositionId());
-                icRecord.setPositionName(position == null ? "" : position.getName());
-                if(position != null){
-                    AmPositionSection section = sectionService.getById(position.getSectionId());
-                    icRecord.setDeptId(section == null ? null : section.getId());
-                    icRecord.setDeptName(section == null ? "" : section.getName());
-                }
                 List<AmResume> resumes = resumeService.list(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, req.getEmployeeUid()));
                 if(CollectionUtil.isNotEmpty(resumes)){
                     AmResume amResume = resumes.get(0);
@@ -365,20 +361,25 @@ public class ICAiManager {
         List<IcGroupDaysVo> icGroupDaysVos = new ArrayList<>();
 
         //查询出管理员在时间范围内的所有面试
-        List<IcRecord> icRecords = icRecordService.lambdaQuery()
-                .eq(IcRecord::getAdminId,adminId)
-                .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
-                .ge(startDate != null, IcRecord::getStartTime, startDate.atStartOfDay())
-                .lt(endDate != null, IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay())
-                .eq(deptId != null, IcRecord::getDeptId, deptId)
-                .eq(postId != null, IcRecord::getPositionId, postId)
-                .eq(StringUtils.isNotEmpty(postName), IcRecord::getPositionName, postName)
-                .ge(IcRecord::getStartTime,LocalDateTime.now())
-                .list();
+        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IcRecord::getAdminId,adminId)
+                    .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
+                    .eq(postId != null, IcRecord::getPositionId, postId)
+                    .ge(IcRecord::getStartTime,LocalDateTime.now());
+        if(startDate != null){
+            queryWrapper.ge(IcRecord::getStartTime, startDate.atStartOfDay());
+        }
+        if(endDate != null){
+            queryWrapper.le(IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay());
+        }
+        List<IcRecord> icRecords = icRecordService.lambdaQuery().list();
         if(CollectionUtil.isEmpty(icRecords)){
             icRecords = new ArrayList<>();
         }
 
+
+        assert startDate != null;
+        assert endDate != null;
         while (!startDate.isAfter(endDate)){
             LocalDate date = startDate;
             LocalDateTime middleTime = LocalDateTime.of(date.getYear(), date.getMonthValue(), date.getDayOfMonth(), 12, 0, 0);
@@ -389,7 +390,10 @@ public class ICAiManager {
                             !record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
             for (IcRecord morningRecord : morningRecords) {
-                String deptName = morningRecord.getDeptName();
+                AmPosition position = positionService.getById(morningRecord.getPositionId());
+                AmPositionPost positionPost = postService.getById(position.getPostId());
+                AmPositionSection section = sectionService.getById(positionPost.getSectionId());
+                String deptName = section.getName();
                 if(StringUtils.isEmpty(deptName)){
                     continue;
                 }
@@ -403,7 +407,10 @@ public class ICAiManager {
                             record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
             for (IcRecord afternoonRecord : afternoonRecords) {
-                String deptName = afternoonRecord.getDeptName();
+                AmPosition position = positionService.getById(afternoonRecord.getPositionId());
+                AmPositionPost positionPost = postService.getById(position.getPostId());
+                AmPositionSection section = sectionService.getById(positionPost.getSectionId());
+                String deptName = section.getName();
                 if(StringUtils.isEmpty(deptName)){
                     continue;
                 }
@@ -445,12 +452,9 @@ public class ICAiManager {
         LocalDateTime endTime = req.getEndTime();
         queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
                 .like(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
-                .like(StringUtils.isNotEmpty(deptName),IcRecord::getDeptName,deptName)
                 .like(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
-                .like(StringUtils.isNotEmpty(postName),IcRecord::getPositionName,postName)
                 .like(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
                 .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
-                .eq(deptId != null,IcRecord::getDeptId,deptId)
                 .eq(postId != null,IcRecord::getPositionId,postId)
                 .eq(StringUtils.isNotEmpty(employeeUid),IcRecord::getEmployeeUid,employeeUid)
                 .ge(startTime != null,IcRecord::getStartTime,startTime)

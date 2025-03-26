@@ -84,16 +84,6 @@ public class IcRecord implements Serializable {
     private Long positionId;
 
     /**
-     * 职位名称
-     */
-    private String positionName;
-
-    /**
-     * 部门名称
-     */
-    private String deptName;
-
-    /**
      * 应聘者姓名
      */
     private String employeeName;
@@ -108,11 +98,6 @@ public class IcRecord implements Serializable {
      * 账号
      */
     private String account;
-
-    /**
-     * 部门id
-     */
-    private Integer deptId;
 
     /**
      * 平台id

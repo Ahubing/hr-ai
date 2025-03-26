@@ -561,10 +561,7 @@ public class ClientManager {
                         AmPosition newAmPosition = new AmPosition();
                         newAmPosition.setAdminId(amZpLocalAccouts.getAdminId());
                         newAmPosition.setName(jobName);
-                        newAmPosition.setSectionId(sectionId);
-                        newAmPosition.setSectionName(sectionName);
                         newAmPosition.setPostId(positionPostId);
-                        newAmPosition.setPostName(postName);
                         newAmPosition.setBossId(bossId);
                         newAmPosition.setUid(0);
                         newAmPosition.setChannel(amZpPlatforms.getId());
@@ -716,11 +713,6 @@ public class ClientManager {
                     // 如果岗位不为空,则更新简历的岗位名称
                     if (Objects.nonNull(amPosition)) {
                         amResume.setPostId(amPosition.getId());
-                        amResume.setPosition(amPosition.getName());
-                        amResume.setPositionId(amPosition.getPostId());
-                        amResume.setPositionName(amPosition.getPostName());
-                        amResume.setDeptId(amResume.getDeptId());
-                        amResume.setDeptName(amResume.getDeptName());
                         boolean result = amResumeService.updateById(amResume);
                         log.info("amResumeService update result={},amResume={}", result, amResume);
                     }
@@ -821,11 +813,6 @@ public class ClientManager {
 //            JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
 //            JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
             Integer postId = 0;
-            String position = null;
-            Integer positionId = null;
-            String positionName = null;
-            Integer deptId = null;
-            String deptName = null;
             if (Objects.nonNull(chatInfoJSONObject.get("toPositionId"))) {
                 String toPositionId = chatInfoJSONObject.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
@@ -834,11 +821,6 @@ public class ClientManager {
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
                     postId = amPositionServiceOne.getId();
-                    position = amPositionServiceOne.getName();
-                    positionId = amPositionServiceOne.getPostId();
-                    positionName = amPositionServiceOne.getPostName();
-                    deptId = amPositionServiceOne.getSectionId();
-                    deptName = amPositionServiceOne.getSectionName();
                 }
             }
 
@@ -864,11 +846,6 @@ public class ClientManager {
                     amResume.setZpData(resumeJSONObject.toJSONString());
                     amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
                     amResume.setPostId(postId);
-                    amResume.setPosition(position);
-                    amResume.setPositionId(positionId);
-                    amResume.setPositionName(positionName);
-                    amResume.setDeptId(deptId);
-                    amResume.setDeptName(deptName);
 
 
                     // ---- begin 从resume search_data数据结构提取数据 ----
@@ -912,11 +889,6 @@ public class ClientManager {
                 }
                 else {
                     amResume.setPostId(postId);
-                    amResume.setPosition(position);
-                    amResume.setPositionId(positionId);
-                    amResume.setPositionName(positionName);
-                    amResume.setDeptId(deptId);
-                    amResume.setDeptName(deptName);
                     // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
 //                    if (!Objects.equals(positionId, amResume.getPostId())){
 //                        // 重新发起请求
@@ -1174,11 +1146,6 @@ public class ClientManager {
         AmResume amResume = new AmResume();
 
         amResume.setPostId(amPositionServiceOne.getId());
-        amResume.setPosition(amPositionServiceOne.getName());
-        amResume.setPositionId(amPositionServiceOne.getPostId());
-        amResume.setPositionName(amPositionServiceOne.getPostName());
-        amResume.setDeptId(amPositionServiceOne.getSectionId());
-        amResume.setDeptName(amPositionServiceOne.getSectionName());
         amResume.setAdminId(amZpLocalAccouts.getAdminId());
         amResume.setAccountId(amZpLocalAccouts.getId());
 
