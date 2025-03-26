@@ -496,6 +496,8 @@ public class ChatBotPositionManager {
 
             List<AmPositionVo> amPositionVos = iPage.getRecords();
             for (AmPositionVo amPositionVo : amPositionVos) {
+                amPositionVo.setExtendParams(JSONObject.parseObject(amPositionVo.getExtendParamsStr()));
+                amPositionVo.setJobStandard(JSONObject.parseObject(amPositionVo.getJobStandardStr()));
                 MiniUniUser miniUniUser = miniUniUserService.getById(amPositionVo.getUid());
                 if (Objects.isNull(miniUniUser)) {
                     continue;

@@ -104,6 +104,11 @@ public class AmPositionVo {
     private String amDescribe;
 
     /**
+     * 拓展字段jobStandardStr
+     */
+    private String jobStandardStr;
+
+    /**
      * 评分标准+人才画像
      */
     private JSONObject jobStandard;
@@ -118,6 +123,11 @@ public class AmPositionVo {
      * 拓展字段，json保存职位数据
      */
     private JSONObject extendParams;
+
+    /**
+     * 拓展字段extendParamsStr
+     */
+    private String extendParamsStr;
 
     /**
      * 岗位

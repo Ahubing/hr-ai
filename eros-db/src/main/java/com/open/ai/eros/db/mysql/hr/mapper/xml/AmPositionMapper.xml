@@ -5,6 +5,8 @@
     <select id="pagePosition" resultType="com.open.ai.eros.db.mysql.hr.vo.AmPositionVo">
         SELECT
         ap.*,
+        ap.extend_params AS extendParamsStr,
+        ap.job_standard AS jobStandardStr,
         app.name AS postName,
         app.id AS postId,
         aps.name AS sectionName,
