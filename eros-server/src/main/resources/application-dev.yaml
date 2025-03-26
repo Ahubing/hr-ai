@@ -131,5 +131,5 @@ knowledge.docs.ai.checkInferModel: gpt-4o-2024-05-13
 
 mybatis-plus:
   mapper-locations: classpath*:com/open/ai/eros/db/mysql/**/*.xml
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

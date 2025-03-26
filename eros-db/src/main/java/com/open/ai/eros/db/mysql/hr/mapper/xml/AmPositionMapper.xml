@@ -57,7 +57,7 @@
 
             <!-- 账户特殊处理 -->
             <choose>
-                <when test="req.accountId != null">
+                <when test="req.accountId != null and req.accountId != ''">
                     AND ap.boss_id = #{req.accountId}
                 </when>
                 <otherwise>
