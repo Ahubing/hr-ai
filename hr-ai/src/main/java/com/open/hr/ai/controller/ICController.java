@@ -1,14 +1,14 @@
 package com.open.hr.ai.controller;
 
 import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
-import com.open.ai.eros.ai.bean.req.IcRecordPageReq;
 import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcGroupDaysVo;
-import com.open.ai.eros.ai.bean.vo.IcRecordVo;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.req.IcRecordPageReq;
+import com.open.ai.eros.db.mysql.hr.vo.IcRecordVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.ai.eros.ai.manager.ICAiManager;
 import io.swagger.annotations.Api;

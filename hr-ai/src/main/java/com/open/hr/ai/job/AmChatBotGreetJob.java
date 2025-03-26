@@ -9,7 +9,7 @@ import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
-import com.open.hr.ai.bean.vo.AmGreetConditionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import com.open.hr.ai.constant.*;
 import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import lombok.extern.slf4j.Slf4j;

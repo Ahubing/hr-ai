@@ -1,16 +1,14 @@
 package com.open.hr.ai.controller;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.hr.ai.bean.req.AddAmResumeParseReq;
 import com.open.hr.ai.bean.req.AmUploadResumeSearchReq;
 import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.req.UploadAmResumeUpdateReq;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
-import com.open.hr.ai.bean.vo.AmResumeVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmResumeVo;
 import com.open.hr.ai.bean.vo.UploadAmResumeVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ResumeManager;
@@ -31,7 +29,6 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -80,8 +77,9 @@ public class ResumeController extends HrAIBaseController {
                                                    @RequestParam(value = "positionId", required = false) @ApiParam("岗位id") Integer positionId,
                                                    @RequestParam(value = "positionName", required = false) @ApiParam("岗位名称") String positionName,
                                                    @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
+                                                   @RequestParam(value = "platform", required = false) @ApiParam("平台名称") String platform,
                                                    @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) {
-        return resumeManager.resumeList(getUserId(), type, post_id, name, page, size, startTime, endTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName);
+        return resumeManager.resumeList(getUserId(), type, post_id, name, page, size, startTime, endTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform);
     }
 
     @ApiOperation("统计简历数据")

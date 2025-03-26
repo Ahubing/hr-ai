@@ -2,4 +2,70 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.open.ai.eros.db.mysql.hr.mapper.AmPositionMapper">
 
+    <select id="pagePosition" resultType="com.open.ai.eros.db.mysql.hr.vo.AmPositionVo">
+        SELECT
+        ap.*,
+        app.name AS postName,
+        app.id AS postId,
+        aps.name AS sectionName,
+        aps.id AS sectionId
+        FROM am_position ap
+        LEFT JOIN am_position_post app ON ap.post_id = app.id
+        LEFT JOIN am_position_section aps ON app.section_id = aps.id
+        <where>
+            ap.is_deleted = 0
+            <if test="req.adminId != null">
+                AND ap.admin_id = #{req.adminId}
+            </if>
+            <!-- 基础条件 -->
+            <if test="req.status != null">
+                AND ap.status = #{req.status}
+            </if>
+            <if test="req.isOpen != null">
+                AND ap.is_open = #{req.isOpen}
+            </if>
+            <if test="req.uid != null">
+                AND ap.uid = #{req.uid}
+            </if>
+            <if test="req.channel != null">
+                AND ap.channel = #{req.channel}=
+            </if>
+            <if test="req.positionId != null">
+                AND ap.post_id = #{req.positionId}
+            </if>
+            <if test="req.positionPostId != null">
+                AND app.id = #{req.positionPostId}
+            </if>
+            <if test="req.sectionId != null">
+                AND aps.id = #{req.sectionId}
+            </if>
+
+            <if test="req.positionName != null and req.positionName != ''">
+                AND ap.name LIKE CONCAT('%', #{req.positionName}, '%')
+            </if>
+            <if test="req.positionPostName != null and req.positionPostName != ''">
+                AND app.name LIKE CONCAT('%', #{req.positionPostName}, '%')
+            </if>
+            <if test="req.sectionName != null and req.sectionName != ''">
+                AND aps.name LIKE CONCAT('%', #{req.sectionName}, '%')
+            </if>
+            <if test="req.city != null and req.city != ''">
+                AND ap.city LIKE CONCAT('%', #{req.city}, '%')
+            </if>
+
+            <!-- 账户特殊处理 -->
+            <choose>
+                <when test="req.accountId != null">
+                    AND ap.boss_id = #{req.accountId}
+                </when>
+                <otherwise>
+                    AND ap.boss_id IN (
+                        SELECT id FROM am_zp_local_accouts
+                        WHERE status = 1 AND admin_id = #{req.adminId}
+                    )
+                </otherwise>
+            </choose>
+        </where>
+        ORDER BY ap.create_time DESC
+    </select>
 </mapper>

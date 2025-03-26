@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.bean.req;
+package com.open.ai.eros.db.mysql.hr.req;
 
 
 import io.swagger.annotations.ApiModelProperty;

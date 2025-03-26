@@ -1,4 +1,4 @@
-package com.open.ai.eros.ai.bean.vo;
+package com.open.ai.eros.db.mysql.hr.vo;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

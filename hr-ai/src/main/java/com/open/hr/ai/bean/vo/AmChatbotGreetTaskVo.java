@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.common.util.DateUtils;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmPositionVo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;

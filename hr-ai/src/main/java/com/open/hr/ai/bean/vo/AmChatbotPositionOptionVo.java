@@ -3,6 +3,7 @@ package com.open.hr.ai.bean.vo;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotOptions;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;

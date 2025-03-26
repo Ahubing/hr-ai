@@ -131,3 +131,6 @@ knowledge.docs.ai.token: sk-0051196c7a464cd18778e581cb3d7ca6
 knowledge.docs.ai.inferModel: gpt-4o-2024-05-13
 
 knowledge.docs.ai.checkInferModel: gpt-4o-2024-05-13
+
+mybatis-plus:
+  mapper-locations: classpath*:com/open/ai/eros/db/mysql/**/*.xml

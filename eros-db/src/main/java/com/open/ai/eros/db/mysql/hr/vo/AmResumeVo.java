@@ -1,4 +1,4 @@
-package com.open.hr.ai.bean.vo;
+package com.open.ai.eros.db.mysql.hr.vo;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -90,12 +90,6 @@ public class AmResumeVo  {
     private String city;
 
     /**
-     * 应聘的职位
-     */
-    @ApiModelProperty(value = "应聘职位")
-    private String position;
-
-    /**
      * 期望的职位
      */
     @ApiModelProperty(value = "期望的职位")
@@ -148,10 +142,14 @@ public class AmResumeVo  {
     /**
      * 绑定的岗位id
      */
-    @ApiModelProperty(value = "绑定的岗位id")
+    @ApiModelProperty(value = "绑定的职位id")
     private Integer postId;
 
-
+    /**
+     * 应聘的职位
+     */
+    @ApiModelProperty(value = "应聘职位")
+    private String positionName;
 
     /**
      * 申请状态
@@ -234,10 +232,10 @@ public class AmResumeVo  {
     private Integer deptId;
 
     @ApiModelProperty(value = "岗位名称")
-    private String positionName;
+    private String positionPostName;
 
     @ApiModelProperty(value = "岗位id")
-    private Integer positionId;
+    private Integer positionPostId;
 
     /**
      * 1、 系统自动获取

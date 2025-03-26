@@ -1,4 +1,4 @@
-package com.open.hr.ai.bean.vo;
+package com.open.ai.eros.db.mysql.hr.vo;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -144,11 +144,6 @@ public class AmPositionVo {
      * ai_assitant
      */
     private Long aiAssistant;
-
-    /**
-     * section
-     */
-    private String section;
 
     /**
      * extend_params

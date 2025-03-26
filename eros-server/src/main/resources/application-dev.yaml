@@ -129,7 +129,7 @@ knowledge.docs.ai.inferModel: gpt-4o-2024-05-13
 
 knowledge.docs.ai.checkInferModel: gpt-4o-2024-05-13
 
-## 设置MyBatis-Plus的日志实现（输出到控制台）
-#mybatis-plus:
-#  configuration:
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+mybatis-plus:
+  mapper-locations: classpath*:com/open/ai/eros/db/mysql/**/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

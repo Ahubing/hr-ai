@@ -2,25 +2,20 @@ package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
-import com.open.hr.ai.bean.vo.AmChatbotGreetConditionVo;
-import com.open.hr.ai.bean.vo.AmGreetConditionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.MessageTypeEnums;
-import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
 import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 

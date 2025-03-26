@@ -11,4 +11,5 @@ public class MybatisPlusConfiguration {
     public PaginationInterceptor paginationInterceptor() {
         return  new PaginationInterceptor();
     }
+
 }
