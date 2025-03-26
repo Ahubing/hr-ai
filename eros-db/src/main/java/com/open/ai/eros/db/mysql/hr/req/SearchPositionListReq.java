@@ -33,7 +33,7 @@ public class SearchPositionListReq {
     private Integer sectionId;
 
     @ApiModelProperty("选填，部门名称")
-    private Integer sectionName;
+    private String sectionName;
 
     @ApiModelProperty("选填，职位id,对职位去重显示")
     private Integer positionId;
