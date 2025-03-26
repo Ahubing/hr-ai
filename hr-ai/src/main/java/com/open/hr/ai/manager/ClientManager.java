@@ -1117,7 +1117,7 @@ public class ClientManager {
 
 
 
-    public ResultVO filterAndSaveAmResume(String platform,String bossId, String connectId, String encryptId,JSONObject resumeObject,Boolean isGreet,String greet_task_id) {
+    public ResultVO filterAndSaveAmResume(String platform,String bossId, String connectId, String encryptId,JSONObject resumeObject,String greet_task_id) {
 
         AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(bossId);
         if (Objects.isNull(amZpLocalAccouts)) {
@@ -1146,8 +1146,8 @@ public class ClientManager {
             log.error("filterAndSaveAmResume conditionNewServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
         }
         AmResume amResume = buildAmResume(amPositionServiceOne, amZpLocalAccouts, resumeObject);
-        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,isGreet);
-        if (isGreet && result) {
+        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,true);
+        if (result) {
             // 根据bossId 和uid 查询任务是否存在, 不存在则插入
             LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmResume::getUid, amResume.getUid());
