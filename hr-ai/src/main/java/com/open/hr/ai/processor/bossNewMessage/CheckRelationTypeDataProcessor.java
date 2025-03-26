@@ -85,7 +85,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
         queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
         queryWrapper.like(AmClientTasks::getData, req.getUser_id());
-        queryWrapper.like(AmClientTasks::getData, "[]");
+        queryWrapper.like(AmClientTasks::getData, "resume");
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             statusCode.set(1);

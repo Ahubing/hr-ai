@@ -232,18 +232,6 @@ public class DealUserFirstSendMessageUtil {
             log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
 
             amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()));
-//            // 更新简历状态
-//            int status = statusCode.get();
-//            if(status != -2){
-//                // 如果是放弃状态则修改简历状态
-//                if (status == ReviewStatusEnums.ABANDON.getStatus()){
-//                    amResume.setType(status);
-//                }
-//                // 状态大于当前状态 不允许回退
-//                if ( status  > amResume.getType()) {
-//                    amResume.setType(status);
-//                }
-//            }
 
             // 请求微信和手机号
             replyUserMessageDataProcessor.generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,amResume.getUid());
