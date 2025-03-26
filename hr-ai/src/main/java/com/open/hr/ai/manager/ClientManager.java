@@ -805,13 +805,7 @@ public class ClientManager {
                 log.info("dealUserAllInfoData jsonObject is null,taskId={},result={}",taskId,result);
                 return;
             }
-            JSONObject resumeJSONObject = jsonObject.getJSONObject("resume");
-            JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
             JSONObject chatInfoJSONObject = jsonObject.getJSONObject("chat_info");
-//            JSONObject geekDetailInfoJSONObject = resumeJSONObject.getJSONObject("geekDetailInfo");
-//            JSONObject showExpectPositionSONObject = resumeJSONObject.getJSONObject("showExpectPosition");
-//            JSONObject geekBaseInfo = geekDetailInfoJSONObject.getJSONObject("geekBaseInfo");
-//            JSONObject chatData = chatInfoJSONObject.getJSONObject("data");
             Integer postId = 0;
             if (Objects.nonNull(chatInfoJSONObject.get("toPositionId"))) {
                 String toPositionId = chatInfoJSONObject.get("toPositionId").toString();
@@ -824,7 +818,7 @@ public class ClientManager {
                 }
             }
 
-            String userId = resumeJSONObject.get("uid").toString();
+            String userId = chatInfoJSONObject.get("uid").toString();
             if (StringUtils.isNotBlank(userId)) {
                 LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
                 queryWrapper.eq(AmResume::getUid, userId);
@@ -835,45 +829,19 @@ public class ClientManager {
                     amResume.setAdminId(amZpLocalAccouts.getAdminId());
                     amResume.setAccountId(amZpLocalAccouts.getId());
                     amResume.setCreateTime(LocalDateTime.now());
-
                     amResume.setPlatform(platform);
+                    amResume.setPostId(postId);
+                    amResume.setAccountId(amZpLocalAccouts.getId());
 
+                    JSONObject resumeJSONObject = jsonObject.getJSONObject("resume");
+                    if (Objects.nonNull(resumeJSONObject)){
+                        JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
+                        requestInfoDealAmResume(amResume, resumeJSONObject, searchData);
+                    }
                     AmZpPlatforms byPlatformCode = amZpPlatformsService.getByPlatformCode(platform);
                     if (Objects.nonNull(byPlatformCode)) {
                         amResume.setPlatform(byPlatformCode.getName());
                     }
-
-                    amResume.setZpData(resumeJSONObject.toJSONString());
-                    amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
-                    amResume.setPostId(postId);
-
-
-                    // ---- begin 从resume search_data数据结构提取数据 ----
-                    amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
-                    amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
-                    amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
-                    amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
-                    amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
-                    amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-                    amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
-                    amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
-                    amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
-                    amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
-                    // ---- end 从resume search_data数据结构提取数据  ----
-
-                    // ---- begin 从resume数据结构提取数据  ----
-                    amResume.setUid(Objects.nonNull(resumeJSONObject.get("uid")) ? resumeJSONObject.get("uid").toString() : "");
-                    amResume.setName(Objects.nonNull(resumeJSONObject.get("name")) ? resumeJSONObject.get("name").toString() : "");
-                    amResume.setAccountId(amZpLocalAccouts.getId());
-                    amResume.setEmail(Objects.nonNull(resumeJSONObject.get("email")) ? resumeJSONObject.get("email").toString() : "");
-                    amResume.setApplyStatus(Objects.nonNull(resumeJSONObject.get("availability")) ? resumeJSONObject.get("availability").toString() : "");
-                    amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
-                    amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
-                    amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
-                    amResume.setProjects(Objects.nonNull(resumeJSONObject.get("projects")) ? resumeJSONObject.getJSONArray("projects").toJSONString() : "");
-                    amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
-                    amResume.setSkills(Objects.nonNull(resumeJSONObject.get("skills")) ? resumeJSONObject.get("skills").toString() : "");
-                    // ---- end 从resume数据结构提取数据  ----
 
                     // ---- begin 从chat_info结构提取数据  ----
                     amResume.setPhone(Objects.nonNull(chatInfoJSONObject.get("phone")) ? chatInfoJSONObject.get("phone").toString() : "");
@@ -889,47 +857,14 @@ public class ClientManager {
                 }
                 else {
                     amResume.setPostId(postId);
-                    // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
-//                    if (!Objects.equals(positionId, amResume.getPostId())){
-//                        // 重新发起请求
-//                        amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
-//                        // 清空聊天记录
-//                        LambdaQueryWrapper<AmChatMessage> amChatMessageLambdaQueryWrapper = new LambdaQueryWrapper<>();
-//                        String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
-//                        amChatMessageLambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
-//                        boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
-//                        log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
-//                    }
-                    amResume.setZpData(resumeJSONObject.toJSONString());
-
-
-                    // ---- begin 从resume search_data数据结构提取数据 ----
-                    amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
-                    amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
-                    amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
-                    amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
-                    amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
-                    amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
-                    amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
-                    amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
-                    amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
-                    amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
-                    // ---- end 从resume search_data数据结构提取数据  ----
-
-                    // ---- begin 从resume数据结构提取数据  ----
-                    amResume.setUid(Objects.nonNull(resumeJSONObject.get("uid")) ? resumeJSONObject.get("uid").toString() : "");
-                    amResume.setName(Objects.nonNull(resumeJSONObject.get("name")) ? resumeJSONObject.get("name").toString() : "");
+                    amResume.setPostId(postId);
                     amResume.setAccountId(amZpLocalAccouts.getId());
-                    amResume.setEmail(Objects.nonNull(resumeJSONObject.get("email")) ? resumeJSONObject.get("email").toString() : "");
-                    amResume.setApplyStatus(Objects.nonNull(resumeJSONObject.get("availability")) ? resumeJSONObject.get("availability").toString() : "");
-                    amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
-                    amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
-                    amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
-                    amResume.setProjects(Objects.nonNull(resumeJSONObject.get("projects")) ? resumeJSONObject.getJSONArray("projects").toJSONString() : "");
-                    amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
-                    amResume.setSkills(Objects.nonNull(resumeJSONObject.get("skills")) ? resumeJSONObject.get("skills").toString() : "");
-                    // ---- end 从resume数据结构提取数据  ----
 
+                    JSONObject resumeJSONObject = jsonObject.getJSONObject("resume");
+                    if (Objects.nonNull(resumeJSONObject)){
+                        JSONObject searchData = resumeJSONObject.getJSONObject("search_data");
+                        requestInfoDealAmResume(amResume, resumeJSONObject, searchData);
+                    }
                     // ---- begin 从chat_info结构提取数据  ----
                     if (Objects.nonNull(chatInfoJSONObject.get("phone"))){
                         amResume.setPhone( chatInfoJSONObject.get("phone").toString());
@@ -949,7 +884,7 @@ public class ClientManager {
                 AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
                 if (Objects.nonNull(amClientTasks) && !Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())) {
                     // 处理在线简历
-                    if (amClientTasks.getData().contains("[]")) {
+                    if (amClientTasks.getData().contains("resume")) {
                         dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
                     }
                 }
@@ -1028,6 +963,38 @@ public class ClientManager {
         return amResume;
     }
 
+    private AmResume requestInfoDealAmResume(AmResume amResume, JSONObject resumeJSONObject, JSONObject searchData) {
+
+        amResume.setZpData(resumeJSONObject.toJSONString());
+
+        // ---- begin 从resume search_data数据结构提取数据 ----
+        amResume.setCity(Objects.nonNull(searchData.get("city")) ? searchData.get("city").toString() : "");
+        amResume.setAge(Objects.nonNull(searchData.get("age")) ? Integer.parseInt(searchData.get("age").toString()) : 0);
+        amResume.setLowSalary(Objects.nonNull(searchData.get("lowSalary")) ? Integer.parseInt(searchData.get("lowSalary").toString()) : 0);
+        amResume.setHighSalary(Objects.nonNull(searchData.get("highSalary")) ? Integer.parseInt(searchData.get("highSalary").toString()) : 0);
+        amResume.setGender(Objects.nonNull(searchData.get("gender")) ? Integer.parseInt(searchData.get("gender").toString()) : 0);
+        amResume.setWorkYears(Objects.nonNull(searchData.get("workYears")) ? Integer.parseInt(searchData.get("workYears").toString()) : 0);
+        amResume.setExpectPosition(Objects.nonNull(searchData.get("toPosition")) ? searchData.get("toPosition").toString() : "");
+        amResume.setIsStudent(Objects.nonNull(searchData.get("student")) ? searchData.get("student").equals(true) ? 1 : 0  : null);
+        amResume.setDegree(Objects.nonNull(searchData.get("degree")) ? Integer.parseInt(searchData.get("degree").toString())  : null);
+        amResume.setIntention(Objects.nonNull(searchData.get("intention")) ? Integer.parseInt(searchData.get("intention").toString()) : null);
+        // ---- end 从resume search_data数据结构提取数据  ----
+
+        // ---- begin 从resume数据结构提取数据  ----
+        amResume.setUid(Objects.nonNull(resumeJSONObject.get("uid")) ? resumeJSONObject.get("uid").toString() : "");
+        amResume.setName(Objects.nonNull(resumeJSONObject.get("name")) ? resumeJSONObject.get("name").toString() : "");
+        amResume.setEmail(Objects.nonNull(resumeJSONObject.get("email")) ? resumeJSONObject.get("email").toString() : "");
+        amResume.setApplyStatus(Objects.nonNull(resumeJSONObject.get("availability")) ? resumeJSONObject.get("availability").toString() : "");
+        amResume.setAvatar(Objects.nonNull(resumeJSONObject.get("avatar")) ? resumeJSONObject.get("avatar").toString() : "");
+        amResume.setEducation(Objects.nonNull(resumeJSONObject.get("educations")) ? resumeJSONObject.getJSONArray("educations").toJSONString() : "");
+        amResume.setExperiences(Objects.nonNull(resumeJSONObject.get("work_experiences")) ? resumeJSONObject.getJSONArray("work_experiences").toJSONString() : "");
+        amResume.setProjects(Objects.nonNull(resumeJSONObject.get("projects")) ? resumeJSONObject.getJSONArray("projects").toJSONString() : "");
+        amResume.setEncryptGeekId(Objects.nonNull(resumeJSONObject.get("encryptGeekId")) ? resumeJSONObject.get("encryptGeekId").toString() : "");
+        amResume.setSkills(Objects.nonNull(resumeJSONObject.get("skills")) ? resumeJSONObject.get("skills").toString() : "");
+        // ---- end 从resume数据结构提取数据  ----
+        return amResume;
+
+    }
 
     private void dealErrorTask(String taskId, String bossId, AmClientTasks amClientTasks) {
         try {

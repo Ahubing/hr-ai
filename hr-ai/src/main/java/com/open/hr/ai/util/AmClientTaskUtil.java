@@ -41,7 +41,7 @@ public class AmClientTaskUtil {
             hashMap.put("info_type", Collections.singletonList("attachment_resume"));
         }else {
             //空数组
-            hashMap.put("info_type", Collections.emptyList());
+            hashMap.put("info_type", Collections.singletonList("resume"));
         }
         if (Objects.nonNull(amResume.getEncryptGeekId())) {
             searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
