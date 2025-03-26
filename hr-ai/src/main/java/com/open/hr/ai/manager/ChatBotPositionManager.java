@@ -498,16 +498,16 @@ public class ChatBotPositionManager {
             for (AmPositionVo amPositionVo : amPositionVos) {
                 amPositionVo.setExtendParams(JSONObject.parseObject(amPositionVo.getExtendParamsStr()));
                 amPositionVo.setJobStandard(JSONObject.parseObject(amPositionVo.getJobStandardStr()));
-                MiniUniUser miniUniUser = miniUniUserService.getById(amPositionVo.getUid());
-                if (Objects.isNull(miniUniUser)) {
-                    continue;
-                }
+//                MiniUniUser miniUniUser = miniUniUserService.getById(amPositionVo.getUid());
+//                if (Objects.isNull(miniUniUser)) {
+//                    continue;
+//                }
                 AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(new LambdaQueryWrapper<AmChatbotGreetConditionNew>().eq(AmChatbotGreetConditionNew::getPositionId, amPositionVo.getId()), false);
                 if (Objects.nonNull(conditionNewServiceOne)) {
                     amPositionVo.setConditionVo(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne));
                 }
 
-                String name = miniUniUser.getName();
+                String name = "";
                 if ( amPositionVo.getAiAssitantId() == 0L) {
                     amPositionVo.setAiAssitantId(null);
                 }
