@@ -120,13 +120,26 @@ public class ClientController extends HrAIBaseController {
 
 
     @ApiOperation("客户端请求过滤简历")
-    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}/{is_greet}/{greet_task_id}")
-    public ResultVO filterResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId,@PathVariable("is_greet") Boolean isGreet,@PathVariable("greet_task_id") String greet_task_id,@RequestBody @Valid JSONObject resume) {
-        log.info("filterResume bossId={},connectId={},encryptId={},isGreet={} ,greet_task_id={} ,clientBossNewMessageReq={}", bossId, connectId, encryptId,isGreet,greet_task_id,resume);
+    @PostMapping("/filter/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}/{is_greet}")
+    public ResultVO filterResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId,@PathVariable("is_greet") Boolean isGreet , @RequestBody @Valid JSONObject resume) {
+        log.info("filterResume bossId={},connectId={},encryptId={},isGreet={} ,clientBossNewMessageReq={}", bossId, connectId, encryptId,isGreet,resume);
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
             return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
         }
-        return clientManager.filterAmResume(platform,bossId, connectId,encryptId, resume,isGreet,greet_task_id);
+        return clientManager.filterAmResume(platform,bossId, connectId,encryptId, resume,isGreet);
+    }
+
+
+
+
+    @ApiOperation("客户端打招呼请求过滤简历")
+    @PostMapping("/greet/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}/{is_greet}/{greet_task_id}")
+    public ResultVO greetAndSaveResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId,@PathVariable("is_greet") Boolean isGreet,@PathVariable("greet_task_id") String greet_task_id,@RequestBody @Valid JSONObject resume) {
+        log.info("greetAndSaveResume bossId={},connectId={},encryptId={},isGreet={} ,greet_task_id={} ,clientBossNewMessageReq={}", bossId, connectId, encryptId,isGreet,greet_task_id,resume);
+        if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
+            return ResultVO.fail("boss_id,extBossId或connect_id不能为空");
+        }
+        return clientManager.filterAndSaveAmResume(platform,bossId, connectId,encryptId, resume,isGreet,greet_task_id);
     }
 
 }
