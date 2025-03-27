@@ -86,6 +86,7 @@ public class HolidayCacheJob {
         if(StringUtils.isEmpty(jsonString)){
             return;
         }
+        log.info("HolidayCacheJob flush end---");
         JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
         JsonObject holidays = json.getAsJsonObject("holidays");
         LocalDate now = LocalDate.now();

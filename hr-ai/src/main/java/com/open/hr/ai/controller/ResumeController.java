@@ -78,15 +78,28 @@ public class ResumeController extends HrAIBaseController {
                                                    @RequestParam(value = "positionName", required = false) @ApiParam("岗位名称") String positionName,
                                                    @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
                                                    @RequestParam(value = "platform", required = false) @ApiParam("平台名称") String platform,
+                                                   @RequestParam(value = "sortMap", required = false) @ApiParam("排序，格式{字段code:-1/1}") Map<String, Integer> sortMap,
                                                    @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) {
-        return resumeManager.resumeList(getUserId(), type, post_id, name, page, size, startTime, endTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform);
+        return resumeManager.resumeList(getUserId(), type, post_id, name, page, size, startTime, endTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform, sortMap);
     }
 
     @ApiOperation("统计简历数据")
     @VerifyUserToken
     @GetMapping("resume/data")
-    public ResultVO<List<AmResumeCountDataVo>> promptData() {
-        return resumeManager.resumeData(getUserId());
+    public ResultVO<List<AmResumeCountDataVo>> promptData(@RequestParam(value = "post_id", required = false) @ApiParam("职位id") Integer post_id,
+                                                          @RequestParam(value = "name", required = false) String name,
+                                                          @RequestParam(value = "startTime", required = false) @ApiParam("开始时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startTime,
+                                                          @RequestParam(value = "endTime", required = false) @ApiParam("截止时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endTime,
+                                                          @RequestParam(value = "expectPosition", required = false) @ApiParam("预期职位") String expectPosition,
+                                                          @RequestParam(value = "postName", required = false) @ApiParam("职位名称") String postName,
+                                                          @RequestParam(value = "deptId", required = false) @ApiParam("部门id") Integer deptId,
+                                                          @RequestParam(value = "deptName", required = false) @ApiParam("部门名称") String deptName,
+                                                          @RequestParam(value = "positionId", required = false) @ApiParam("岗位id") Integer positionId,
+                                                          @RequestParam(value = "positionName", required = false) @ApiParam("岗位名称") String positionName,
+                                                          @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
+                                                          @RequestParam(value = "platform", required = false) @ApiParam("平台名称") String platform,
+                                                          @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) {
+        return resumeManager.resumeData(getUserId(), post_id, name, startTime, endTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform);
     }
 
     @ApiOperation("获取简历详情")

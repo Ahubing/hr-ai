@@ -39,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -111,7 +112,8 @@ public class ResumeManager {
                                                    Integer pageNum, Integer size, LocalDate startTime,
                                                    LocalDate endTime, String expectPosition, String postName,
                                                    Integer platformId, BigDecimal score, Integer deptId,
-                                                   String deptName,Integer positionId, String positionName, String platform) {
+                                                   String deptName,Integer positionId, String positionName,
+                                                   String platform, Map<String, Integer> sortMap) {
         try {
             Page<AmResumeVo> page = new Page<>(pageNum, size);
             LocalDateTime startDateTime = null;
@@ -124,7 +126,7 @@ public class ResumeManager {
             }
             IPage<AmResumeVo> iPage = resumeMapper.resumeList(page, adminId, type, post_id, name, startDateTime,
                     endDateTime, expectPosition, postName, platformId, score,
-                    deptId, deptName, positionId, positionName, platform);
+                    deptId, deptName, positionId, positionName, platform, sortMap);
             return ResultVO.success(PageVO.build(iPage.getTotal(), iPage.getRecords()));
         } catch (Exception e) {
             log.error("获取简历详情 ", e);
@@ -137,27 +139,37 @@ public class ResumeManager {
      *
      * @return
      */
-    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long adminId) {
+    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long adminId, Integer post_id, String name,
+                                                          LocalDate startTime, LocalDate endTime, String expectPosition,
+                                                          String postName, Integer platformId, BigDecimal score,
+                                                          Integer deptId, String deptName,Integer positionId,
+                                                          String positionName, String platform) {
         try {
-            LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
-            queryWrapper.eq(AmResume::getAdminId, adminId);
-            List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
-            AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
-            // 全部简历
-            amResumeCountDataVo.setType(6);
-            amResumeCountDataVo.setTotal(amResumeService.count(queryWrapper));
-            amResumeCountDataVos.add(amResumeCountDataVo);
-            for (int i = -1; i < 6; i++) {
-                LambdaQueryWrapper<AmResume> innerQueryWrapper = new QueryWrapper<AmResume>().lambda();
-                innerQueryWrapper.eq(AmResume::getAdminId, adminId);
-                innerQueryWrapper.eq(AmResume::getType, i);
-                int count = amResumeService.count(innerQueryWrapper);
-                AmResumeCountDataVo amResumeCountDataVo1 = new AmResumeCountDataVo();
-                amResumeCountDataVo1.setType(i);
-                amResumeCountDataVo1.setTotal(count);
-                amResumeCountDataVos.add(amResumeCountDataVo1);
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            if (startTime != null) {
+                startDateTime = startTime.atStartOfDay();
             }
-
+            if (endTime != null) {
+                endDateTime = endTime.atStartOfDay().plusDays(1);
+            }
+            List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
+            // 全部简历
+            int allAccount = 0;
+            for (int i = -1; i < 6; i++) {
+                int count = resumeMapper.countByType(adminId, i, post_id, name, startDateTime,
+                        endDateTime, expectPosition, postName, platformId, score,
+                        deptId, deptName, positionId, positionName, platform);
+                AmResumeCountDataVo countDataVo = new AmResumeCountDataVo();
+                countDataVo.setType(i);
+                countDataVo.setTotal(count);
+                amResumeCountDataVos.add(countDataVo);
+                allAccount += count;
+            }
+            AmResumeCountDataVo countDataVo = new AmResumeCountDataVo();
+            countDataVo.setType(6);
+            countDataVo.setTotal(allAccount);
+            amResumeCountDataVos.add(countDataVo);
             return ResultVO.success(amResumeCountDataVos);
         } catch (Exception e) {
             log.error("获取简历详情 ", e);

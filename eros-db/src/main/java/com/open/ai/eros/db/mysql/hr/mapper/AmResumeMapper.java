@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * <p>
@@ -27,5 +28,14 @@ public interface AmResumeMapper extends BaseMapper<AmResume> {
                                  @Param("postName") String postName, @Param("platformId") Integer platformId,
                                  @Param("score") BigDecimal score, @Param("deptId") Integer deptId,
                                  @Param("deptName") String deptName, @Param("positionId") Integer positionId,
-                                 @Param("positionName") String positionName,@Param("platform") String platform);
+                                 @Param("positionName") String positionName,@Param("platform") String platform,
+                                 @Param("sortMap") Map<String, Integer> sortMap);
+
+    int countByType(@Param("adminId") Long adminId, @Param("type") Integer type, @Param("post_id") Integer post_id,
+                    @Param("name") String name, @Param("startDateTime") LocalDateTime startDateTime,
+                    @Param("endDateTime") LocalDateTime endDateTime, @Param("expectPosition") String expectPosition,
+                    @Param("postName") String postName, @Param("platformId") Integer platformId,
+                    @Param("score") BigDecimal score, @Param("deptId") Integer deptId,
+                    @Param("deptName") String deptName, @Param("positionId") Integer positionId,
+                    @Param("positionName") String positionName,@Param("platform") String platform);
 }

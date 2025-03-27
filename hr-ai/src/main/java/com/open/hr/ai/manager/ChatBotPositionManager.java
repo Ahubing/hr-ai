@@ -500,18 +500,37 @@ public class ChatBotPositionManager {
 //            if (Objects.isNull(section)) {
 //                return ResultVO.fail("部门不存在, 请先去建立部门");
 //            }
-            MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
-            if (Objects.isNull(miniUniUser)) {
-                return ResultVO.fail("招聘用户不存在");
-            }
+//            MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
+//            if (Objects.isNull(miniUniUser)) {
+//                return ResultVO.fail("招聘用户不存在");
+//            }
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(amPosition.getBossId());
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail("boss账号不存在");
             }
+
+            AmZpPlatforms platforms = amZpPlatformsService.getById(amPosition.getChannel());
+            if(Objects.isNull(platforms)){
+                return ResultVO.fail("平台不存在");
+            }
+
+            AmPositionPost positionPost = amPositionPostService.getById(amPosition.getPostId());
+            if(Objects.isNull(positionPost)){
+                return ResultVO.fail("岗位不存在");
+            }
+
+            AmPositionSection section = amPositionSectionService.getById(positionPost.getSectionId());
+            if(Objects.isNull(section)){
+                return ResultVO.fail("部门不存在");
+            }
+
 //            amPositionVo.setSection(section.getName());
+            amPositionVo.setPostName(positionPost.getName());
+            amPositionVo.setSectionName(section.getName());
+            amPositionVo.setSectionId(section.getId());
             amPositionVo.setDetail(JSONObject.parseObject(amPosition.getExtendParams()));
-            amPositionVo.setUserName(miniUniUser.getName());
-            amPositionVo.setChannelName("BOSS直聘");
+            amPositionVo.setUserName("");
+            amPositionVo.setChannelName(platforms.getName());
             amPositionVo.setBossAccount(amZpLocalAccouts.getAccount());
             amPositionVo.setIsDeleted(amPosition.getIsDeleted());
             amPositionVo.setIsOpen(amPosition.getIsOpen());
