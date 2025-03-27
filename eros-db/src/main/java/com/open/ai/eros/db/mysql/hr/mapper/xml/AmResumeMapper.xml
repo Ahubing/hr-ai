@@ -2,4 +2,92 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.open.ai.eros.db.mysql.hr.mapper.AmResumeMapper">
 
+    <select id="resumeList" resultType="com.open.ai.eros.db.mysql.hr.vo.AmResumeVo">
+        SELECT
+        ar.id as id,
+        ar.expect_position as expectPosition,
+        ar.platform as platform,
+        ar.create_time as createTime,
+        ar.competency_model as competencyModel,
+        ar.avatar as avatar,
+        ar.age as age,
+        ar.gender as gender,
+        ar.work_years as workYears,
+        ap.name AS positionName,
+        app.id AS positionPostId,
+        app.name AS positionPostName,
+        aps.id AS deptId,
+        aps.name AS deptName
+        FROM am_resume ar
+        LEFT JOIN am_position ap ON ar.post_id = ap.id
+        LEFT JOIN am_position_post app ON ap.post_id = app.id
+        LEFT JOIN am_position_section aps ON app.section_id = aps.id
+        <where>
+            <!-- 基础条件 -->
+            <if test="adminId != null">
+                AND ar.admin_id = #{adminId}
+            </if>
+
+            <!-- 类型过滤 -->
+            <choose>
+                <when test="type != null and type != 6">
+                    AND ar.type = #{type}
+                </when>
+                <!-- type=6时不添加条件 -->
+            </choose>
+
+            <!-- 关联表过滤 -->
+            <if test="post_id != null">
+                AND ar.post_id = #{post_id}
+            </if>
+            <if test="postName != null and postName != ''">
+                AND ap.name LIKE CONCAT('%', #{postName}, '%')
+            </if>
+            <if test="positionId != null">
+                AND app.id = #{positionId}
+            </if>
+            <if test="positionName != null and positionName != ''">
+                AND app.name LIKE CONCAT('%', #{positionName}, '%')
+            </if>
+            <if test="deptId != null">
+                AND aps.id = #{deptId}
+            </if>
+            <if test="deptName != null and deptName != ''">
+                AND aps.name LIKE CONCAT('%', #{deptName}, '%')
+            </if>
+
+            <!-- 其他条件 -->
+            <if test="name != null and name != ''">
+                AND ar.name LIKE CONCAT('%', #{name}, '%')
+            </if>
+            <if test="expectPosition != null and expectPosition != ''">
+                AND ar.expect_position LIKE CONCAT('%', #{expectPosition}, '%')
+            </if>
+            <if test="platformId != null">
+                AND ar.platform = (
+                    SELECT name FROM am_zp_platforms WHERE id = #{platformId}
+                )
+            </if>
+            <if test="platform != null and platform != ''">
+                AND ar.platform LIKE CONCAT('%', #{platform}, '%')
+            </if>
+            <if test="score != null">
+                <choose>
+                    <when test="score.compareTo(@java.math.BigDecimal@valueOf(-1)) == 0">
+                        AND ar.score IS NULL
+                    </when>
+                    <otherwise>
+                        AND ar.score >= #{score}
+                    </otherwise>
+                </choose>
+            </if>
+            <if test="startDateTime != null">
+                AND ar.create_time >= #{startDateTime}
+            </if>
+            <if test="endDateTime != null">
+                AND ar.create_time &lt;= #{endDateTime}
+            </if>
+        </where>
+        ORDER BY ar.create_time DESC
+    </select>
 </mapper>
