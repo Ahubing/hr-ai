@@ -259,6 +259,8 @@ public class AmNewMaskManager {
         amNewMaskVo.setStatus(amNewMask.getStatus());
         amNewMaskVo.setAvatar(amNewMask.getAvatar());
         amNewMaskVo.setGreetMessage(amNewMask.getGreetMessage());
+        amNewMaskVo.setSkipHolidayStatus(amNewMask.getSkipHolidayStatus());
+        amNewMaskVo.setInterviewType(amNewMask.getInterviewType());
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){

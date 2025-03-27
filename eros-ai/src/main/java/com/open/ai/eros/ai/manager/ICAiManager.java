@@ -492,7 +492,9 @@ public class ICAiManager {
                 if(InterviewStatusEnum.CANCEL.getStatus().equals(item.getCancelStatus())){
                     return;
                 }
-                item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus());
+                if(item.getStartTime().isBefore(LocalDate.now().atStartOfDay())){
+                    item.setCancelStatus(InterviewStatusEnum.DEPRECATED.getStatus());
+                }
             });
             pageVO.setRecords(icRecordVos);
         }

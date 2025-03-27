@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -30,7 +31,7 @@ public class IcRecordServiceImpl extends ServiceImpl<IcRecordMapper, IcRecord> i
                 .eq(IcRecord::getEmployeeUid, employeeUid)
                 .eq(IcRecord::getAdminId, adminId)
                 .eq(IcRecord::getAccountId, accountId)
-                .ge(IcRecord::getStartTime, LocalDateTime.now())
+                .ge(IcRecord::getStartTime, LocalDate.now().atStartOfDay())
                 .eq(IcRecord::getPositionId, positionId),false);
     }
 }
