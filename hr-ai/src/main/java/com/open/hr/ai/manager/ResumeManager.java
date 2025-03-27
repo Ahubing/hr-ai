@@ -3,6 +3,7 @@ package com.open.hr.ai.manager;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.common.util.AIJsonUtil;
@@ -10,6 +11,7 @@ import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.mapper.AmResumeMapper;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.AddAmResumeParseReq;
 import com.open.hr.ai.bean.req.AmUploadResumeSearchReq;
@@ -17,7 +19,7 @@ import com.open.hr.ai.bean.req.SearchAmResumeReq;
 import com.open.hr.ai.bean.req.UploadAmResumeUpdateReq;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
 import com.open.hr.ai.bean.vo.AmResumeCountDataVo;
-import com.open.hr.ai.bean.vo.AmResumeVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmResumeVo;
 import com.open.hr.ai.bean.vo.UploadAmResumeVo;
 import com.open.hr.ai.constant.AmResumeEducationEnums;
 import com.open.hr.ai.constant.AmResumeWorkYearsEnums;
@@ -28,7 +30,6 @@ import com.open.hr.ai.util.CompetencyModelPromptUtil;
 import com.open.hr.ai.util.ResumeParseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -78,6 +80,9 @@ public class ResumeManager {
     @Resource
     private CompetencyModelPromptUtil competencyModelPromptUtil;
 
+    @Resource
+    private AmResumeMapper resumeMapper;
+
     public ResultVO<AmResumeVo> resumeDetail(Integer id) {
         try {
             AmResume amResume = amResumeService.getById(id);
@@ -104,51 +109,25 @@ public class ResumeManager {
      * @return
      */
     public ResultVO<PageVO<AmResumeVo>> resumeList(Long adminId, Integer type, Integer post_id, String name,
-                                                   Integer page, Integer size, LocalDate startTime, LocalDate endTime,
-                                                   String expectPosition, String postName, Integer platformId, BigDecimal score,
-                                                   Integer deptId, String deptName,Integer positionId, String positionName) {
+                                                   Integer pageNum, Integer size, LocalDate startTime,
+                                                   LocalDate endTime, String expectPosition, String postName,
+                                                   Integer platformId, BigDecimal score, Integer deptId,
+                                                   String deptName,Integer positionId, String positionName,
+                                                   String platform, Map<String, Integer> sortMap) {
         try {
-            Page<AmResume> pageList = new Page<>(page, size);
-
-            LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
-            queryWrapper.eq(AmResume::getAdminId, adminId);
-            if (Objects.nonNull(type)) {
-                if (type == 6) {
-
-                } else {
-                    queryWrapper.eq(AmResume::getType, type);
-                }
+            Page<AmResumeVo> page = new Page<>(pageNum, size);
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            if (startTime != null) {
+                startDateTime = startTime.atStartOfDay();
             }
-            if (Objects.nonNull(post_id)) {
-                queryWrapper.eq(AmResume::getPostId, post_id);
+            if (endTime != null) {
+                endDateTime = endTime.atStartOfDay().plusDays(1);
             }
-            if (StringUtils.isNotBlank(name)) {
-                queryWrapper.like(AmResume::getName, name);
-            }
-            queryWrapper.orderByDesc(AmResume::getCreateTime)
-                        .like(StringUtils.isNotEmpty(expectPosition),AmResume::getExpectPosition,expectPosition);
-
-            if(platformId != null){
-                AmZpPlatforms platforms = platformsService.getById(platformId);
-                queryWrapper.eq(AmResume::getPlatform,platforms.getName());
-            }
-
-            if(score != null){
-                if(score.compareTo(new BigDecimal("-1")) == 0){
-                    queryWrapper.isNull(AmResume::getScore);
-                }else {
-                    queryWrapper.ge(AmResume::getScore,score);
-                }
-            }
-            if(startTime != null){
-                queryWrapper.ge(AmResume::getCreateTime,startTime.atStartOfDay());
-            }
-            if(endTime != null){
-                queryWrapper.le(AmResume::getCreateTime,endTime.plusDays(1).atStartOfDay());
-            }
-            Page<AmResume> amResumePage = amResumeService.page(pageList, queryWrapper);
-            List<AmResumeVo> resumeVos = amResumePage.getRecords().stream().map(AmResumeConvert.I::convertAmResumeVo).collect(Collectors.toList());
-            return ResultVO.success(PageVO.build(amResumePage.getTotal(), resumeVos));
+            IPage<AmResumeVo> iPage = resumeMapper.resumeList(page, adminId, type, post_id, name, startDateTime,
+                    endDateTime, expectPosition, postName, platformId, score,
+                    deptId, deptName, positionId, positionName, platform, sortMap);
+            return ResultVO.success(PageVO.build(iPage.getTotal(), iPage.getRecords()));
         } catch (Exception e) {
             log.error("获取简历详情 ", e);
         }
@@ -160,27 +139,37 @@ public class ResumeManager {
      *
      * @return
      */
-    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long adminId) {
+    public ResultVO<List<AmResumeCountDataVo>> resumeData(Long adminId, Integer post_id, String name,
+                                                          LocalDate startTime, LocalDate endTime, String expectPosition,
+                                                          String postName, Integer platformId, BigDecimal score,
+                                                          Integer deptId, String deptName,Integer positionId,
+                                                          String positionName, String platform) {
         try {
-            LambdaQueryWrapper<AmResume> queryWrapper = new QueryWrapper<AmResume>().lambda();
-            queryWrapper.eq(AmResume::getAdminId, adminId);
-            List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
-            AmResumeCountDataVo amResumeCountDataVo = new AmResumeCountDataVo();
-            // 全部简历
-            amResumeCountDataVo.setType(6);
-            amResumeCountDataVo.setTotal(amResumeService.count(queryWrapper));
-            amResumeCountDataVos.add(amResumeCountDataVo);
-            for (int i = -1; i < 6; i++) {
-                LambdaQueryWrapper<AmResume> innerQueryWrapper = new QueryWrapper<AmResume>().lambda();
-                innerQueryWrapper.eq(AmResume::getAdminId, adminId);
-                innerQueryWrapper.eq(AmResume::getType, i);
-                int count = amResumeService.count(innerQueryWrapper);
-                AmResumeCountDataVo amResumeCountDataVo1 = new AmResumeCountDataVo();
-                amResumeCountDataVo1.setType(i);
-                amResumeCountDataVo1.setTotal(count);
-                amResumeCountDataVos.add(amResumeCountDataVo1);
+            LocalDateTime startDateTime = null;
+            LocalDateTime endDateTime = null;
+            if (startTime != null) {
+                startDateTime = startTime.atStartOfDay();
             }
-
+            if (endTime != null) {
+                endDateTime = endTime.atStartOfDay().plusDays(1);
+            }
+            List<AmResumeCountDataVo> amResumeCountDataVos = new ArrayList<>();
+            // 全部简历
+            int allAccount = 0;
+            for (int i = -1; i < 6; i++) {
+                int count = resumeMapper.countByType(adminId, i, post_id, name, startDateTime,
+                        endDateTime, expectPosition, postName, platformId, score,
+                        deptId, deptName, positionId, positionName, platform);
+                AmResumeCountDataVo countDataVo = new AmResumeCountDataVo();
+                countDataVo.setType(i);
+                countDataVo.setTotal(count);
+                amResumeCountDataVos.add(countDataVo);
+                allAccount += count;
+            }
+            AmResumeCountDataVo countDataVo = new AmResumeCountDataVo();
+            countDataVo.setType(6);
+            countDataVo.setTotal(allAccount);
+            amResumeCountDataVos.add(countDataVo);
             return ResultVO.success(amResumeCountDataVos);
         } catch (Exception e) {
             log.error("获取简历详情 ", e);

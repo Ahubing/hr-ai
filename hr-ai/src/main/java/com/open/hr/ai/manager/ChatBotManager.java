@@ -7,6 +7,8 @@ import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmPositionVo;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;

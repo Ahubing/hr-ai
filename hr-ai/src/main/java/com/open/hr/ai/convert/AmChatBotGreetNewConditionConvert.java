@@ -2,7 +2,7 @@ package com.open.hr.ai.convert;
 
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetConditionNew;
 import com.open.hr.ai.bean.req.AddOrUpdateChatbotGreetConditionNew;
-import com.open.hr.ai.bean.vo.AmGreetConditionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;

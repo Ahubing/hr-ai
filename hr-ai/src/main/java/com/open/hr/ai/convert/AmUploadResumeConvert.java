@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.UploadAmResume;
 import com.open.hr.ai.bean.req.UploadAmResumeUpdateReq;
-import com.open.hr.ai.bean.vo.AmResumeVo;
 import com.open.hr.ai.bean.vo.UploadAmResumeVo;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.Mapper;

@@ -215,6 +215,21 @@
 
     </dependencies>
     <build>
+        <resources>
+            <!-- 包含Java目录下的XML文件 -->
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/xml/*.xml</include> <!-- 匹配所有xml目录下的文件 -->
+                    <include>**/*.xml</include>     <!-- 如果还有其他位置的XML -->
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+            <!-- 保留默认资源目录 -->
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

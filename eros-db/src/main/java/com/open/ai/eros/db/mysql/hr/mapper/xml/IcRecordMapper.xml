@@ -2,4 +2,74 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.open.ai.eros.db.mysql.hr.mapper.IcRecordMapper">
 
+    <select id="pageIcRecord" resultType="com.open.ai.eros.db.mysql.hr.vo.IcRecordVo">
+        SELECT
+        ir.*,
+        ap.name AS positionName,
+        aps.name AS deptName
+        FROM ic_record ir
+        LEFT JOIN am_position ap ON ir.position_id = ap.id
+        LEFT JOIN am_position_post app ON ap.post_id = app.id
+        LEFT JOIN am_position_section aps ON app.section_id = aps.id
+        <where>
+            <!-- 基础条件 -->
+            <if test="req.adminId != null">
+                AND ir.admin_id = #{req.adminId}
+            </if>
+            <if test="req.account != null and req.account != ''">
+                AND ir.account LIKE CONCAT('%', #{req.account}, '%')
+            </if>
+            <if test="req.employeeName != null and req.employeeName != ''">
+                AND ir.employee_name LIKE CONCAT('%', #{req.employeeName}, '%')
+            </if>
+            <if test="req.platform != null and req.platform != ''">
+                AND ir.platform LIKE CONCAT('%', #{req.platform}, '%')
+            </if>
+            <if test="req.interviewType != null and req.interviewType != ''">
+                AND ir.interview_type = #{interviewType}
+            </if>
+            <if test="req.postId != null">
+                AND ir.position_id = #{req.postId}
+            </if>
+            <if test="req.employeeUid != null and req.employeeUid != ''">
+                AND ir.employee_uid = #{req.employeeUid}
+            </if>
+            <if test="req.startTime != null">
+                AND ir.start_time &gt;= #{req.startTime}
+            </if>
+            <if test="req.endTime != null">
+                AND ir.start_time &lt;= #{req.endTime}
+            </if>
+            <if test="req.platformId != null">
+                AND ir.platform_id = #{req.platformId}
+            </if>
+
+            <!-- 部门相关条件 -->
+            <if test="req.deptId != null">
+                AND aps.id = #{req.deptId}
+            </if>
+            <if test="req.deptName != null and req.deptName != ''">
+                AND aps.name LIKE CONCAT('%', #{req.deptName}, '%')
+            </if>
+            <if test="req.postName != null and req.postName != ''">
+                AND ap.name LIKE CONCAT('%', #{req.postName}, '%')
+            </if>
+
+            <!-- 状态条件 -->
+            <choose>
+                <when test="req.interviewStatus != null and req.interviewStatus == 0">
+                    AND ir.cancel_status = #{req.interviewStatus}
+                    AND ir.start_time &gt; NOW()
+                </when>
+                <when test="req.interviewStatus != null and req.interviewStatus == 1">
+                    AND ir.cancel_status = #{req.interviewStatus}
+                    AND ir.start_time &lt;= NOW()
+                </when>
+                <when test="req.interviewStatus != null">
+                    AND ir.cancel_status = #{req.interviewStatus}
+                </when>
+            </choose>
+        </where>
+        ORDER BY ir.start_time DESC
+    </select>
 </mapper>

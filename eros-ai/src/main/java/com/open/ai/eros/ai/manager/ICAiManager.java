@@ -4,24 +4,24 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
-import com.open.ai.eros.ai.bean.req.IcRecordPageReq;
+import com.open.ai.eros.db.mysql.hr.req.IcRecordPageReq;
 import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcGroupDaysVo;
-import com.open.ai.eros.ai.bean.vo.IcRecordVo;
+import com.open.ai.eros.db.mysql.hr.vo.IcRecordVo;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
 import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.InterviewRoleEnum;
 import com.open.ai.eros.common.constants.InterviewStatusEnum;
 import com.open.ai.eros.common.constants.InterviewTypeEnum;
-import com.open.ai.eros.ai.convert.IcRecordConvert;
 import com.open.ai.eros.common.constants.CommonConstant;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.mapper.IcRecordMapper;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -82,6 +83,9 @@ public class ICAiManager {
 
     @Resource
     private JedisClientImpl jedisClient;
+
+    @Resource
+    private IcRecordMapper recordMapper;
 
 
     public ResultVO<IcSpareTimeVo> getSpareTime(IcSpareTimeReq spareTimeReq){
@@ -364,19 +368,19 @@ public class ICAiManager {
         LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(IcRecord::getAdminId,adminId)
                     .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
-                    .eq(postId != null, IcRecord::getPositionId, postId)
-                    .ge(IcRecord::getStartTime,LocalDateTime.now());
+                    .eq(postId != null, IcRecord::getPositionId, postId);
         if(startDate != null){
             queryWrapper.ge(IcRecord::getStartTime, startDate.atStartOfDay());
         }
         if(endDate != null){
             queryWrapper.le(IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay());
         }
-        List<IcRecord> icRecords = icRecordService.lambdaQuery().list();
+        List<IcRecord> icRecords = icRecordService.list(queryWrapper);
         if(CollectionUtil.isEmpty(icRecords)){
             icRecords = new ArrayList<>();
         }
 
+        Map<Integer, String> postIdDeptNameMap = getPostIdDeptNameMap(adminId,deptId,postName);
 
         assert startDate != null;
         assert endDate != null;
@@ -390,19 +394,7 @@ public class ICAiManager {
                             !record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
             for (IcRecord morningRecord : morningRecords) {
-                AmPosition position = positionService.getById(morningRecord.getPositionId());
-                if(position == null){
-                    continue;
-                }
-                AmPositionPost positionPost = postService.getById(position.getPostId());
-                if(positionPost == null){
-                    continue;
-                }
-                AmPositionSection section = sectionService.getById(positionPost.getSectionId());
-                if(section == null){
-                    continue;
-                }
-                String deptName = section.getName();
+                String deptName = postIdDeptNameMap.get(morningRecord.getPositionId().intValue());
                 if(StringUtils.isEmpty(deptName)){
                     continue;
                 }
@@ -416,19 +408,7 @@ public class ICAiManager {
                             record.getStartTime().isAfter(middleTime)).collect(Collectors.toList());
 
             for (IcRecord afternoonRecord : afternoonRecords) {
-                AmPosition position = positionService.getById(afternoonRecord.getPositionId());
-                if(position == null){
-                    continue;
-                }
-                AmPositionPost positionPost = postService.getById(position.getPostId());
-                if(positionPost == null){
-                    continue;
-                }
-                AmPositionSection section = sectionService.getById(positionPost.getSectionId());
-                if(section == null){
-                    continue;
-                }
-                String deptName = section.getName();
+                String deptName = postIdDeptNameMap.get(afternoonRecord.getPositionId().intValue());
                 if(StringUtils.isEmpty(deptName)){
                     continue;
                 }
@@ -442,6 +422,59 @@ public class ICAiManager {
         return ResultVO.success(icGroupDaysVos);
     }
 
+    private Map<Integer,String> getPostIdDeptNameMap(Long adminId, Integer deptId, String postName) {
+        // 职位id和部门名称映射
+        Map<Integer, String> postIdDeptNameMap = new HashMap<>();
+
+        // 查询当前管理员的部门列表
+        List<AmPositionSection> amPositionSections = sectionService
+                .list(new LambdaQueryWrapper<AmPositionSection>()
+                        .eq(AmPositionSection::getAdminId, adminId)
+                        .eq(deptId != null, AmPositionSection::getId, deptId)
+                        .like(StringUtils.isNotEmpty(postName), AmPositionSection::getName, postName));
+
+        if (CollectionUtil.isEmpty(amPositionSections)) {
+            return postIdDeptNameMap; // 提前返回空结果
+        }
+
+        // 提取部门ID并查询关联岗位
+        List<Integer> sectionIds = amPositionSections.stream()
+                .map(AmPositionSection::getId)
+                .collect(Collectors.toList());
+        List<AmPositionPost> positionPosts = postService
+                .list(new LambdaQueryWrapper<AmPositionPost>().in(AmPositionPost::getSectionId, sectionIds));
+
+        if (CollectionUtil.isEmpty(positionPosts)) {
+            return postIdDeptNameMap; // 提前返回空结果
+        }
+
+        // 构建岗位ID和部门ID的快速映射表
+        Map<Integer, AmPositionPost> postMap = positionPosts.stream()
+                .collect(Collectors.toMap(AmPositionPost::getId, Function.identity()));
+
+        // 构建部门ID和部门名称的快速映射表
+        Map<Integer, AmPositionSection> sectionMap = amPositionSections.stream()
+                .collect(Collectors.toMap(AmPositionSection::getId, Function.identity()));
+
+        // 查询这些岗位下的所有职位
+        List<Integer> positionPostIds = positionPosts.stream()
+                .map(AmPositionPost::getId)
+                .collect(Collectors.toList());
+        List<AmPosition> positions = positionService
+                .list(new LambdaQueryWrapper<AmPosition>().in(AmPosition::getPostId, positionPostIds));
+
+        // 处理空值
+        positions.forEach(position ->
+                Optional.ofNullable(position.getPostId())
+                        .map(postMap::get)
+                        .map(AmPositionPost::getSectionId)
+                        .map(sectionMap::get)
+                        .map(AmPositionSection::getName)
+                        .ifPresent(name -> postIdDeptNameMap.put(position.getId(), name))
+        );
+        return postIdDeptNameMap;
+    }
+
     private void buildEmptyDays(List<IcGroupDaysVo> icGroupDaysVos, LocalDate startDate, LocalDate endDate) {
         while (!startDate.isAfter(endDate)){
             LocalDate date = startDate;
@@ -451,56 +484,20 @@ public class ICAiManager {
     }
 
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(IcRecordPageReq req) {
-        LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
-        Long adminId = req.getAdminId();
-        Integer status = req.getInterviewStatus();
-        String type = req.getInterviewType();
-        Integer pageNum = req.getPage();
-        Integer pageSize = req.getPageSize();
-        String account = req.getAccount();
-        String deptName = req.getDeptName();
-        String employeeName = req.getEmployeeName();
-        String postName = req.getPostName();
-        String platform = req.getPlatform();
-        Integer deptId = req.getDeptId();
-        Integer postId = req.getPostId();
-        Integer platformId = req.getPlatformId();
-        String employeeUid = req.getEmployeeUid();
-        LocalDateTime startTime = req.getStartTime();
-        LocalDateTime endTime = req.getEndTime();
-        queryWrapper.eq(adminId != null,IcRecord::getAdminId,adminId)
-                .like(StringUtils.isNotEmpty(account),IcRecord::getAccount,account)
-                .like(StringUtils.isNotEmpty(employeeName),IcRecord::getEmployeeName,employeeName)
-                .like(StringUtils.isNotEmpty(platform),IcRecord::getPlatform,platform)
-                .eq(StringUtils.isNotEmpty(type),IcRecord::getInterviewType,type)
-                .eq(postId != null,IcRecord::getPositionId,postId)
-                .eq(StringUtils.isNotEmpty(employeeUid),IcRecord::getEmployeeUid,employeeUid)
-                .ge(startTime != null,IcRecord::getStartTime,startTime)
-                .le(endTime != null,IcRecord::getStartTime,endTime)
-                .eq(platformId != null,IcRecord::getPlatformId,platformId)
-                .orderByDesc(IcRecord::getStartTime);
-        if(status != null){
-            if(InterviewStatusEnum.DEPRECATED.getStatus().equals(status)){
-                queryWrapper.eq(IcRecord::getCancelStatus,InterviewStatusEnum.NOT_CANCEL.getStatus())
-                        .le(IcRecord::getStartTime,LocalDateTime.now());
-            }else if(InterviewStatusEnum.NOT_CANCEL.getStatus().equals(status)) {
-                queryWrapper.eq(IcRecord::getCancelStatus,status)
-                            .gt(IcRecord::getStartTime,LocalDateTime.now());
-            }else {
-                queryWrapper.eq(IcRecord::getCancelStatus,status);
-            }
-        }
-        Page<IcRecord> page = new Page<>(pageNum, pageSize);
-        Page<IcRecord> icRecordPage = icRecordService.page(page, queryWrapper);
-        List<IcRecordVo> icRecordVos = icRecordPage.getRecords().stream().map(IcRecordConvert.I::convertIcRecordVo).collect(Collectors.toList());
+        Page<IcRecordVo> page = new Page<>(req.getPage(), req.getPageSize());
+        IPage<IcRecordVo> pageVO = recordMapper.pageIcRecord(page,req);
+        List<IcRecordVo> icRecordVos = pageVO.getRecords();
         if(CollectionUtil.isNotEmpty(icRecordVos)){
             icRecordVos.forEach(item->{
                 if(InterviewStatusEnum.CANCEL.getStatus().equals(item.getCancelStatus())){
                     return;
                 }
-                item.setCancelStatus(item.getStartTime().isAfter(LocalDateTime.now()) ? item.getCancelStatus() : InterviewStatusEnum.DEPRECATED.getStatus());
+                if(item.getStartTime().isBefore(LocalDate.now().atStartOfDay())){
+                    item.setCancelStatus(InterviewStatusEnum.DEPRECATED.getStatus());
+                }
             });
+            pageVO.setRecords(icRecordVos);
         }
-        return ResultVO.success(PageVO.build(icRecordPage.getTotal(), icRecordVos));
+        return ResultVO.success(new PageVO<>(pageVO.getTotal(),pageVO.getRecords()));
     }
 }

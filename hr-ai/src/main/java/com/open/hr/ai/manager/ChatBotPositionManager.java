@@ -4,16 +4,18 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.mapper.AmPositionMapper;
+import com.open.ai.eros.db.mysql.hr.req.SearchPositionListReq;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
-import com.open.hr.ai.bean.vo.AmPositionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmPositionVo;
 import com.open.hr.ai.constant.PositionStatusEnums;
-import com.open.hr.ai.convert.AmChatBotGreetConditionConvert;
 import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import com.open.hr.ai.convert.AmPositionConvert;
 import com.open.hr.ai.convert.AmPositionSetionConvert;
@@ -24,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -63,6 +67,9 @@ public class ChatBotPositionManager {
 
     @Resource
     private AmClientTaskManager amClientTaskManager;
+
+    @Resource
+    private AmPositionMapper positionMapper;
 
 
     @Resource
@@ -226,31 +233,76 @@ public class ChatBotPositionManager {
      * @param adminId
      * @return
      */
-    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name,String positionPostName) {
+    public ResultVO<List<AmPositionSectionVo>> getStructures(Long adminId,String name) {
         try {
+
+            List<AmPositionSectionVo> amPositionSectionVos = new ArrayList<>();
+
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmPositionSection::getAdminId, adminId);
-            if (StringUtils.isNotBlank(name)) {
-                queryWrapper.like(AmPositionSection::getName, name);
-            }
             List<AmPositionSection> amPositionSections = amPositionSectionService.list(queryWrapper);
-            List<AmPositionSectionVo> amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
-            for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos) {
-                LambdaQueryWrapper<AmPositionPost> lambdaQueryWrapper = new QueryWrapper<AmPositionPost>().lambda();
-                lambdaQueryWrapper.eq(AmPositionPost::getSectionId, amPositionSectionVo.getId())
-                                  .like(StringUtils.isNotEmpty(positionPostName),AmPositionPost::getName, positionPostName);
-                List<AmPositionPost> amPositionPosts = amPositionPostService.list(lambdaQueryWrapper);
-                amPositionSectionVo.setPost_list(amPositionPosts);
+            List<AmPositionPost> amPositionPosts = amPositionPostService.list();
+
+            if(StringUtils.isEmpty(name)){
+                amPositionSectionVos = amPositionSections.stream().map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
+                for (AmPositionSectionVo amPositionSection : amPositionSectionVos) {
+                    amPositionSection.setPost_list(amPositionPosts.stream().filter(amPositionPost ->
+                            amPositionPost.getSectionId().equals(amPositionSection.getId())).collect(Collectors.toList()));
+                }
+                return ResultVO.success(amPositionSectionVos);
             }
-            if(StringUtils.isNotEmpty(positionPostName) && CollectionUtils.isNotEmpty(amPositionSectionVos)){
-                List<AmPositionSectionVo> sectionVos = amPositionSectionVos.stream()
-                        .filter(vo -> CollectionUtils.isNotEmpty(vo.getPost_list())).collect(Collectors.toList());
-                return ResultVO.success(sectionVos);
+
+            if(CollectionUtils.isNotEmpty(amPositionSections)){
+                List<AmPositionSection> sections = amPositionSections.stream()
+                        .filter(amPositionSection -> amPositionSection.getName().contains(name)).collect(Collectors.toList());
+                List<AmPositionSectionVo> sectionVos = sections.stream()
+                        .map(AmPositionSetionConvert.I::converAmPositionSectionVo).collect(Collectors.toList());
+                for (AmPositionSectionVo amPositionSectionVo : sectionVos) {
+                    if(CollectionUtils.isNotEmpty(amPositionPosts)){
+                        amPositionSectionVo.setPost_list(amPositionPosts.stream().filter(amPositionPost ->
+                                amPositionPost.getSectionId().equals(amPositionSectionVo.getId())).collect(Collectors.toList()));
+                        amPositionSectionVos.add(amPositionSectionVo);
+                    }
+                }
+            }
+
+            if(CollectionUtils.isNotEmpty(amPositionPosts)){
+                List<AmPositionPost> posts = amPositionPosts.stream().filter(amPositionPost -> amPositionPost.getName().contains(name)).collect(Collectors.toList());
+                if(CollectionUtils.isNotEmpty(posts)){
+                    for (AmPositionPost post : posts){
+                        boolean flag = false;
+                        for (AmPositionSectionVo amPositionSectionVo : amPositionSectionVos){
+                            if(post.getSectionId().equals(amPositionSectionVo.getId())){
+                                List<AmPositionPost> postList = amPositionSectionVo.getPost_list();
+                                if(CollectionUtils.isNotEmpty(postList)){
+                                    postList.add(post);
+                                    amPositionSectionVo.setPost_list(postList);
+                                }else{
+                                    List<AmPositionPost> positionPost = new ArrayList<>();
+                                    positionPost.add(post);
+                                    amPositionSectionVo.setPost_list(positionPost);
+                                }
+                                flag = true;
+                            }
+                        }
+                        if(!flag){
+                            if(CollectionUtils.isNotEmpty(amPositionSections)){
+                                AmPositionSection section = amPositionSections.stream()
+                                        .filter(amPositionSection -> amPositionSection.getId().equals(post.getSectionId())).findFirst().orElse(null);
+                                if(section != null){
+                                    AmPositionSectionVo sectionVo = AmPositionSetionConvert.I.converAmPositionSectionVo(section);
+                                    sectionVo.setPost_list(Collections.singletonList(post));
+                                    amPositionSectionVos.add(sectionVo);
+                                }
+                            }
+                        }
+                    }
+                }
             }
             return ResultVO.success(amPositionSectionVos);
         } catch (Exception e) {
             log.error("获取失败 adminId={}", adminId, e);
-            return ResultVO.fail("系统异常,更新失败");
+            return ResultVO.fail("系统异常,部门岗位信息获取失败");
         }
     }
 
@@ -448,18 +500,37 @@ public class ChatBotPositionManager {
 //            if (Objects.isNull(section)) {
 //                return ResultVO.fail("部门不存在, 请先去建立部门");
 //            }
-            MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
-            if (Objects.isNull(miniUniUser)) {
-                return ResultVO.fail("招聘用户不存在");
-            }
+//            MiniUniUser miniUniUser = miniUniUserService.getById(amPosition.getUid());
+//            if (Objects.isNull(miniUniUser)) {
+//                return ResultVO.fail("招聘用户不存在");
+//            }
             AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(amPosition.getBossId());
             if (Objects.isNull(amZpLocalAccouts)) {
                 return ResultVO.fail("boss账号不存在");
             }
+
+            AmZpPlatforms platforms = amZpPlatformsService.getById(amPosition.getChannel());
+            if(Objects.isNull(platforms)){
+                return ResultVO.fail("平台不存在");
+            }
+
+            AmPositionPost positionPost = amPositionPostService.getById(amPosition.getPostId());
+            if(Objects.isNull(positionPost)){
+                return ResultVO.fail("岗位不存在");
+            }
+
+            AmPositionSection section = amPositionSectionService.getById(positionPost.getSectionId());
+            if(Objects.isNull(section)){
+                return ResultVO.fail("部门不存在");
+            }
+
 //            amPositionVo.setSection(section.getName());
+            amPositionVo.setPostName(positionPost.getName());
+            amPositionVo.setSectionName(section.getName());
+            amPositionVo.setSectionId(section.getId());
             amPositionVo.setDetail(JSONObject.parseObject(amPosition.getExtendParams()));
-            amPositionVo.setUserName(miniUniUser.getName());
-            amPositionVo.setChannelName("BOSS直聘");
+            amPositionVo.setUserName("");
+            amPositionVo.setChannelName(platforms.getName());
             amPositionVo.setBossAccount(amZpLocalAccouts.getAccount());
             amPositionVo.setIsDeleted(amPosition.getIsDeleted());
             amPositionVo.setIsOpen(amPosition.getIsOpen());
@@ -478,104 +549,31 @@ public class ChatBotPositionManager {
      */
     public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req, Long adminId) {
         try {
-
-            LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmPositionSection::getAdminId, adminId);
-            AmPositionSection serviceOne = amPositionSectionService.getOne(queryWrapper, false);
-            if (Objects.isNull(serviceOne)) {
-                return ResultVO.fail("部门不存在, 请先去建立部门");
-            }
-            LambdaQueryWrapper<AmPosition> amPositionQueryWrapper = new LambdaQueryWrapper<>();
-            amPositionQueryWrapper.eq(AmPosition::getAdminId, adminId);
-            // 查询未删除的数据
-            amPositionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
-
-//            if (Objects.nonNull(req.getSectionId())) {
-//                amPositionQueryWrapper.eq(AmPosition::getSectionId, req.getSectionId());
-//            }
-            if (Objects.nonNull(req.getStatus())) {
-                amPositionQueryWrapper.like(AmPosition::getStatus, req.getStatus());
-            }
-            if (Objects.nonNull(req.getIsOpen())) {
-                amPositionQueryWrapper.like(AmPosition::getIsOpen, req.getIsOpen());
-            }
-            if (Objects.nonNull(req.getUid())) {
-                amPositionQueryWrapper.like(AmPosition::getUid, req.getUid());
-            }
-            if (Objects.nonNull(req.getChannel())) {
-                amPositionQueryWrapper.like(AmPosition::getChannel, req.getChannel());
-            }
-//            if (Objects.nonNull(req.getSectionId())) {
-//                amPositionQueryWrapper.like(AmPosition::getSectionId, req.getSectionId());
-//            }
-            if (Objects.nonNull(req.getPositionId())) {
-                amPositionQueryWrapper.like(AmPosition::getPostId, req.getPositionId());
-            }
-
-            if(StringUtils.isNotEmpty(req.getPositionName())){
-                amPositionQueryWrapper.like(AmPosition::getName, req.getPositionName());
-            }
-
-            if(StringUtils.isNotEmpty(req.getCity())){
-                amPositionQueryWrapper.like(AmPosition::getCity, req.getCity());
-            }
-
-            if (Objects.nonNull(req.getAccountId())) {
-                amPositionQueryWrapper.like(AmPosition::getBossId, req.getAccountId());
-            } else {
-                LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
-                accoutsQueryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
-                accoutsQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
-                List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(accoutsQueryWrapper);
-                List<String> bossIds = localAccouts.stream().map(AmZpLocalAccouts::getId).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(bossIds)) {
-                    amPositionQueryWrapper.in(AmPosition::getBossId, bossIds);
-                }
-            }
-
-//            LambdaQueryWrapper<MiniUniUser> miniUniUserQueryWrapper = new LambdaQueryWrapper<>();
-//            miniUniUserQueryWrapper.eq(MiniUniUser::getAdminId, adminId);
-//            List<MiniUniUser> miniUniUsers = miniUniUserService.list(miniUniUserQueryWrapper);
-
-
+            req.setAdminId(adminId);
             LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
             accoutsQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
             accoutsQueryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
             List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(accoutsQueryWrapper);
 
+            List<AmZpPlatforms> amZpPlatforms = amZpPlatformsService.list();
 
-            LambdaQueryWrapper<AmZpPlatforms> platformsQueryWrapper = new LambdaQueryWrapper<>();
-            List<AmZpPlatforms> amZpPlatforms = amZpPlatformsService.list(platformsQueryWrapper);
+            Page<AmPositionVo> page = new Page<>(req.getPage(), req.getSize());
+            IPage<AmPositionVo> iPage = positionMapper.pagePosition(page,req);
 
-
-            LambdaQueryWrapper<AmPositionSection> sectionQueryWrapper = new LambdaQueryWrapper<>();
-            sectionQueryWrapper.eq(AmPositionSection::getAdminId, adminId);
-            List<AmPositionSection> amPositionSections = amPositionSectionService.list(sectionQueryWrapper);
-
-//            LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
-//            positionQueryWrapper.eq(AmPosition::getAdminId, adminId);
-//            positionQueryWrapper.eq(AmPosition::getIsDeleted, 0);
-//            List<AmPosition> amPositions = amPositionService.list(positionQueryWrapper);
-//
-//            LambdaQueryWrapper<AmNewMask> rolesQueryWrapper = new LambdaQueryWrapper<>();
-//            rolesQueryWrapper.eq(AmNewMask::getAdminId, adminId);
-//            List<AmNewMask> amNewMasks = amNewMaskService.list(rolesQueryWrapper);
-
-            Page<AmPosition> page = new Page<>(req.getPage(), req.getSize());
-            Page<AmPosition> amPositionPage = amPositionService.page(page, amPositionQueryWrapper);
-            List<AmPositionVo> amPositionVos = amPositionPage.getRecords().stream().map(AmPositionConvert.I::converAmPositionVo).collect(Collectors.toList());
+            List<AmPositionVo> amPositionVos = iPage.getRecords();
             for (AmPositionVo amPositionVo : amPositionVos) {
-                amPositionVo.setSection("");
-                MiniUniUser miniUniUser = miniUniUserService.getById(amPositionVo.getUid());
-                if (Objects.isNull(miniUniUser)) {
-                    continue;
-                }
+                amPositionVo.setExtendParams(JSONObject.parseObject(amPositionVo.getExtendParamsStr()));
+                amPositionVo.setJobStandard(JSONObject.parseObject(amPositionVo.getJobStandardStr()));
+//                MiniUniUser miniUniUser = miniUniUserService.getById(amPositionVo.getUid());
+//                if (Objects.isNull(miniUniUser)) {
+//                    continue;
+//                }
                 AmChatbotGreetConditionNew conditionNewServiceOne = amChatbotGreetConditionNewService.getOne(new LambdaQueryWrapper<AmChatbotGreetConditionNew>().eq(AmChatbotGreetConditionNew::getPositionId, amPositionVo.getId()), false);
                 if (Objects.nonNull(conditionNewServiceOne)) {
                     amPositionVo.setConditionVo(AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne));
                 }
 
-                String name = miniUniUser.getName();
+                String name = "";
                 if ( amPositionVo.getAiAssitantId() == 0L) {
                     amPositionVo.setAiAssitantId(null);
                 }
@@ -583,11 +581,6 @@ public class ChatBotPositionManager {
                 amPositionVo.setChannelName("");
                 amPositionVo.setBossAccount("");
                 amPositionVo.setDetail(amPositionVo.getExtendParams());
-                for (AmPositionSection amPositionSection : amPositionSections) {
-                    if (Objects.equals(amPositionSection.getId(), amPositionVo.getSectionId())) {
-                        amPositionVo.setSection(amPositionSection.getName());
-                    }
-                }
                 for (AmZpLocalAccouts localAccout : localAccouts) {
                     if (Objects.equals(localAccout.getId(), amPositionVo.getBossId())) {
                         amPositionVo.setBossAccount(localAccout.getAccount());
@@ -599,18 +592,7 @@ public class ChatBotPositionManager {
                     }
                 }
             }
-
-//            int total = amPositionService.list(amPositionQueryWrapper).size();
-//            jsonObject.put("total", amPositionPage.getTotal());
-//            jsonObject.put("current_page", req.getPage());
-//            jsonObject.put("size", req.getSize());
-//            jsonObject.put("recruiters", miniUniUsers);
-//            jsonObject.put("accouts", localAccouts);
-//            jsonObject.put("platforms", amZpPlatforms);
-//            jsonObject.put("sections", amPositionSections);
-//            jsonObject.put("positions", amPositionVos);
-//            jsonObject.put("ais", amSquareRoles);
-            return ResultVO.success(PageVO.build(amPositionPage.getTotal(), amPositionVos));
+            return ResultVO.success(PageVO.build(iPage.getTotal(), amPositionVos));
 
         } catch (Exception e) {
             log.error("查询职位详情异常 req={}", JSONObject.toJSONString(req), e);

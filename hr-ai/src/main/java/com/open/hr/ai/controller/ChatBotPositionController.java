@@ -5,9 +5,10 @@ import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionPost;
 import com.open.ai.eros.db.mysql.hr.entity.AmPositionSection;
+import com.open.ai.eros.db.mysql.hr.req.SearchPositionListReq;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.AmPositionSectionVo;
-import com.open.hr.ai.bean.vo.AmPositionVo;
+import com.open.ai.eros.db.mysql.hr.vo.AmPositionVo;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.ChatBotPositionManager;
 import io.swagger.annotations.Api;
@@ -92,9 +93,8 @@ public class ChatBotPositionController extends HrAIBaseController {
     @ApiOperation("获取组织架构")
     @VerifyUserToken
     @GetMapping("position/get_structures")
-    public ResultVO<List<AmPositionSectionVo>> getStructures(@RequestParam(value = "name", required = false) @ApiParam("部门名称") String name,
-                                                             @RequestParam(value = "positionPostName", required = false) @ApiParam("岗位名称") String positionPostName) {
-        return chatBotPositionManager.getStructures(getUserId(),name,positionPostName);
+    public ResultVO<List<AmPositionSectionVo>> getStructures(@RequestParam(value = "name", required = false) @ApiParam("部门或岗位名称") String name) {
+        return chatBotPositionManager.getStructures(getUserId(),name);
     }
 
 

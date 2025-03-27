@@ -190,6 +190,18 @@ public class AmNewMaskVo {
     @ApiModelProperty(value = "是否交换附件简历")
     private Boolean openExchangeAttachmentResume;
 
+    /**
+     * single-单面，group-群面
+     */
+    @ApiModelProperty(value = "single-单面，group-群面")
+    private String interviewType;
+
+    /**
+     * 是否跳过节假日，1-是，2-否
+     */
+    @ApiModelProperty(value = "是否跳过节假日，1-是，2-否")
+    private Integer skipHolidayStatus;
+
     @ApiModelProperty(value = "面试时段配置",required = true)
     private List<IcConfigVo> icConfigVos = new ArrayList<>();
 

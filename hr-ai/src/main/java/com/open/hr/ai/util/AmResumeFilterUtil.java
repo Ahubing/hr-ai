@@ -2,8 +2,7 @@ package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
-import com.open.hr.ai.bean.vo.AmGreetConditionVo;
-import com.open.hr.ai.constant.AmGreetDegreeEnum;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import com.open.hr.ai.constant.AmIntentionEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;

@@ -1,4 +1,4 @@
-package com.open.hr.ai.bean.req;
+package com.open.ai.eros.db.mysql.hr.req;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -29,14 +29,23 @@ public class SearchPositionListReq {
     @ApiModelProperty("选填，发布渠道；返回的platforms渠道列表，对应的渠道id")
     private Integer channel;
 
-    @ApiModelProperty("选填，部门id；-1不限，默认-1")
+    @ApiModelProperty("选填，部门id")
     private Integer sectionId;
 
-    @ApiModelProperty("选填，职位id；-1不限，默认-1；对职位去重显示")
+    @ApiModelProperty("选填，部门名称")
+    private String sectionName;
+
+    @ApiModelProperty("选填，职位id,对职位去重显示")
     private Integer positionId;
 
     @ApiModelProperty("选填，职位名称")
     private String positionName;
+
+    @ApiModelProperty("选填，岗位id")
+    private Integer positionPostId;
+
+    @ApiModelProperty("选填，岗位名称")
+    private String positionPostName;
 
     @ApiModelProperty("选填，城市")
     private String city;
@@ -47,5 +56,7 @@ public class SearchPositionListReq {
     @ApiModelProperty("选填，每页数量。默认10")
     private Integer size = 10;
 
+    @ApiModelProperty(value = "adminId",hidden = true)
+    private Long adminId;
 
 }
