@@ -5,6 +5,7 @@
     <select id="resumeList" resultType="com.open.ai.eros.db.mysql.hr.vo.AmResumeVo">
         SELECT
         ar.id as id,
+        ar.name as name,
         ar.expect_position as expectPosition,
         ar.platform as platform,
         ar.create_time as createTime,
