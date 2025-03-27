@@ -368,15 +368,14 @@ public class ICAiManager {
         LambdaQueryWrapper<IcRecord> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(IcRecord::getAdminId,adminId)
                     .eq(IcRecord::getCancelStatus, InterviewStatusEnum.NOT_CANCEL.getStatus())
-                    .eq(postId != null, IcRecord::getPositionId, postId)
-                    .ge(IcRecord::getStartTime,LocalDateTime.now());
+                    .eq(postId != null, IcRecord::getPositionId, postId);
         if(startDate != null){
             queryWrapper.ge(IcRecord::getStartTime, startDate.atStartOfDay());
         }
         if(endDate != null){
             queryWrapper.le(IcRecord::getStartTime, endDate.plusDays(1).atStartOfDay());
         }
-        List<IcRecord> icRecords = icRecordService.lambdaQuery().list();
+        List<IcRecord> icRecords = icRecordService.list(queryWrapper);
         if(CollectionUtil.isEmpty(icRecords)){
             icRecords = new ArrayList<>();
         }
