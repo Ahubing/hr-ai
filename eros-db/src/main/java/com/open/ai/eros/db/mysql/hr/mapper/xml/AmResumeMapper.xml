@@ -4,7 +4,16 @@
 
     <select id="resumeList" resultType="com.open.ai.eros.db.mysql.hr.vo.AmResumeVo">
         SELECT
-        ar.*,
+        ar.id as id,
+        ar.name as name,
+        ar.expect_position as expectPosition,
+        ar.platform as platform,
+        ar.create_time as createTime,
+        ar.competency_model as competencyModel,
+        ar.avatar as avatar,
+        ar.age as age,
+        ar.gender as gender,
+        ar.work_years as workYears,
         ap.name AS positionName,
         app.id AS positionPostId,
         app.name AS positionPostName,

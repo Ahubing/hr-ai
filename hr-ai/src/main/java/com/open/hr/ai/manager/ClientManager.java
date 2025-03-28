@@ -883,7 +883,7 @@ public class ClientManager {
                 AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
                 if (Objects.nonNull(amClientTasks) && !Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())) {
                     // 处理在线简历
-                    if (amClientTasks.getData().contains("resume")) {
+                    if (amClientTasks.getData().contains("[\"resume\"]")) {
                         dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
                     }
                 }
