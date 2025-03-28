@@ -501,7 +501,7 @@ public class ClientManager {
             AmPositionPost amPositionPost = positionPostService.getOne(postQueryWrapper, false);
             if (Objects.isNull(amPositionPost)) {
                 amPositionPost = new AmPositionPost();
-                amPositionPost.setName("默认岗位（项目）");
+                amPositionPost.setName("默认岗位");
                 amPositionPost.setSectionId(sectionId);
                 positionPostService.save(amPositionPost);
             }
