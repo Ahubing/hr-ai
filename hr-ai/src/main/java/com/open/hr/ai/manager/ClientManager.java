@@ -484,30 +484,32 @@ public class ClientManager {
             // 查询部门信息
             LambdaQueryWrapper<AmPositionSection> queryWrapper = new LambdaQueryWrapper<>();
             queryWrapper.eq(AmPositionSection::getAdminId, amZpLocalAccouts.getAdminId());
+            queryWrapper.eq(AmPositionSection::getDefaultSection,1);
             AmPositionSection amPositionSection = amPositionSectionService.getOne(queryWrapper, false);
             if (Objects.isNull(amPositionSection)) {
                 amPositionSection = new AmPositionSection();
-                amPositionSection.setName("默认");
+                amPositionSection.setDefaultSection(1);
+                amPositionSection.setName("默认部门");
                 amPositionSection.setAdminId(amZpLocalAccouts.getAdminId());
                 amPositionSectionService.save(amPositionSection);
             }
             //开始
             Integer sectionId = amPositionSection.getId();
-            String sectionName = amPositionSection.getName();
 
             //查询岗位信息
             LambdaQueryWrapper<AmPositionPost> postQueryWrapper = new LambdaQueryWrapper<>();
             postQueryWrapper.eq(AmPositionPost::getSectionId, sectionId);
+            postQueryWrapper.eq(AmPositionPost::getDefaultPost,1);
             AmPositionPost amPositionPost = positionPostService.getOne(postQueryWrapper, false);
             if (Objects.isNull(amPositionPost)) {
                 amPositionPost = new AmPositionPost();
-                amPositionPost.setName("默认");
+                amPositionPost.setDefaultPost(1);
+                amPositionPost.setName("默认岗位");
                 amPositionPost.setSectionId(sectionId);
                 positionPostService.save(amPositionPost);
             }
             //岗位信息
             Integer positionPostId = amPositionPost.getId();
-            String postName = amPositionPost.getName();
 
             // 同步结束
             amZpLocalAccouts.setIsSync(2);

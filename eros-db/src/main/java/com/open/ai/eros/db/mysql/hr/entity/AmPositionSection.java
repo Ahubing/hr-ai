@@ -37,5 +37,8 @@ public class AmPositionSection implements Serializable {
      */
     private String name;
 
-
+    /**
+     * 是否默认部门1-是，0-否
+     */
+    private Integer defaultSection;
 }
