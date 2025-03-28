@@ -37,5 +37,9 @@ public class AmPositionPost implements Serializable {
      */
     private String name;
 
+    /**
+     * 是否默认岗位1-是，0-否
+     */
+    private Integer defaultPost;
 
 }

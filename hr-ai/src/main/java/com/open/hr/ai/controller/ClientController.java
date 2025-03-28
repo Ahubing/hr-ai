@@ -133,7 +133,7 @@ public class ClientController extends HrAIBaseController {
 
 
     @ApiOperation("客户端打招呼请求过滤简历")
-    @PostMapping("/greet/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}//{greet_task_id}")
+    @PostMapping("/greet/resume/{platform}/{boss_id}/{connect_id}/{encrypt_id}/{greet_task_id}")
     public ResultVO greetAndSaveResume(@PathVariable("platform") String platform,@PathVariable("boss_id") String bossId, @PathVariable("connect_id") String connectId,@PathVariable("encrypt_id") String encryptId,@PathVariable("greet_task_id") String greet_task_id,@RequestBody @Valid JSONObject resume) {
         log.info("greetAndSaveResume bossId={},connectId={},encryptId={} ,greet_task_id={} ,clientBossNewMessageReq={}", bossId, connectId, encryptId,greet_task_id,resume);
         if (StringUtils.isBlank(bossId) || StringUtils.isBlank(connectId)) {
@@ -141,5 +141,6 @@ public class ClientController extends HrAIBaseController {
         }
         return clientManager.filterAndSaveAmResume(platform,bossId, connectId,encryptId, resume,greet_task_id);
     }
+
 
 }
