@@ -74,7 +74,6 @@ public class AmClientTaskManager {
             lambdaQueryWrapper.eq(AmClientTasks::getBossId, bossId);
             // 如果taskType 为空,则清空全部任务
             if (StringUtils.isNotBlank(taskType)) {
-
                 if ("rechat".equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.SEND_MESSAGE.getType());
                     lambdaQueryWrapper.eq(AmClientTasks::getSubType, "rechat");
@@ -93,7 +92,7 @@ public class AmClientTaskManager {
 
             boolean result = amClientTasksService.update(lambdaQueryWrapper);
             log.info("deleteAmClientTask result={}", result);
-            return result ? ResultVO.success() : ResultVO.fail("更新失败");
+            return  ResultVO.success();
         } catch (Exception e) {
             log.error("deleteAmClientTask error", e);
         }
