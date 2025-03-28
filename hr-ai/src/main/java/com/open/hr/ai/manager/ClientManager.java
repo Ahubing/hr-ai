@@ -489,7 +489,7 @@ public class ClientManager {
             if (Objects.isNull(amPositionSection)) {
                 amPositionSection = new AmPositionSection();
                 amPositionSection.setDefaultSection(1);
-                amPositionSection.setName("默认部门");
+                amPositionSection.setName("默认部门(项目)");
                 amPositionSection.setAdminId(amZpLocalAccouts.getAdminId());
                 amPositionSectionService.save(amPositionSection);
             }

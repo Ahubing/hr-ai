@@ -10,6 +10,7 @@ import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.common.vo.SqlSortParam;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.mapper.AmResumeMapper;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
@@ -37,10 +38,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -113,7 +111,7 @@ public class ResumeManager {
                                                    LocalDate endTime, String expectPosition, String postName,
                                                    Integer platformId, BigDecimal score, Integer deptId,
                                                    String deptName,Integer positionId, String positionName,
-                                                   String platform, Map<String, Integer> sortMap) {
+                                                   String platform, String sortMap) {
         try {
             Page<AmResumeVo> page = new Page<>(pageNum, size);
             LocalDateTime startDateTime = null;
@@ -124,9 +122,20 @@ public class ResumeManager {
             if (endTime != null) {
                 endDateTime = endTime.atStartOfDay().plusDays(1);
             }
+            List<SqlSortParam> sortParams = new ArrayList<>();
+            if(StringUtils.isNotEmpty(sortMap)){
+                String[] split = sortMap.split(",");
+                for (String s : split) {
+                    SqlSortParam sortParam = new SqlSortParam();
+                    String[] sp = s.split(":");
+                    sortParam.setField(sp[0]);
+                    sortParam.setOrder(Integer.parseInt(sp[1]));
+                    sortParams.add(sortParam);
+                }
+            }
             IPage<AmResumeVo> iPage = resumeMapper.resumeList(page, adminId, type, post_id, name, startDateTime,
                     endDateTime, expectPosition, postName, platformId, score,
-                    deptId, deptName, positionId, positionName, platform, sortMap);
+                    deptId, deptName, positionId, positionName, platform, sortParams);
             return ResultVO.success(PageVO.build(iPage.getTotal(), iPage.getRecords()));
         } catch (Exception e) {
             log.error("获取简历详情 ", e);

@@ -78,7 +78,7 @@ public class ResumeController extends HrAIBaseController {
                                                    @RequestParam(value = "positionName", required = false) @ApiParam("岗位名称") String positionName,
                                                    @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
                                                    @RequestParam(value = "platform", required = false) @ApiParam("平台名称") String platform,
-                                                   @RequestParam(value = "sortMap", required = false) @ApiParam("排序，格式{字段code:-1/1}") Map<String, Integer> sortMap,
+                                                   @RequestParam(value = "sortMap", required = false) @ApiParam("排序，格式:字段code:-1/1,中间逗号隔开") String sortMap,
                                                    @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) {
         return resumeManager.resumeList(getUserId(), type, post_id, name, page, size, startTime, endTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform, sortMap);
     }

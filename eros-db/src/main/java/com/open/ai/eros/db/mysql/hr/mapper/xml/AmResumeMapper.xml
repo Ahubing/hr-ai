@@ -14,6 +14,7 @@
         ar.age as age,
         ar.gender as gender,
         ar.work_years as workYears,
+        ar.type as type,
         ap.name AS positionName,
         app.id AS positionPostId,
         app.name AS positionPostName,
@@ -89,7 +90,20 @@
                 AND ar.create_time &lt;= #{endDateTime}
             </if>
         </where>
-        ORDER BY ar.create_time DESC
+        <if test="sortParams != null and !sortParams.isEmpty()">
+            ORDER BY
+            <foreach collection="sortParams" item="sort" separator=",">
+                ar.${sort.field}
+                <choose>
+                    <when test="sort.order == 1">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
+            </foreach>
+        </if>
+        <!-- 默认排序兜底 -->
+        <if test="sortParams == null or sortParams.isEmpty()">
+            ORDER BY ar.create_time DESC
+        </if>
     </select>
 
     <select id="countByType" resultType="java.lang.Integer">

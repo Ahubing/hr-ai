@@ -394,6 +394,9 @@ public class ChatBotPositionManager {
                 if (Objects.isNull(amPositionPost)) {
                     return ResultVO.fail("岗位不存在");
                 }
+                if(1 == amPositionPost.getId()){
+                    return ResultVO.fail("默认岗位不能编辑");
+                }
                 amPositionPost.setSectionId(req.getSection_id());
                 amPositionPost.setName(req.getName());
                 boolean result = amPositionPostService.updateById(amPositionPost);
@@ -468,6 +471,9 @@ public class ChatBotPositionManager {
                 AmPositionSection section = amPositionSectionService.getById(req.getId());
                 if (Objects.isNull(section)) {
                     return ResultVO.fail("部门不存在, 请先去建立部门");
+                }
+                if(1 == section.getDefaultSection()){
+                    return ResultVO.fail("默认部门不能编辑");
                 }
                 section.setName(req.getName());
                 boolean result = amPositionSectionService.updateById(section);

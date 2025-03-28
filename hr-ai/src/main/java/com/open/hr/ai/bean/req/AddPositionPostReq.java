@@ -31,7 +31,4 @@ public class AddPositionPostReq {
     @ApiModelProperty(value = "必填，岗位名称", required = true, notes = "岗位名称")
     private String  name;
 
-
-
-
 }
