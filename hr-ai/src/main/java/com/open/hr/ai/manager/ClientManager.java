@@ -487,7 +487,7 @@ public class ClientManager {
             AmPositionSection amPositionSection = amPositionSectionService.getOne(queryWrapper, false);
             if (Objects.isNull(amPositionSection)) {
                 amPositionSection = new AmPositionSection();
-                amPositionSection.setName("默认");
+                amPositionSection.setName("默认部门（项目）");
                 amPositionSection.setAdminId(amZpLocalAccouts.getAdminId());
                 amPositionSectionService.save(amPositionSection);
             }
@@ -501,7 +501,7 @@ public class ClientManager {
             AmPositionPost amPositionPost = positionPostService.getOne(postQueryWrapper, false);
             if (Objects.isNull(amPositionPost)) {
                 amPositionPost = new AmPositionPost();
-                amPositionPost.setName("默认");
+                amPositionPost.setName("默认岗位（项目）");
                 amPositionPost.setSectionId(sectionId);
                 positionPostService.save(amPositionPost);
             }
