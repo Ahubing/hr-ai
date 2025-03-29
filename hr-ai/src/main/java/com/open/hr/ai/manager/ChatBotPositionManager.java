@@ -95,7 +95,18 @@ public class ChatBotPositionManager {
             }
             positionServiceOne.setAmDescribe(req.getDesc());
             if(req.getPostId() != null){
+                AmPositionPost positionPost = amPositionPostService.getById(req.getPostId());
+                if (Objects.isNull(positionPost)){
+                    return ResultVO.fail("岗位不存在");
+                }
                 positionServiceOne.setPostId(req.getPostId());
+            }
+            if(req.getPlatformId() != null){
+                AmZpPlatforms zpPlatforms = amZpPlatformsService.getById(req.getPlatformId());
+                if (Objects.isNull(zpPlatforms)){
+                    return ResultVO.fail("平台不存在");
+                }
+                positionServiceOne.setChannel(Long.valueOf(req.getPlatformId()));
             }
             positionServiceOne.setPostId(req.getPostId());
             boolean result = amPositionService.updateById(positionServiceOne);
