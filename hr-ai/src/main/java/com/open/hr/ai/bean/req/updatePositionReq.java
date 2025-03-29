@@ -6,17 +6,17 @@ import lombok.Data;
 import javax.validation.constraints.NotEmpty;
 
 /**
- * 新增/编辑-岗位
+ * 新增/编辑-职位
  * @Date 2025/1/4 14:27
  */
 @Data
 public class updatePositionReq {
 
-    @ApiModelProperty(value = "岗位id，必填", required = true, notes = "岗位id，必填")
+    @ApiModelProperty(value = "职位id，必填", required = true, notes = "岗位id，必填")
     private Integer id;
 
-
-
+    @ApiModelProperty(value = "岗位id", required = true, notes = "岗位id，必填")
+    private Integer postId;
 
     /**
      * 岗位描述

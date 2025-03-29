@@ -36,7 +36,7 @@ public class ChatBotPositionController extends HrAIBaseController {
 
 
 
-    @ApiOperation("更新职位描述职位")
+    @ApiOperation("更新职位")
     @VerifyUserToken
     @PostMapping("position/update")
     public ResultVO updatePosition(@RequestBody @Valid updatePositionReq rēq) {

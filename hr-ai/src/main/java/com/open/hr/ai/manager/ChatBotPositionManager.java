@@ -94,12 +94,16 @@ public class ChatBotPositionManager {
                 return ResultVO.fail("职位不存在");
             }
             positionServiceOne.setAmDescribe(req.getDesc());
+            if(req.getPostId() != null){
+                positionServiceOne.setPostId(req.getPostId());
+            }
+            positionServiceOne.setPostId(req.getPostId());
             boolean result = amPositionService.updateById(positionServiceOne);
             return result ? ResultVO.success("更新成功") : ResultVO.fail("更新失败");
         } catch (Exception e) {
-            log.error("删除失败 id={}", JSONObject.toJSONString(req), e);
+            log.error("修改失败 id={}", JSONObject.toJSONString(req), e);
         }
-        return ResultVO.fail("系统异常,删除失败");
+        return ResultVO.fail("系统异常,修改失败");
     }
 
 
