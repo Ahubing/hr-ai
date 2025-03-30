@@ -77,11 +77,14 @@ public class AmClientTaskManager {
     /**
      * 查询正在执行中的任务
      */
-    public ResultVO getExecuteTask(String bossId) {
+    public ResultVO getExecuteTask(String bossId,Integer limit) {
         LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
         lambdaQueryWrapper.eq(AmClientTasks::getStatus,AmClientTaskStatusEnums.START.getStatus());
-
+        lambdaQueryWrapper.orderByDesc(AmClientTasks::getOrderNumber);
+        if (Objects.nonNull(limit)){
+            lambdaQueryWrapper.last("limit "+limit);
+        }
         List<AmClientTasksVo> amClientTaskData = new ArrayList<>();
         List<AmClientTasks> amClientTasks = amClientTasksService.list(lambdaQueryWrapper);
         for (AmClientTasks amClientTask : amClientTasks) {
@@ -180,14 +183,17 @@ public class AmClientTaskManager {
             lambdaQueryWrapper.eq(AmClientTasks::getBossId, bossId);
             // 如果taskType 为空,则清空全部任务
             if (StringUtils.isNotBlank(taskType)) {
-
                 if ("rechat".equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.SEND_MESSAGE.getType());
                     lambdaQueryWrapper.eq(AmClientTasks::getSubType, "rechat");
                 } else if (ClientTaskTypeEnums.SEND_MESSAGE.getType().equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
                     lambdaQueryWrapper.eq(AmClientTasks::getData, ClientTaskTypeEnums.SEND_MESSAGE.getType());
-                }else {
+                } else if (ClientTaskTypeEnums.GREET.getType().equals(taskType)) {
+                    lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
+                } else if ("other".equals(taskType)) {
+                    lambdaQueryWrapper.notIn(AmClientTasks::getTaskType, "rechat", ClientTaskTypeEnums.SEND_MESSAGE.getType(), ClientTaskTypeEnums.GREET.getType());
+                } else {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
                 }
             }
@@ -196,7 +202,6 @@ public class AmClientTaskManager {
             // 将status 设置为 2,并且原因为 用户设置失效
             lambdaQueryWrapper.set(AmClientTasks::getStatus, AmClientTaskStatusEnums.FINISH.getStatus());
             lambdaQueryWrapper.set(AmClientTasks::getReason, "用户设置失效");
-
             boolean result = amClientTasksService.update(lambdaQueryWrapper);
             log.info("deleteAmClientTask result={}", result);
             return result ? ResultVO.success() : ResultVO.fail("更新失败");

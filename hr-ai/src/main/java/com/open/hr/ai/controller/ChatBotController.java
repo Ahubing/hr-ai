@@ -94,11 +94,11 @@ public class ChatBotController extends HrAIBaseController {
     }
 
 
-    @ApiOperation(value = "获取boss任务数据", notes = "获取boss任务数据", httpMethod = "GET", response = ResultVO.class)
+    @ApiOperation(value = "获取boss正在执行的任务数据", notes = "获取boss任务数据", httpMethod = "GET", response = ResultVO.class)
     @VerifyUserToken
     @GetMapping("/zp/get/taskList")
-    public ResultVO getTaskList(@RequestParam(value = "id", required = true) String bossId) {
-        return amClientTaskManager.getExecuteTask(bossId);
+    public ResultVO getTaskList(@RequestParam(value = "id", required = true) String bossId, @RequestParam(value = "limit", required = false) Integer limit) {
+        return amClientTaskManager.getExecuteTask(bossId,limit);
     }
 
     @ApiOperation(value = "获取boss任务已完成的任务数据", notes = "获取boss任务数据", httpMethod = "GET", response = ResultVO.class)
