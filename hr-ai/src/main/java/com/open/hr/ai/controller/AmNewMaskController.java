@@ -5,13 +5,10 @@ import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.hr.ai.bean.req.AmMaskAddReq;
-import com.open.hr.ai.bean.req.AmMaskUpdateReq;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.AmNewMaskUpdateReq;
 import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.config.HrAIBaseController;
-import com.open.hr.ai.manager.AmMaskManager;
 import com.open.hr.ai.manager.AmNewMaskManager;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -44,9 +41,6 @@ public class AmNewMaskController extends HrAIBaseController {
         return amNewMaskManager.addAmNewMask(getUserId(), req);
     }
 
-
-
-
     @ApiOperation("更新面具")
     @VerifyUserToken
     @PostMapping("/amNewMask/update")
@@ -67,9 +61,6 @@ public class AmNewMaskController extends HrAIBaseController {
     public ResultVO getAmMaskDetail(@RequestParam(value = "id", required = true) Long id) {
         return amNewMaskManager.searchAmMaskById( id,getUserId());
     }
-
-
-
 
     @ApiOperation("查询面具")
     @VerifyUserToken
@@ -108,7 +99,6 @@ public class AmNewMaskController extends HrAIBaseController {
     }
 
 
-
     @ApiOperation("获取流程状态")
     @VerifyUserToken
     @GetMapping("/amNewMask/review/status")
@@ -131,4 +121,6 @@ public class AmNewMaskController extends HrAIBaseController {
         }
         return ResultVO.success(reviewStatusVos);
     }
+
+
 }

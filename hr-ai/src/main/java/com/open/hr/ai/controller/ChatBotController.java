@@ -93,6 +93,21 @@ public class ChatBotController extends HrAIBaseController {
         return amClientTaskManager.getTaskList(bossId);
     }
 
+
+    @ApiOperation(value = "获取boss任务数据", notes = "获取boss任务数据", httpMethod = "GET", response = ResultVO.class)
+    @VerifyUserToken
+    @GetMapping("/zp/get/taskList")
+    public ResultVO getTaskList(@RequestParam(value = "id", required = true) String bossId) {
+        return amClientTaskManager.getExecuteTask(bossId);
+    }
+
+    @ApiOperation(value = "获取boss任务已完成的任务数据", notes = "获取boss任务数据", httpMethod = "GET", response = ResultVO.class)
+    @VerifyUserToken
+    @GetMapping("/zp/get/taskPage")
+    public ResultVO getTaskListPage(@RequestParam(value = "id", required = true) String bossId,@RequestParam(value = "page", required = true)Integer page,@RequestParam(value = "pageSize", required = true)Integer pageSize) {
+        return amClientTaskManager.getDoneTask(bossId,page,pageSize);
+    }
+
     @ApiOperation(value = "删除boss任务", notes = "删除boss任务", httpMethod = "GET", response = ResultVO.class)
     @VerifyUserToken
     @GetMapping("/zp/delete/clientTask")
@@ -109,6 +124,8 @@ public class ChatBotController extends HrAIBaseController {
         map.put("rechat", "复聊任务");
         map.put(ClientTaskTypeEnums.GREET.getType(), ClientTaskTypeEnums.GREET.getDesc());
         map.put(ClientTaskTypeEnums.SEND_MESSAGE.getType(), ClientTaskTypeEnums.SEND_MESSAGE.getDesc());
+        map.put(ClientTaskTypeEnums.REQUEST_INFO.getType(), ClientTaskTypeEnums.REQUEST_INFO.getDesc());
+        map.put(ClientTaskTypeEnums.GET_ALL_JOB.getType(), ClientTaskTypeEnums.GET_ALL_JOB.getDesc());
         return ResultVO.success(map);
     }
 

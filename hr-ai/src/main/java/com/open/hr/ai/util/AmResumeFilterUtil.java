@@ -16,7 +16,7 @@ import java.util.*;
 @Slf4j
 public class AmResumeFilterUtil {
 
-    public static boolean filterResume(AmResume resume, AmGreetConditionVo criteria,Boolean isGreet) {
+    public static boolean filterResume(AmResume resume, AmGreetConditionVo criteria,Boolean isGreet,StringBuilder filterReason) {
 
         // 年龄
         if (StringUtils.isNotBlank(criteria.getAge())) {
@@ -27,6 +27,7 @@ public class AmResumeFilterUtil {
                     int maxAge = Integer.parseInt(ages[1]);
                     if (resume.getAge() < minAge || resume.getAge() > maxAge) {
                         log.info("AmResumeFilterUtil uid={} 年龄不符合 ,要求的年龄={}, 实际的年龄={}", resume.getUid(), criteria.getAge(), resume.getAge());
+                        filterReason.append(String.format(" 年龄不符合 ,要求的年龄={}, 实际的年龄={}", criteria.getAge(), resume.getAge()));
                         return false;
                     }
                 }
@@ -36,6 +37,7 @@ public class AmResumeFilterUtil {
         if (Objects.nonNull(criteria.getGender()) && criteria.getGender() != -1) {
             if (!criteria.getGender().equals(resume.getGender())) {
                 log.info("AmResumeFilterUtil uid={} 性别不符合", resume.getUid());
+                filterReason.append(String.format("性别不符合"));
                 return false;
             }
         }
@@ -45,6 +47,7 @@ public class AmResumeFilterUtil {
                 // 判断是否是学生
                 if (resume.getIsStudent() == 1) {
                     if (!criteria.getWorkYears().contains("在校/应届")) {
+                        filterReason.append(String.format("不是应届生"));
                         log.info("AmResumeFilterUtil uid={} 不是应届生", resume.getUid());
                         return false;
                     }
@@ -59,6 +62,7 @@ public class AmResumeFilterUtil {
                         }
                     }
                     if (!flag) {
+                        filterReason.append(String.format("工作年限不符合, 工作年限为={} 筛选条件为={}",workYear, criteria.getWorkYears()));
                         log.info("AmResumeFilterUtil uid={} 工作年限不符合, 年龄为={} 筛选条件为={}", resume.getUid(), workYear, criteria.getWorkYears());
                         return false;
                     }
@@ -73,6 +77,7 @@ public class AmResumeFilterUtil {
         if (CollectionUtils.isNotEmpty(criteria.getIntention())) {
             if (Objects.nonNull(resume.getIntention())  && resume.getIntention() != -1 && !criteria.getIntention().contains(AmIntentionEnum.UM_LIMITED.getType())) {
                 if (!criteria.getIntention().contains(resume.getIntention())) {
+                    filterReason.append(String.format("求职意向不符合"));
                     log.info("AmResumeFilterUtil uid={} 求职意向不符合", resume.getUid());
                     return false;
                 }
@@ -103,6 +108,7 @@ public class AmResumeFilterUtil {
                 }
             }
             if (!flag) {
+                filterReason.append(String.format("工作经验不符合"));
                 log.info("AmResumeFilterUtil uid={} 工作经验不符合", resume.getUid());
                 return false;
             }
@@ -132,6 +138,7 @@ public class AmResumeFilterUtil {
                 }
             }
             if (flag) {
+                filterReason.append(String.format("工作经验不符合,命中过滤词"));
                 log.info("AmResumeFilterUtil uid={} 工作经验不符合,命中过滤词", resume.getUid());
                 return false;
             }
@@ -152,6 +159,7 @@ public class AmResumeFilterUtil {
                 }
             }
             if (!flag) {
+                filterReason.append(String.format("技能要求不符合"));
                 log.info("AmResumeFilterUtil uid={} 技能要求不符合", resume.getUid());
                 return false;
             }
@@ -172,6 +180,7 @@ public class AmResumeFilterUtil {
 
                 // 判断是否存在交集
                 if (resumeMaxSalary < minSalary || resumeMinSalary > maxSalary) {
+                    filterReason.append(String.format("薪资不符合"));
                     log.info("AmResumeFilterUtil uid={} 薪资不符合，无交集", resume.getUid());
                     return false; // 无交集
                 }
@@ -183,11 +192,13 @@ public class AmResumeFilterUtil {
                 int salary = Integer.parseInt(salarys[0].replaceAll("[^0-9]", ""));
                 if (salaryStr.contains("以下")) {
                     if (resume.getLowSalary() > salary) {
+                        filterReason.append(String.format("薪资不符合,工资要求为{},用户最低工资为={}",salary,resume.getLowSalary()));
                         log.info("AmResumeFilterUtil uid={} 薪资不符合,工资要求为{},用户最低工资为low={}", resume.getUid(),salary,resume.getLowSalary());
                         return false;
                     }
                 } else {
                     if (resume.getHighSalary() < salary) {
+                        filterReason.append(String.format("薪资不符合,工资要求为{},用户最高工资为={}",salary,resume.getHighSalary()));
                         log.info("AmResumeFilterUtil uid={} 薪资不符合,工资要求为{} , 用户最高工资为{}", resume.getUid(), salary, resume.getHighSalary());
                         return false;
                     }
@@ -198,6 +209,7 @@ public class AmResumeFilterUtil {
         if (CollectionUtils.isNotEmpty(criteria.getDegree()) && !criteria.getDegree().contains(-1)) {
             if (Objects.nonNull(resume.getDegree())) {
                 if (!criteria.getDegree().contains(resume.getDegree())) {
+                    filterReason.append(String.format("学历要求不符合"));
                     log.info("AmResumeFilterUtil uid={} 学历要求不符合", resume.getUid());
                     return false;
                 }
@@ -224,6 +236,7 @@ public class AmResumeFilterUtil {
                         }
                     }
                     if (!flag) {
+                        filterReason.append(String.format("期望的职位关键词不符合"));
                         log.info("AmResumeFilterUtil uid={} 期望的职位关键词不符合", resume.getUid());
                         return false;
                     }
@@ -248,6 +261,7 @@ public class AmResumeFilterUtil {
                     }
                 }
                 if (flag) {
+                    filterReason.append(String.format("过滤的职位关键词不符合"));
                     log.info("AmResumeFilterUtil uid={} 过滤的职位关键词不符合", resume.getUid());
                     return false;
                 }
@@ -370,7 +384,9 @@ public class AmResumeFilterUtil {
         criteria.setExpectPosition(Collections.singletonList("数据"));
 //        criteria.setFilterPosition(Collections.singletonList("数据"));
 
-        System.out.println(filterResume(amResume, criteria,false));
+        StringBuilder filterReason = new StringBuilder();
+        System.out.println(filterResume(amResume, criteria,false,filterReason));
+        System.out.println(filterReason);
 
         JSONObject conditions = new JSONObject();
         conditions.put("学历要求", criteria.getDegree() != null ? criteria.getDegree() : Collections.singletonList(-1));

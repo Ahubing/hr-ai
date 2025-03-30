@@ -80,7 +80,6 @@ public class ClientManager {
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
-
     @Resource
     private AmNewMaskServiceImpl amNewMaskService;
 
@@ -648,6 +647,11 @@ public class ClientManager {
             }
             // 增加打招呼任务的执行次数统计
             Integer doneNum = amChatbotGreetTask.getDoneNum();
+            String detail = tasksServiceOne.getDetail();
+            if (Objects.isNull(detail)) {
+                detail = "";
+            }
+            StringBuilder stringBuilder = new StringBuilder(detail);
             // 提取简历信息
             JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
             if (Objects.isNull(resumes) || resumes.isEmpty()) {
@@ -670,28 +674,34 @@ public class ClientManager {
             AmChatbotGreetConditionNew chatbotGreetConditionNew = amChatbotGreetConditionNewService.getById(conditionsId);
 
             // 开始处理打招呼的简历数据
+            StringBuilder filterReason = new StringBuilder();
             for (int i = 0; i < resumes.size(); i++) {
                 // 开始提取简历数据, 异常捕捉,让流程继续下去
                 try {
                     //开始提取简历数据
                     JSONObject resumeObject = resumes.getJSONObject(i);
-                    doneNum++;
                     AmResume amResume = dealAmResume(platform, amZpLocalAccouts, resumeObject);
                     if (Objects.isNull(amResume)) {
                         continue;
                     }
-                    Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume, false);
+                    Boolean filterAmResumeResult = innerFilterAmResume(chatbotGreetConditionNew, amResume, false,filterReason);
                     if (!filterAmResumeResult) {
+                        stringBuilder.append("\n"+amResume.getName()+" 未通过筛选，原因:"+filterReason);
                         log.info("greetHandle filterAmResumeResult is true,bossId={},resume={}", bossId, resumes.get(i));
                         continue;
                     }
+                    doneNum++;
+                    stringBuilder.append("\n"+amResume.getName()+"打招呼成功,当前任务剩余次数:"+(amChatbotGreetTask.getTaskNum()-doneNum));
                     //查看账号是否开启打招呼
                     LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
                     greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, amZpLocalAccouts.getId());
                     AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
                     if (Objects.isNull(one) || one.getIsGreetOn() == 0) {
+                        stringBuilder.append("\n"+amZpLocalAccouts.getAccount()+"未开启打招呼配置,"+amResume.getName()+"不进行后续流程");
+//                        tasksServiceOne.setDetail(stringBuilder.toString());
+//                        amClientTasksService.updateById(tasksServiceOne);
                         log.info("AmChatbotGreetConfig isGreetOn is 0,bossId={},resume={}", bossId, resumes.get(i));
-                        return;
+                        continue;
                     }
 
 
@@ -723,13 +733,15 @@ public class ClientManager {
                      */
                     AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(new LambdaQueryWrapper<AmChatbotPositionOption>().eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId()).eq(AmChatbotPositionOption::getPositionId, positionId), false);
                     if (Objects.isNull(amChatbotPositionOption)) {
-                        log.info("复聊任务处理开始, 账号:{}, 未找到对应的职位", amZpLocalAccouts.getId());
+                        log.info("复聊任务处理异常, 账号:{}, 未找到对应的职位", amZpLocalAccouts.getId());
+                        stringBuilder.append("\n"+"复聊任务处理异常, 账号:"+amZpLocalAccouts.getId()+", 未找到对应的职位");
                         continue;
                     }
                     // 查询第一天的复聊任务
                     List<AmChatbotOptionsItems> amChatbotOptionsItems = amChatbotOptionsItemsService.lambdaQuery().eq(AmChatbotOptionsItems::getOptionId, amChatbotPositionOption.getRechatOptionId()).eq(AmChatbotOptionsItems::getDayNum, 1).list();
                     if (Objects.isNull(amChatbotOptionsItems) || amChatbotOptionsItems.isEmpty()) {
-                        log.info("复聊任务处理开始, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
+                        log.info("复聊任务处理异常, 账号:{}, 未找到对应的复聊方案", amZpLocalAccouts.getId());
+                        stringBuilder.append("\n"+"复聊任务处理异常, 账号:"+amZpLocalAccouts.getId()+", 未找到对应的复聊方案");
                         continue;
                     }
 
@@ -757,6 +769,7 @@ public class ClientManager {
                 tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
                 log.info("greetHandle 已完成 {},继续打招呼 tasksServiceOne={}", doneNum, tasksServiceOne);
             }
+            tasksServiceOne.setDetail(stringBuilder.toString());
             boolean result = amClientTasksService.updateById(tasksServiceOne);
             boolean greetTaskResult = amChatbotGreetTaskService.updateById(amChatbotGreetTask);
             log.info("greetHandle amClientTasksService update result={},greetTaskResult={},tasksServiceOne={},amChatbotGreetTask={}", result, greetTaskResult,tasksServiceOne, amChatbotGreetTask);
@@ -1109,7 +1122,8 @@ public class ClientManager {
 //            return ResultVO.fail(404, "找不到筛选条件");
         }
         AmResume amResume = buildAmResume(amPositionServiceOne, amZpLocalAccouts, resumeObject);
-        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,isGreet);
+        StringBuilder filterReason = new StringBuilder();
+        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,isGreet,filterReason);
         log.info("filterAmResume result={},amResume={}", result, resumeObject);
         return ResultVO.success(result);
     }
@@ -1145,7 +1159,14 @@ public class ClientManager {
             log.error("filterAndSaveAmResume conditionNewServiceOne is null,bossId={},encryptId={}", bossId, encryptId);
         }
         AmResume amResume = buildAmResume(amPositionServiceOne, amZpLocalAccouts, resumeObject);
-        Boolean result = innerFilterAmResume( conditionNewServiceOne, amResume,true);
+        StringBuilder filterReason = new StringBuilder();
+        Boolean result = innerFilterAmResume(conditionNewServiceOne, amResume,true,filterReason);
+        AmClientTasks amClientTasks = amClientTasksService.getById(greet_task_id);
+        if (Objects.isNull(amClientTasks)) {
+            log.error("filterAndSaveAmResume amClientTasks is null,bossId={},greet_task_id={}", bossId, greet_task_id);
+            return ResultVO.fail(404, "找不到客户端任务");
+        }
+        StringBuilder stringBuilder = new StringBuilder(amClientTasks.getDetail());
         if (result) {
             // 根据bossId 和uid 查询任务是否存在, 不存在则插入
             LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
@@ -1153,12 +1174,6 @@ public class ClientManager {
             queryWrapper.eq(AmResume::getAccountId, amResume.getAccountId());
             AmResume amResumeServiceOne = amResumeService.getOne(queryWrapper, false);
             if (Objects.isNull(amResumeServiceOne)) {
-                AmClientTasks amClientTasks = amClientTasksService.getById(greet_task_id);
-                if (Objects.isNull(amClientTasks)) {
-                    log.error("filterAndSaveAmResume amClientTasks is null,bossId={},greet_task_id={}", bossId, greet_task_id);
-                    return ResultVO.fail(404, "找不到客户端任务");
-                }
-
                 //提取任务里面的打招呼任务id, 目的是为了获取岗位数据
                 JSONObject jsonObject = JSONObject.parseObject(amClientTasks.getData());
                 if (!jsonObject.containsKey("greetId")) {
@@ -1180,6 +1195,7 @@ public class ClientManager {
                 boolean amResumeResult = amResumeService.save(amResume);
                 log.info("filterAndSaveAmResume amResumeResult={},amResume={}", amResumeResult, amResume);
                 doneNum++;
+                stringBuilder.append("\n"+amResume.getName()+"打招呼成功,当前任务剩余次数:"+(amChatbotGreetTask.getTaskNum()-doneNum));
                 amChatbotGreetTask.setDoneNum(doneNum);
                 amClientTasksService.updateById(amClientTasks);
                 boolean updateGreetTask = amChatbotGreetTaskService.updateById(amChatbotGreetTask);
@@ -1228,13 +1244,17 @@ public class ClientManager {
                 }
             }
         }
+        else {
+            stringBuilder.append("\n"+amResume.getName()+" 未通过筛选，原因:"+filterReason);
+        }
+        amClientTasksService.updateById(amClientTasks);
         log.info("filterAmResume result={},amResume={}", result, resumeObject);
         return ResultVO.success(result);
     }
 
-    public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume,Boolean isGreet) {
+    public Boolean innerFilterAmResume(AmChatbotGreetConditionNew conditionNewServiceOne,AmResume amResume,Boolean isGreet,StringBuilder filterReason) {
         AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(conditionNewServiceOne);
-        boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo,isGreet);
+        boolean result = AmResumeFilterUtil.filterResume(amResume, amGreetConditionVo,isGreet,filterReason);
         log.info("filterAmResume result={},amResume={},amGreetConditionVo={}", result, amResume,amGreetConditionVo);
         return result;
     }

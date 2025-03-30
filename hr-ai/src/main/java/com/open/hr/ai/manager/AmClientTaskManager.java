@@ -3,11 +3,16 @@ package com.open.hr.ai.manager;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
+import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetTask;
 import com.open.ai.eros.db.mysql.hr.entity.AmClientTasks;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotGreetTaskServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
+import com.open.hr.ai.bean.vo.AmClientTasksVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +21,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @Author
@@ -30,6 +37,8 @@ public class AmClientTaskManager {
 
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
+    @Resource
+    private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
 
     /**
      * 批量关闭打开岗位
@@ -63,6 +72,103 @@ public class AmClientTaskManager {
         return ResultVO.success(amClientTaskData);
     }
 
+
+
+    /**
+     * 查询正在执行中的任务
+     */
+    public ResultVO getExecuteTask(String bossId) {
+        LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
+        lambdaQueryWrapper.eq(AmClientTasks::getStatus,AmClientTaskStatusEnums.START.getStatus());
+
+        List<AmClientTasksVo> amClientTaskData = new ArrayList<>();
+        List<AmClientTasks> amClientTasks = amClientTasksService.list(lambdaQueryWrapper);
+        for (AmClientTasks amClientTask : amClientTasks) {
+            AmClientTasksVo amClientTasksVo = new AmClientTasksVo();
+            amClientTasksVo.setDetail(amClientTask.getDetail());
+            amClientTasksVo.setId(amClientTask.getId());
+            amClientTasksVo.setSuccessCount(0);
+            amClientTasksVo.setTotalCount(1);
+            amClientTasksVo.setStatus(AmClientTaskStatusEnums.START.getStatus());
+            amClientTasksVo.setReason(amClientTask.getReason());
+            amClientTasksVo.setTaskType(amClientTask.getTaskType());
+            amClientTasksVo.setCreateTime(amClientTask.getCreateTime());
+            amClientTasksVo.setUpdateTime(amClientTask.getUpdateTime());
+            // 获取任务类型
+            if (amClientTask.getTaskType().equals(ClientTaskTypeEnums.SEND_MESSAGE.getType())){
+                String subType = amClientTask.getSubType();
+                if (StringUtils.isNotBlank(subType)){
+                    amClientTasksVo.setTaskType(subType);
+                }
+            }
+            if (amClientTask.getTaskType().equals(ClientTaskTypeEnums.GREET.getType())){
+                //提取任务里面的打招呼任务id, 目的是为了获取岗位数据
+                JSONObject jsonObject = JSONObject.parseObject(amClientTask.getData());
+                if (jsonObject.containsKey("greetId")) {
+                    log.info("greetHandle greetId is null,bossId={}", bossId);
+                    AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(jsonObject.get("greetId").toString());
+                    if (Objects.nonNull(amChatbotGreetTask)){
+                        amClientTasksVo.setTotalCount(amChatbotGreetTask.getTaskNum());
+                        amClientTasksVo.setSuccessCount(amChatbotGreetTask.getDoneNum());
+                    }
+                }
+            }
+            amClientTaskData.add(amClientTasksVo);
+        }
+        log.info("getTaskList amClientTaskData={}", amClientTaskData);
+        return ResultVO.success(amClientTaskData);
+    }
+
+
+
+    /**
+     * 查询已完成的任务
+     */
+    public ResultVO getDoneTask(String bossId,Integer pageNum,Integer pageSize) {
+        LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
+        lambdaQueryWrapper.orderByDesc(AmClientTasks::getCreateTime);
+        // 不等于开始或者未开始
+        lambdaQueryWrapper.in(AmClientTasks::getStatus,AmClientTaskStatusEnums.NOT_START.getStatus(),AmClientTaskStatusEnums.START.getStatus());
+        Page<AmClientTasks> page = new Page<>(pageNum, pageSize);
+        Page<AmClientTasks> amClientTasksPage = amClientTasksService.page(page, lambdaQueryWrapper);
+        List<AmClientTasksVo> amClientTaskData = new ArrayList<>();
+        for (AmClientTasks amClientTask : amClientTasksPage.getRecords()) {
+            AmClientTasksVo amClientTasksVo = new AmClientTasksVo();
+            amClientTasksVo.setDetail(amClientTask.getDetail());
+            amClientTasksVo.setId(amClientTask.getId());
+            amClientTasksVo.setSuccessCount(0);
+            amClientTasksVo.setTotalCount(1);
+            amClientTasksVo.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
+            amClientTasksVo.setTaskType(amClientTask.getTaskType());
+            amClientTasksVo.setReason(amClientTask.getReason());
+            amClientTasksVo.setCreateTime(amClientTask.getCreateTime());
+            amClientTasksVo.setUpdateTime(amClientTask.getUpdateTime());
+            // 获取任务类型
+            if (amClientTask.getTaskType().equals(ClientTaskTypeEnums.SEND_MESSAGE.getType())){
+                String subType = amClientTask.getSubType();
+                if (StringUtils.isNotBlank(subType)){
+                    amClientTasksVo.setTaskType(subType);
+                }
+            }
+            if (amClientTask.getTaskType().equals(ClientTaskTypeEnums.GREET.getType())){
+                //提取任务里面的打招呼任务id, 目的是为了获取岗位数据
+                JSONObject jsonObject = JSONObject.parseObject(amClientTask.getData());
+                if (jsonObject.containsKey("greetId")) {
+                    log.info("greetHandle greetId is null,bossId={}", bossId);
+                    AmChatbotGreetTask amChatbotGreetTask = amChatbotGreetTaskService.getById(jsonObject.get("greetId").toString());
+                    if (Objects.nonNull(amChatbotGreetTask)){
+                        amClientTasksVo.setTotalCount(amChatbotGreetTask.getTaskNum());
+                        amClientTasksVo.setSuccessCount(amChatbotGreetTask.getDoneNum());
+                    }
+                }
+            }
+            amClientTaskData.add(amClientTasksVo);
+        }
+        log.info("getTaskList amClientTaskData={}", amClientTaskData);
+        return ResultVO.success(PageVO.build(amClientTasksPage.getTotal(), amClientTaskData));
+    }
 
     /**
      * 删除任务池里面的数据

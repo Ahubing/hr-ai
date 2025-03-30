@@ -96,6 +96,11 @@ public class CompanyInfo {
     @NotEmpty(message = "专业技能不能为空")
     private String skillRequire;
 
+
+    @ApiModelProperty(value = "岗位职责", required = true)
+    @NotEmpty(message = "岗位职责不能为空")
+    private String responsibilities;
+
     @ApiModelProperty(value = "学历要求", required = true)
     @NotEmpty(message = "学历要求不能为空")
     private String degreeName;
