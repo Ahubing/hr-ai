@@ -56,4 +56,10 @@ public class IcRecordPageReq {
 
     @ApiModelProperty("查询结束时间")
     private LocalDateTime endTime;
+
+    @ApiModelProperty(value = "今天开始时间",hidden = true)
+    private LocalDateTime todayStartTime;
+
+    @ApiModelProperty(value = "今天结束时间",hidden = true)
+    private LocalDateTime todayEndTime;
 }

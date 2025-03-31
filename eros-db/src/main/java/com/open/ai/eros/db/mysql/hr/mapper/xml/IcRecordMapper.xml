@@ -29,7 +29,7 @@
                 AND ir.platform LIKE CONCAT('%', #{req.platform}, '%')
             </if>
             <if test="req.interviewType != null and req.interviewType != ''">
-                AND ir.interview_type = #{interviewType}
+                AND ir.interview_type = #{req.interviewType}
             </if>
             <if test="req.postId != null">
                 AND ir.position_id = #{req.postId}
@@ -60,16 +60,15 @@
 
             <!-- 状态条件 -->
             <choose>
-                <when test="req.interviewStatus != null and req.interviewStatus == 0">
-                    AND ir.cancel_status = #{req.interviewStatus}
-                    AND ir.start_time &gt; NOW()
+                <when test="req.interviewStatus != null and req.interviewStatus == 2">
+                    AND ir.cancel_status = 2
+                </when>
+                <when test="req.interviewStatus != null and req.interviewStatus == 3">
+                    AND ir.cancel_status = 1
+                    AND ir.start_time &lt; #{req.todayStartTime}
                 </when>
                 <when test="req.interviewStatus != null and req.interviewStatus == 1">
-                    AND ir.cancel_status = #{req.interviewStatus}
-                    AND ir.start_time &lt;= NOW()
-                </when>
-                <when test="req.interviewStatus != null">
-                    AND ir.cancel_status = #{req.interviewStatus}
+                    AND ir.cancel_status = 1
                 </when>
             </choose>
         </where>

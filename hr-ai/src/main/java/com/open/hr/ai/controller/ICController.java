@@ -82,6 +82,8 @@ public class ICController extends HrAIBaseController {
     @PostMapping("/pageIcRecord")
     public ResultVO<PageVO<IcRecordVo>> pageIcRecord(@RequestBody @Valid IcRecordPageReq req) {
         req.setAdminId(getUserId());
+        req.setTodayStartTime(LocalDate.now().atStartOfDay());
+        req.setTodayEndTime(LocalDate.now().plusDays(1).atStartOfDay());
         return icAiManager.pageIcRecord(req);
     }
 }
