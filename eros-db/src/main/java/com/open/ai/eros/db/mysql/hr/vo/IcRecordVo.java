@@ -64,6 +64,21 @@ public class IcRecordVo {
     @ApiModelProperty("职位id")
     private Long positionId;
 
+    @ApiModelProperty("职位名称")
+    private String positionName;
+
+    @ApiModelProperty("岗位id")
+    private Long postId;
+
+    @ApiModelProperty("岗位名称")
+    private String postName;
+
+    @ApiModelProperty("部门id")
+    private Long deptId;
+
+    @ApiModelProperty("部门名称")
+    private String deptName;
+
     /**
      * 修改时间
      */
@@ -72,12 +87,6 @@ public class IcRecordVo {
 
     @ApiModelProperty("应聘者姓名")
     private String employeeName;
-
-    @ApiModelProperty("职位名称")
-    private String positionName;
-
-    @ApiModelProperty("部门名称")
-    private String deptName;
 
     /**
      * 平台

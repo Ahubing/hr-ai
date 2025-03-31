@@ -6,6 +6,9 @@
         SELECT
         ir.*,
         ap.name AS positionName,
+        app.id AS postId,
+        app.name AS postName,
+        aps.id AS deptId,
         aps.name AS deptName
         FROM ic_record ir
         LEFT JOIN am_position ap ON ir.position_id = ap.id
