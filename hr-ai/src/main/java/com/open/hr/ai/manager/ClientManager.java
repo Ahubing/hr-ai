@@ -1169,7 +1169,9 @@ public class ClientManager {
             log.error("filterAndSaveAmResume amClientTasks is null,bossId={},greet_task_id={}", bossId, greet_task_id);
             return ResultVO.fail(404, "找不到客户端任务");
         }
-        StringBuilder stringBuilder = new StringBuilder(amClientTasks.getDetail());
+        // 处理空指针异常
+        String detail = Objects.nonNull(amClientTasks.getDetail()) ? amClientTasks.getDetail() : "";
+        StringBuilder stringBuilder = new StringBuilder(detail);
         if (result) {
             // 根据bossId 和uid 查询任务是否存在, 不存在则插入
             LambdaQueryWrapper<AmResume> queryWrapper = new LambdaQueryWrapper<>();
@@ -1198,7 +1200,7 @@ public class ClientManager {
                 boolean amResumeResult = amResumeService.save(amResume);
                 log.info("filterAndSaveAmResume amResumeResult={},amResume={}", amResumeResult, amResume);
                 doneNum++;
-                stringBuilder.append("\n"+amResume.getName()+"打招呼成功,当前任务剩余次数:"+(amChatbotGreetTask.getTaskNum()-doneNum));
+                stringBuilder.append("\n").append(amResume.getName()).append("打招呼成功,当前任务剩余次数:").append(amChatbotGreetTask.getTaskNum() - doneNum);
                 amChatbotGreetTask.setDoneNum(doneNum);
                 amClientTasksService.updateById(amClientTasks);
                 boolean updateGreetTask = amChatbotGreetTaskService.updateById(amChatbotGreetTask);
@@ -1248,8 +1250,9 @@ public class ClientManager {
             }
         }
         else {
-            stringBuilder.append("\n"+amResume.getName()+" 未通过筛选，原因:"+filterReason);
+            stringBuilder.append("\n").append(amResume.getName()).append(" 未通过筛选，原因:").append(filterReason);
         }
+        amClientTasks.setDetail(stringBuilder.toString());
         amClientTasksService.updateById(amClientTasks);
         log.info("filterAmResume result={},amResume={}", result, resumeObject);
         return ResultVO.success(result);
