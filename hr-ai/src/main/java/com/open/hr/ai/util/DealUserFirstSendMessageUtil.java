@@ -1,5 +1,6 @@
 package com.open.hr.ai.util;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
@@ -14,6 +15,7 @@ import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.bossNewMessage.ReplyUserMessageDataProcessor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -162,9 +164,11 @@ public class DealUserFirstSendMessageUtil {
         messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), preParams));
         for (AmChatMessage message : amChatMessages) {
             if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
-                messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), message.getContent().toString()));
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("message",Collections.singletonList(message.getContent()));
+                messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), jsonObject.toJSONString()));
             } else {
-                messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), message.getContent().toString()));
+                messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), message.getContent()));
             }
         }
 
@@ -176,6 +180,9 @@ public class DealUserFirstSendMessageUtil {
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
             ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus);
+            if (Objects.isNull(chatMessage)) {
+                continue;
+            }
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
@@ -202,7 +209,6 @@ public class DealUserFirstSendMessageUtil {
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         HashMap<String, Object> hashMap = new HashMap<>();
         HashMap<String, Object> searchDataMap = new HashMap<>();
-        HashMap<String, Object> messageMap = new HashMap<>();
         hashMap.put("user_id", amResume.getUid());
         if (Objects.nonNull(amResume.getEncryptGeekId())) {
             searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
@@ -210,29 +216,44 @@ public class DealUserFirstSendMessageUtil {
         if (Objects.nonNull(amResume.getName())) {
             searchDataMap.put("name", amResume.getName());
         }
+
+        List<AmChatMessage> aiMessages = new ArrayList<>();
+        try {
+            JSONObject jsonObject = JSONArray.parseObject(content);
+            if (Objects.isNull(jsonObject.get("messages"))){
+                log.error("DealUserFirstSendMessageUtil dealBossNewMessage messages is null content={}",content);
+                return ResultVO.fail(404, "ai回复内容解析错误");
+            }
+            hashMap.put("messages", jsonObject.get("messages"));
+            JSONArray jsonArray = jsonObject.getJSONArray("messages");
+            for (Object object : jsonArray) {
+                AmChatMessage aiMessage = new AmChatMessage();
+                aiMessage.setContent(object.toString());
+                aiMessage.setCreateTime(LocalDateTime.now());
+                aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
+                aiMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+                aiMessage.setConversationId(taskId);
+                aiMessage.setChatId(UUID.randomUUID().toString());
+                aiMessage.setType(-1);
+                aiMessages.add(aiMessage);
+            }
+        }catch (Exception e){
+            log.error("DealUserFirstSendMessageUtil dealBossNewMessage content parse error content={}",content);
+            return ResultVO.fail(404, "ai回复内容解析错误");
+        }
         hashMap.put("search_data", searchDataMap);
-        messageMap.put("content", content);
-        hashMap.put("message", messageMap);
+        hashMap.put("message", Collections.singletonList(content));
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("DealUserFirstSendMessageUtil dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);
 
         if (result) {
             //保存ai的回复
-            AmChatMessage aiMockMessages = new AmChatMessage();
-            aiMockMessages.setContent(content);
-            aiMockMessages.setCreateTime(LocalDateTime.now());
-            aiMockMessages.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
-            aiMockMessages.setRole(AIRoleEnum.ASSISTANT.getRoleName());
-            aiMockMessages.setConversationId(taskId);
-            aiMockMessages.setChatId(UUID.randomUUID().toString());
-            // 虚拟的消息数据
-            aiMockMessages.setType(-1);
-            boolean mockSaveResult = amChatMessageService.save(aiMockMessages);
-            log.info("DealUserFirstSendMessageUtil dealBossNewMessage aiMockMessages={} save result={}", JSONObject.toJSONString(aiMockMessages), mockSaveResult);
-
+            if (CollectionUtils.isNotEmpty(aiMessages)) {
+                boolean mockSaveResult = amChatMessageService.saveBatch(aiMessages);
+                log.info("DealUserFirstSendMessageUtil dealBossNewMessage save result={}", mockSaveResult);
+            }
             amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()));
-
             // 请求微信和手机号
             replyUserMessageDataProcessor.generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,amResume.getUid());
             boolean updateResume = amResumeService.updateById(amResume);

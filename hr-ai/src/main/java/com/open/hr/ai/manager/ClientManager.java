@@ -654,14 +654,19 @@ public class ClientManager {
             JSONArray resumes = finishTaskReqData.getJSONArray("user_resumes");
             if (Objects.isNull(resumes) || resumes.isEmpty()) {
                 if (doneNum >= amChatbotGreetTask.getTaskNum()) {
-                    amChatbotGreetTask.setStatus(2);
+                    amChatbotGreetTask.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
                     log.info("greetHandle 任务已完成 taskId={}", tasksServiceOne.getId());
                 } else {
-                    // 需要继续任务
-                    String data = tasksServiceOne.getData();
-                    JSONObject.parseObject(data).put("times", amChatbotGreetTask.getTaskNum() - doneNum);
-                    tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
-                    log.info("greetHandle 已完成 {},继续打招呼 tasksServiceOne={}", doneNum, tasksServiceOne);
+                    if (tasksServiceOne.getRetryTimes() < 3){
+                        // 需要继续任务
+                        String data = tasksServiceOne.getData();
+                        JSONObject.parseObject(data).put("times", amChatbotGreetTask.getTaskNum() - doneNum);
+                        tasksServiceOne.setStatus(AmClientTaskStatusEnums.START.getStatus());
+                        log.info("greetHandle 已完成 {},继续打招呼 tasksServiceOne={}", doneNum, tasksServiceOne);
+                    }else {
+                        tasksServiceOne.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
+                        log.info("greetHandle 任务失败 taskId={}", tasksServiceOne.getId());
+                    }
                 }
                 boolean result = amClientTasksService.updateById(tasksServiceOne);
                 log.error("greetHandle resumes is null,bossId={} updateResult={}", bossId, result);

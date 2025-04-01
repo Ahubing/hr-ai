@@ -542,13 +542,11 @@ public class AmChatBotGreetJob {
 
         AmClientTasks amClientTasks = new AmClientTasks();
         JSONObject jsonObject = new JSONObject();
-        JSONObject messageObject = new JSONObject();
         JSONObject searchObject = new JSONObject();
         searchObject.put("encrypt_friend_id", amResume.getEncryptGeekId());
         searchObject.put("name", amResume.getName());
-        messageObject.put("content", amChatbotOptionsItems.getContent());
         jsonObject.put("user_id", amChatbotGreetResult.getUserId());
-        jsonObject.put("message", messageObject);
+        jsonObject.put("message", Collections.singletonList(amChatbotOptionsItems.getContent()));
         jsonObject.put("search_data", searchObject);
         if (StringUtils.isNotBlank(chatId)){
             jsonObject.put("rechat_last_message_id", chatId);

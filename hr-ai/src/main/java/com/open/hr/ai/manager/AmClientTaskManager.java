@@ -134,7 +134,7 @@ public class AmClientTaskManager {
         lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
         lambdaQueryWrapper.orderByDesc(AmClientTasks::getCreateTime);
         // 不等于开始或者未开始
-        lambdaQueryWrapper.in(AmClientTasks::getStatus,AmClientTaskStatusEnums.NOT_START.getStatus(),AmClientTaskStatusEnums.START.getStatus());
+        lambdaQueryWrapper.notIn(AmClientTasks::getStatus,AmClientTaskStatusEnums.NOT_START.getStatus(),AmClientTaskStatusEnums.START.getStatus());
         Page<AmClientTasks> page = new Page<>(pageNum, pageSize);
         Page<AmClientTasks> amClientTasksPage = amClientTasksService.page(page, lambdaQueryWrapper);
         List<AmClientTasksVo> amClientTaskData = new ArrayList<>();
