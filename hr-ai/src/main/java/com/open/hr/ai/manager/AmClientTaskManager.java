@@ -204,7 +204,7 @@ public class AmClientTaskManager {
             lambdaQueryWrapper.set(AmClientTasks::getReason, "用户设置失效");
             boolean result = amClientTasksService.update(lambdaQueryWrapper);
             log.info("deleteAmClientTask result={}", result);
-            return result ? ResultVO.success() : ResultVO.fail("更新失败");
+            return  ResultVO.success();
         } catch (Exception e) {
             log.error("deleteAmClientTask error", e);
         }

@@ -385,7 +385,8 @@ public class AmChatBotGreetJob {
                         buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts,chatId);
                         jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                     } catch (Exception e) {
-                        log.error("复聊任务处理异常:{}", reChatTask);
+                        jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+                        log.error("复聊任务处理异常:{},清除复聊缓存", reChatTask,e);
                     }
                 }
             } catch (Exception e) {
