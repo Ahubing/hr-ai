@@ -69,6 +69,7 @@
                 </when>
                 <when test="req.interviewStatus != null and req.interviewStatus == 1">
                     AND ir.cancel_status = 1
+                    AND ir.start_time &gt;= #{req.todayStartTime}
                 </when>
             </choose>
         </where>
