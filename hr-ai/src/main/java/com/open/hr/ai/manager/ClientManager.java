@@ -139,9 +139,8 @@ public class ClientManager {
                 if (!extBossId.equals(amZpLocalAccouts.getExtBossId())) {
                     return ResultVO.fail(409, "验证失败，与存储的数值不一致");
                 }
-                amZpLocalAccouts.setExtBossId(extBossId);
             }
-
+            amZpLocalAccouts.setExtBossId(extBossId);
             amZpLocalAccouts.setUpdateTime(LocalDateTime.now());
             amZpLocalAccouts.setBrowserId(connectId);
             amZpLocalAccouts.setState(AmLocalAccountStatusEnums.FREE.getStatus());
