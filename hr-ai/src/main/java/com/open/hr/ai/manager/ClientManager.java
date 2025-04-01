@@ -139,7 +139,6 @@ public class ClientManager {
                 if (!extBossId.equals(amZpLocalAccouts.getExtBossId())) {
                     return ResultVO.fail(409, "验证失败，与存储的数值不一致");
                 }
-            } else {
                 amZpLocalAccouts.setExtBossId(extBossId);
             }
 
