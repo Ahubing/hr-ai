@@ -80,8 +80,9 @@ public class AmClientTaskManager {
     public ResultVO getExecuteTask(String bossId,Integer limit) {
         LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
-        lambdaQueryWrapper.eq(AmClientTasks::getStatus,AmClientTaskStatusEnums.START.getStatus());
+        lambdaQueryWrapper.in(AmClientTasks::getStatus,AmClientTaskStatusEnums.START.getStatus(),AmClientTaskStatusEnums.NOT_START.getStatus());
         lambdaQueryWrapper.orderByDesc(AmClientTasks::getOrderNumber);
+        lambdaQueryWrapper.orderByAsc(AmClientTasks::getCreateTime);
         if (Objects.nonNull(limit)){
             lambdaQueryWrapper.last("limit "+limit);
         }
