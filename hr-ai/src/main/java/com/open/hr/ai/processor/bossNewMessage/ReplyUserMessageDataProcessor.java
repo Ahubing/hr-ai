@@ -256,10 +256,12 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         for (AmChatMessage message : amChatMessages) {
             if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("message",Collections.singletonList(message.getContent()));
+                jsonObject.put("messages",Collections.singletonList(message.getContent()));
                 messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), jsonObject.toJSONString()));
             } else {
-                messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), message.getContent()));
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("messages",Collections.singletonList(message.getContent()));
+                messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), jsonObject.toJSONString()));
             }
         }
 
@@ -269,7 +271,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), jsonObject.toJSONString()));
         }
         if (StringUtils.isNotBlank(buildNewUserMessage.toString())) {
-            messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), buildNewUserMessage.toString()));
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("message",Collections.singletonList(buildNewUserMessage.toString()));
+            messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), jsonObject.toJSONString()));
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
         //告诉ai所有相关参数信息
