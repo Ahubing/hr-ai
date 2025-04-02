@@ -388,16 +388,17 @@ public class ResumeManager {
     }
 
     public void exportResumesToExcel(HttpServletResponse response,
-                                     Long adminId, Integer id,
+                                     Long adminId, List<Integer> ids,
                                      Integer type, Integer post_id, String name,
-                                     LocalDateTime startDateTime, LocalDateTime endDateTime, String expectPosition,
+                                     LocalDate startDateTime, LocalDate endDateTime, String expectPosition,
                                      String postName, Integer platformId, BigDecimal score, Integer deptId,
                                      String deptName, Integer positionId, String positionName,
-                                     String platform, Map<String, Integer> sortMap) {
+                                     String platform, Map<String, Integer> sortMap,
+                                     String exportFields) {
         Workbook workbook = new XSSFWorkbook();
         try {
             // 查询数据库的简历
-            List<AmResume> list = resumeMapper.exportResume(adminId, id, type, post_id, name, startDateTime,
+            List<AmResume> list = resumeMapper.exportResume(adminId, ids, type, post_id, name, startDateTime,
                     endDateTime, expectPosition, postName, platformId, score,
                     deptId, deptName, positionId, positionName, platform, sortMap);
             if (list.isEmpty()) {
@@ -408,35 +409,177 @@ public class ResumeManager {
             }
             // 创建一个工作簿
             Sheet sheet = workbook.createSheet("简历数据");
+
+            // 定义所有可导出字段的映射
+            Map<String, String> allFields = new LinkedHashMap<>();
+            allFields.put("name", "姓名");
+            allFields.put("gender", "性别");
+            allFields.put("phone", "手机");
+            allFields.put("wechat", "微信");
+            allFields.put("platform", "平台");
+            allFields.put("expectPosition", "预期职位");
+            allFields.put("score", "分数");
+            allFields.put("createTime", "创建时间");
+            allFields.put("education", "学历");
+            allFields.put("workYears", "工作年限");
+            allFields.put("skills", "技能");
+            allFields.put("email", "邮箱");
+            allFields.put("age", "年龄");
+            allFields.put("postName", "职位名称");
+
+            // 解析前端传来的导出字段
+            List<String> selectedFields = new ArrayList<>();
+            if (StringUtils.isNotBlank(exportFields)) {
+                selectedFields = Arrays.asList(exportFields.split(","));
+                selectedFields = new ArrayList<>(Arrays.asList(exportFields.split(",")));
+            } else {
+                // 如果前端没有指定导出字段，则使用默认字段
+                selectedFields = new ArrayList<>(Arrays.asList("name", "gender", "phone", "wechat", "platform", "expectPosition", "score", "createTime"));
+            }
+
+            // 强制加入 wechat 和 phone
+            if (!selectedFields.contains("wechat")) {
+                selectedFields.add("wechat");
+            }
+            if (!selectedFields.contains("phone")) {
+                selectedFields.add("phone");
+            }
+
             // 创建标题行
             Row headerRow = sheet.createRow(0);
-            String[] headers = {"姓名", "性别", "手机", "微信", "平台", "预期职位", "分数", "创建时间"};
+
+            // 准备实际导出的字段和标题
+            List<String> finalExportFields = new ArrayList<>();
+            List<String> headers = new ArrayList<>();
+            for (String field : selectedFields) {
+                if (allFields.containsKey(field)) {
+                    finalExportFields.add(field);
+                    headers.add(allFields.get(field));
+                }
+            }
             // 写入标题行
-            for (int i = 0; i < headers.length; i++) {
+            for (int i = 0; i < headers.size(); i++) {
                 Cell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
+                cell.setCellValue(headers.get(i));
             }
             // 填充简历数据
             for (int i = 0; i < list.size(); i++) {
                 AmResume resume = list.get(i);
                 Row row = sheet.createRow(i + 1);
-                row.createCell(0).setCellValue(resume.getName() != null ? resume.getName() : "无");
-                row.createCell(1).setCellValue(resume.getGender() != null ? (resume.getGender() == 1 ? "男" : "女") : "无");
-                row.createCell(2).setCellValue(resume.getPhone() != null ? resume.getPhone() : "无");
-                row.createCell(3).setCellValue(resume.getWechat() != null ? resume.getWechat() : "无");
-                row.createCell(4).setCellValue(resume.getPlatform() != null ? resume.getPlatform() : "无");
-                row.createCell(5).setCellValue(resume.getExpectPosition() != null ? resume.getExpectPosition() : "无");
-                row.createCell(6).setCellValue(resume.getScore() != null ? resume.getScore().doubleValue() : 0.0);
-                row.createCell(7).setCellValue(resume.getCreateTime() != null ? resume.getCreateTime().toString() : "无");
+                for (int j = 0; j < finalExportFields.size(); j++) {
+                    String field = finalExportFields.get(j);
+                    Cell cell = row.createCell(j);
+
+                    // 根据字段名动态获取和格式化数据
+                    switch (field) {
+                        case "name":
+                            cell.setCellValue(resume.getName() != null ? resume.getName() : "无");
+                            break;
+                        case "gender":
+                            cell.setCellValue(resume.getGender() != null ? (resume.getGender() == 1 ? "男" : "女") : "无");
+                            break;
+                        case "phone":
+                            cell.setCellValue(resume.getPhone() != null ? resume.getPhone() : "无");
+                            break;
+                        case "wechat":
+                            cell.setCellValue(resume.getWechat() != null ? resume.getWechat() : "无");
+                            break;
+                        case "platform":
+                            cell.setCellValue(resume.getPlatform() != null ? resume.getPlatform() : "无");
+                            break;
+                        case "expectPosition":
+                            cell.setCellValue(resume.getExpectPosition() != null ? resume.getExpectPosition() : "无");
+                            break;
+                        case "score":
+                            cell.setCellValue(resume.getScore() != null ? resume.getScore().doubleValue() : 0.0);
+                            break;
+                        case "createTime":
+                            cell.setCellValue(resume.getCreateTime() != null ? resume.getCreateTime().toString() : "无");
+                            break;
+                        case "age":
+                            cell.setCellValue(resume.getAge() != null ? resume.getAge() : -1);
+                            break;
+                        case "company":
+                            cell.setCellValue(resume.getCompany() != null ? resume.getCompany() : "无");
+                            break;
+                        case "city":
+                            cell.setCellValue(resume.getCity() != null ? resume.getCity() : "无");
+                            break;
+                        case "education":
+                            cell.setCellValue(resume.getEducation() != null ? resume.getEducation() : "无");
+                            break;
+                        case "experiences":
+                            cell.setCellValue(resume.getExperiences() != null ? resume.getExperiences() : "无");
+                            break;
+                        case "projects":
+                            cell.setCellValue(resume.getProjects() != null ? resume.getProjects() : "无");
+                            break;
+                        case "postId":
+                            cell.setCellValue(resume.getPostId() != null ? resume.getPostId() : -1);
+                            break;
+                        case "applyStatus":
+                            cell.setCellValue(resume.getApplyStatus() != null ? resume.getApplyStatus() : "无");
+                            break;
+                        case "zpData":
+                            cell.setCellValue(resume.getZpData() != null ? resume.getZpData() : "无");
+                            break;
+                        case "email":
+                            cell.setCellValue(resume.getEmail() != null ? resume.getEmail() : "无");
+                            break;
+                        case "lowSalary":
+                            cell.setCellValue(resume.getLowSalary() != null ? resume.getLowSalary() : 0);
+                            break;
+                        case "highSalary":
+                            cell.setCellValue(resume.getHighSalary() != null ? resume.getHighSalary() : 0);
+                            break;
+                        case "workYears":
+                            cell.setCellValue(resume.getWorkYears() != null ? resume.getWorkYears() : -1);
+                            break;
+                        case "skills":
+                            cell.setCellValue(resume.getSkills() != null ? resume.getSkills() : "无");
+                            break;
+                        case "resumeType":
+                            cell.setCellValue(resume.getResumeType() != null ? (resume.getResumeType() == 1 ? "系统自动获取" : "用户自定义上传") : "无");
+                            break;
+                        case "competencyModel":
+                            cell.setCellValue(resume.getCompetencyModel() != null ? resume.getCompetencyModel() : "无");
+                            break;
+                        case "intention":
+                            cell.setCellValue(resume.getIntention() != null
+                                    ? (resume.getIntention() == 0 ? "离职/离校-正在找工作"
+                                    : resume.getIntention() == 1 ? "在职/在校-考虑机会"
+                                    : resume.getIntention() == 2 ? "在职/在校-寻找新工作"
+                                    : "未知")
+                                    : "未知");
+                            break;
+                        case "degree":
+                            cell.setCellValue(resume.getDegree() != null
+                                    ? (resume.getDegree() == 0 ? "初中及以下"
+                                    : resume.getDegree() == 1 ? "中专/技校"
+                                    : resume.getDegree() == 2 ? "高中"
+                                    : resume.getDegree() == 3 ? "大专"
+                                    : resume.getDegree() == 4 ? "本科"
+                                    : resume.getDegree() == 5 ? "硕士"
+                                    : resume.getDegree() == 6 ? "博士"
+                                    : "未知")
+                                    : "未知");
+                            break;
+                        case "isStudent":
+                            cell.setCellValue(resume.getIsStudent() != null ? (resume.getIsStudent() == 1 ? "是学生" : "不是学生") : "未知");
+                            break;
+                        default:
+                            cell.setCellValue("无");
+                            break;
+                    }
+                }
             }
+
+
             // 设置响应头，告诉浏览器下载文件
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
             response.setHeader("Content-Disposition", "attachment; filename=resumes.xlsx");
+            response.setCharacterEncoding("UTF-8");
 
-            // **确保正确设置响应头**
-            /*response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            response.setHeader("Content-Disposition", "attachment; filename=\"resumes.xlsx\"");
-            response.setCharacterEncoding("UTF-8");*/
             // 将Excel写入输出流
             ServletOutputStream outputStream = response.getOutputStream();
             workbook.write(outputStream);
@@ -447,6 +590,39 @@ public class ResumeManager {
             log.error("导出简历失败", e);
         }
     }
+
+    public Map<String, String> getExportFieldsMap() {
+        Map<String, String> allFields = new LinkedHashMap<>();
+        allFields.put("name", "姓名");
+        allFields.put("gender", "性别");
+        allFields.put("phone", "手机");
+        allFields.put("wechat", "微信");
+        allFields.put("platform", "平台");
+        allFields.put("expectPosition", "预期职位");
+        allFields.put("score", "分数");
+        allFields.put("createTime", "创建时间");
+        allFields.put("age", "年龄");
+        allFields.put("company", "公司");
+        allFields.put("city", "城市");
+        allFields.put("education", "学历");
+        allFields.put("experiences", "工作经验");
+        allFields.put("projects", "项目经验");
+        allFields.put("postId", "职位 ID");
+        allFields.put("applyStatus", "申请状态");
+        allFields.put("zpData", "招聘信息");
+        allFields.put("email", "邮箱");
+        allFields.put("lowSalary", "最低薪资");
+        allFields.put("highSalary", "最高薪资");
+        allFields.put("workYears", "工作年限");
+        allFields.put("skills", "技能");
+        allFields.put("resumeType", "简历类型");
+        allFields.put("competencyModel", "胜任力模型数据");
+        allFields.put("intention", "求职意向");
+        allFields.put("degree", "学历等级");
+        allFields.put("isStudent", "是否为学生");
+        return allFields;
+    }
+
 
 }
 
