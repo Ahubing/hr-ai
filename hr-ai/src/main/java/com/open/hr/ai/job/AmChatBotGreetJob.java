@@ -296,7 +296,7 @@ public class AmChatBotGreetJob {
                         }
 
                         String accountId = amChatbotGreetResult.getAccountId();
-                        AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()), false);
+                        AmResume amResume = amResumeService.getOne(new LambdaQueryWrapper<AmResume>().eq(AmResume::getUid, amChatbotGreetResult.getUserId()).eq(AmResume::getAccountId,accountId), false);
                         if (Objects.isNull(amResume)) {
                             log.error("复聊任务处理失败,未找到用户:{}", amChatbotGreetResult.getUserId());
                             jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
