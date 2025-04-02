@@ -77,13 +77,13 @@ public class AiReplyPromptUtil {
 
     public static final String interviewPrompt = "# 面试信息\n" +
             "如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n"  +
-            " - 面试方式：{address} \n";
+            "- 面试方式：{address} \n";
 
 
     public static final String currentTypePrompt =
-            " # 当前状态\n" +
-            " - 系统查询到的已预约的面试：{interview_info} \n"+
-            " - 当前所处进度：{currentType}\n";
+            "# 当前状态\n" +
+            "- 系统查询到的已预约的面试：{interview_info} \n"+
+            "- 当前所处进度：{currentType}\n";
 
     public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
