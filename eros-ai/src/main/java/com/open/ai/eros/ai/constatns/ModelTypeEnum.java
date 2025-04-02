@@ -21,8 +21,13 @@ import lombok.Getter;
 @Getter
 public enum ModelTypeEnum {
 
-    CHAT,
-    EMBEDDING,
-    TEXT_IMAGE,
-    WEB_SEARCH;
+    ANTHROPIC,
+    AZURE_OPENAI,
+    OLLAMA,
+    OPEN_AI,
+    QIAN_FAN,
+    Q_WEN,
+    VERTEX_AI_GEMINI,
+    ZHIPU_AI
+
 }

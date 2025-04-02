@@ -225,15 +225,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         lambdaQueryWrapper.eq(AmChatbotPositionOption::getPositionId, postId);
         lambdaQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amZpLocalAccouts.getId());
         AmChatbotPositionOption amChatbotPositionOption = amChatbotPositionOptionService.getOne(lambdaQueryWrapper, false);
+
+        IcRecord icRecord = recordService.getOneNormalIcRecord(amResume.getUid(),amZpLocalAccouts.getAdminId(),amResume.getAccountId(),amResume.getPostId());
+        log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
+        log.info("icRecord={}", JSONUtil.toJsonStr(icRecord));
+
         List<ChatMessage> messages = new ArrayList<>();
         AmNewMask amNewMask = null;
         if (Objects.nonNull(amChatbotPositionOption) && Objects.nonNull(amChatbotPositionOption.getAmMaskId())) {
             // 如果有绑定ai角色,则获取ai角色进行回复
              amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
             if (Objects.nonNull(amNewMask)) {
-                IcRecord icRecord = recordService.getOneNormalIcRecord(amResume.getUid(),amZpLocalAccouts.getAdminId(),amResume.getAccountId(),amResume.getPostId());
-                log.info("icRecord query params adminId:{} positionId:{} accountId:{} employeeUid:{}", amZpLocalAccouts.getAdminId(), amResume.getPostId(), amResume.getAccountId(), amResume.getUid());
-                log.info("icRecord={}", JSONUtil.toJsonStr(icRecord));
                 String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
                 log.info("aiPrompt={}", aiPrompt);
                 if (StringUtils.isBlank(aiPrompt)) {
@@ -276,13 +278,21 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), jsonObject.toJSONString()));
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
-        //告诉ai所有相关参数信息
-        String preParams = "请记住下列参数和数据，后续会用到。当前角色的面具id maskId(String类型):" + amNewMask.getId() +
-                                ",当前管理员/hr的id adminId(String类型):" + amZpLocalAccouts.getAdminId() +
-                                ",当前求职者uid employeeUid(String类型):" + amResume.getUid() +
-                                ",当前招聘的职位id positionId(String类型):" + amResume.getPostId() +
-                                ",当前角色所登录的平台账号的id accountId:(String类型)" + amResume.getAccountId() +
-                                ",当前的时间是:" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        //相关参数信息
+        JSONObject params = new JSONObject();
+        params.put("maskId", amNewMask.getId());
+        params.put("adminId", amZpLocalAccouts.getAdminId());
+        params.put("employeeUid", amResume.getUid());
+        params.put("positionId", amResume.getPostId());
+        params.put("accountId", amResume.getAccountId());
+        params.put("interviewId",icRecord.getId());
+//        String preParams = "请记住下列参数和数据，后续会用到。当前角色的面具id maskId(String类型):" + amNewMask.getId() +
+//                                ",当前管理员/hr的id adminId(String类型):" + amZpLocalAccouts.getAdminId() +
+//                                ",当前求职者uid employeeUid(String类型):" + amResume.getUid() +
+//                                ",当前招聘的职位id positionId(String类型):" + amResume.getPostId() +
+//                                ",当前角色所登录的平台账号的id accountId:(String类型)" + amResume.getAccountId() +
+//                                ",当前的时间是:" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String preParams = "当前的时间是:" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         log.info("ai pre params:" + preParams);
         messages.add(new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), preParams));
         // 如果content为空 重试10次
@@ -291,7 +301,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus,params);
            if (Objects.isNull(chatMessage)) {
               continue;
            }

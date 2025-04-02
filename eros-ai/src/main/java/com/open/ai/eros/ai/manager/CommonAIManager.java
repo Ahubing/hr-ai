@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
 import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
+import com.open.ai.eros.ai.constatns.ModelTypeEnum;
+import com.open.ai.eros.ai.vector.factory.LLMFactory;
 import com.open.ai.eros.common.constants.InterviewRoleEnum;
 import com.open.ai.eros.ai.tool.config.ToolConfig;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
@@ -68,10 +70,9 @@ public class CommonAIManager {
      * @param temperature
      * @return
      */
-    public ChatMessage aiNoStream(List<ChatMessage> messages,
-                                  List<String> tools,
-                                  String templateModel,
-                                  Double temperature, AtomicInteger statusCode, AtomicInteger needToReply, AtomicBoolean isAiSetStatus) {
+    public ChatMessage aiNoStream(List<ChatMessage> messages, List<String> tools, String templateModel,
+                                  Double temperature, AtomicInteger statusCode, AtomicInteger needToReply,
+                                  AtomicBoolean isAiSetStatus ,JSONObject preParams) {
 
 
         try {
@@ -123,12 +124,8 @@ public class CommonAIManager {
 
             String url = getUrl("https://vip.zen-ai.top/");
             String token = "sk-hV2cfUMDd1N027qV012foenZzjmfRSKikPd4nrrwHsZa964K";
+            OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], null);
 
-            OpenAiChatModel modelService = OpenAiChatModel.builder()
-                    .apiKey(token)
-                    .baseUrl(url)
-                    .modelName(split[1])
-                    .build();
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
             List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
@@ -144,8 +141,6 @@ public class CommonAIManager {
                         if (executor == null) {
                             continue;
                         }
-
-
                         // 执行工具时传递实际参数
                         String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
                         log.info("执行工具结果: tool={}, result={}", name, result);
@@ -167,10 +162,11 @@ public class CommonAIManager {
                         }
 
                         if("get_spare_time".equals(name)){
+                            String maskId = preParams.getString("maskId");
+
                             JSONObject params = JSONObject.parseObject(result);
                             String startTime = params.getString("startTime");
                             String endTime = params.getString("endTime");
-                            String maskId = params.getString("maskId");
                             LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             ToolExecutionResultMessage resultMessage = null;
@@ -189,13 +185,15 @@ public class CommonAIManager {
 
                         if("appoint_interview".equals(name)){
                             statusCode.set(ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus());
+
+                            String adminId = preParams.getString("adminId");
+                            String employeeUid = preParams.getString("employeeUid");
+                            String positionId = preParams.getString("positionId");
+                            String accountId = preParams.getString("accountId");
+                            String maskId = preParams.getString("maskId");
+
                             JSONObject params = JSONObject.parseObject(result);
-                            String adminId = params.getString("adminId");
-                            String employeeUid = params.getString("employeeUid");
-                            String positionId = params.getString("positionId");
-                            String accountId = params.getString("accountId");
                             String startTime = params.getString("startTime");
-                            String maskId = params.getString("maskId");
                             LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             ResultVO<String> resultVO = icAiManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId), Long.parseLong(adminId), employeeUid, sTime, Long.parseLong(positionId), accountId));
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
@@ -204,16 +202,16 @@ public class CommonAIManager {
 
                         if("cancel_interview".equals(name)){
                             statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
-                            JSONObject params = JSONObject.parseObject(result);
-                            String interviewId = params.getString("interviewId");
+                            String interviewId = preParams.getString("interviewId");
                             ResultVO<Boolean> resultVO = icAiManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
                             log.info("取消面试: tool={}, cancelInterviewStr={}", name, JSONObject.toJSONString(resultVO));
                         }
 
                         if("modify_interview_time".equals(name)){
+                            String interviewId = preParams.getString("interviewId");
+
                             JSONObject params = JSONObject.parseObject(result);
-                            String interviewId = params.getString("interviewId");
                             String newTime = params.getString("newTime");
                             LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                             ResultVO<Boolean> resultVO = icAiManager.modifyTime(interviewId, InterviewRoleEnum.EMPLOYEE.getCode(),sTime);
@@ -244,14 +242,6 @@ public class CommonAIManager {
         }
         return null;
 
-    }
-
-    public static void main(String[] args) {
-        List<JSONObject> jsonObjects = new ArrayList<>();
-        JSONObject object = new JSONObject();
-        object.put("a","1");
-        jsonObjects.add(object);
-        System.out.println(JSONObject.toJSONString(jsonObjects));
     }
 
 
@@ -289,12 +279,7 @@ public class CommonAIManager {
 
             String url = getUrl("https://one.opengptgod.com/");
             String token = "sk-YXkz1ruOVODeZXCG93F9847a6a784d749d2d1c2dCa3868Af";
-            OpenAiChatModel modelService = OpenAiChatModel.builder()
-                    .apiKey(token)
-                    .baseUrl(url)
-                    .modelName(split[1])
-                    .temperature(temperature)
-                    .build();
+            OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], temperature);
             Response<AiMessage> generate = modelService.generate(newMessages);
             AiMessage content = generate.content();
             return content.text();
@@ -343,12 +328,7 @@ public class CommonAIManager {
 
             String url = getUrl("https://bluecatai.net/");
             String token = "sk-7e3d932bef164aedb8f3a33a90a51e7f";
-            OpenAiChatModel modelService = OpenAiChatModel.builder()
-                    .apiKey(token)
-                    .baseUrl(url)
-                    .modelName(split[1])
-                    .temperature(temperature)
-                    .build();
+            OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], temperature);
             Response<AiMessage> generate = modelService.generate(newMessages);
             AiMessage content = generate.content();
             return content.text();
