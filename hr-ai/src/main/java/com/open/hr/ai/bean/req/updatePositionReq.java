@@ -21,7 +21,6 @@ public class updatePositionReq {
     /**
      * 岗位描述
      */
-    @NotEmpty(message = "岗位描述不能为空")
     @ApiModelProperty(value = "必填，岗位描述", notes = "岗位描述")
     private String  desc;
 
