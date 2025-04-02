@@ -1,5 +1,6 @@
 package com.open.ai.eros.ai.tool.function;
 
+import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import dev.langchain4j.agent.tool.P;
@@ -7,6 +8,7 @@ import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
@@ -60,7 +62,6 @@ public class InterviewFunction {
     public void no_further_reply() {
       log.info("no_further_reply function");
     }
-
 
 
 }

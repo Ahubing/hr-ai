@@ -205,12 +205,12 @@ public class AmResume implements Serializable {
      * @param newType 新状态
      * @param isAlUpdate 是否是ai更新
      */
-    public void updateType(ReviewStatusEnums newType,Boolean isAlUpdate){
+    public void updateType(ReviewStatusEnums newType,Boolean isAiUpdate){
         if(newType == null || newType.getStatus().equals(this.type)){
             return;
         }
 
-        if (!isAlUpdate || (newType.equals(ReviewStatusEnums.ABANDON) || newType.getStatus() > this.type)){
+        if (!isAiUpdate || (newType.equals(ReviewStatusEnums.ABANDON) || newType.getStatus() > this.type)){
             this.type = newType.getStatus();
         }
 
