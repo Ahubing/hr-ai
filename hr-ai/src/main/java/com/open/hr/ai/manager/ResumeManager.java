@@ -32,9 +32,17 @@ import com.open.hr.ai.util.ResumeParseUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -379,4 +387,66 @@ public class ResumeManager {
         return ResultVO.fail("执行胜任力模型异常");
     }
 
+    public void exportResumesToExcel(HttpServletResponse response,
+                                     Long adminId, Integer id,
+                                     Integer type, Integer post_id, String name,
+                                     LocalDateTime startDateTime, LocalDateTime endDateTime, String expectPosition,
+                                     String postName, Integer platformId, BigDecimal score, Integer deptId,
+                                     String deptName, Integer positionId, String positionName,
+                                     String platform, Map<String, Integer> sortMap) {
+        Workbook workbook = new XSSFWorkbook();
+        try {
+            // 查询数据库的简历
+            List<AmResume> list = resumeMapper.exportResume(adminId, id, type, post_id, name, startDateTime,
+                    endDateTime, expectPosition, postName, platformId, score,
+                    deptId, deptName, positionId, positionName, platform, sortMap);
+            if (list.isEmpty()) {
+                response.setContentType("text/plain; charset=UTF-8");
+                response.getWriter().write("未找到符合条件的简历数据");
+                log.warn("导出简历时，查询结果为空");
+                return;
+            }
+            // 创建一个工作簿
+            Sheet sheet = workbook.createSheet("简历数据");
+            // 创建标题行
+            Row headerRow = sheet.createRow(0);
+            String[] headers = {"姓名", "性别", "手机", "微信", "平台", "预期职位", "分数", "创建时间"};
+            // 写入标题行
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+            }
+            // 填充简历数据
+            for (int i = 0; i < list.size(); i++) {
+                AmResume resume = list.get(i);
+                Row row = sheet.createRow(i + 1);
+                row.createCell(0).setCellValue(resume.getName() != null ? resume.getName() : "无");
+                row.createCell(1).setCellValue(resume.getGender() != null ? (resume.getGender() == 1 ? "男" : "女") : "无");
+                row.createCell(2).setCellValue(resume.getPhone() != null ? resume.getPhone() : "无");
+                row.createCell(3).setCellValue(resume.getWechat() != null ? resume.getWechat() : "无");
+                row.createCell(4).setCellValue(resume.getPlatform() != null ? resume.getPlatform() : "无");
+                row.createCell(5).setCellValue(resume.getExpectPosition() != null ? resume.getExpectPosition() : "无");
+                row.createCell(6).setCellValue(resume.getScore() != null ? resume.getScore().doubleValue() : 0.0);
+                row.createCell(7).setCellValue(resume.getCreateTime() != null ? resume.getCreateTime().toString() : "无");
+            }
+            // 设置响应头，告诉浏览器下载文件
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=resumes.xlsx");
+
+            // **确保正确设置响应头**
+            /*response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=\"resumes.xlsx\"");
+            response.setCharacterEncoding("UTF-8");*/
+            // 将Excel写入输出流
+            ServletOutputStream outputStream = response.getOutputStream();
+            workbook.write(outputStream);
+            workbook.close();
+            outputStream.flush();
+            outputStream.close();
+        } catch (IOException e) {
+            log.error("导出简历失败", e);
+        }
+    }
+
 }
+

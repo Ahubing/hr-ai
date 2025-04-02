@@ -29,6 +29,7 @@ import java.io.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -226,5 +227,28 @@ public class ResumeController extends HrAIBaseController {
     @GetMapping("/resume/competencyModel")
     public ResultVO competencyModel(@RequestParam(value = "id", required = true) Integer id) {
         return resumeManager.competencyModel(id, getUserId());
+    }
+
+    @ApiOperation("导出简历到excel")
+    @VerifyUserToken
+    @GetMapping("resume/export")
+    public void exportResumes(HttpServletResponse response,
+                              @RequestParam(value = "id", required = false) Integer id,
+                              @RequestParam(value = "type", required = false) Integer type,
+                              @RequestParam(value = "post_id", required = false) @ApiParam("职位id") Integer post_id,
+                              @RequestParam(value = "name", required = false) String name,
+                              @RequestParam(value = "startDateTime", required = false) @ApiParam("开始时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime startDateTime,
+                              @RequestParam(value = "endDateTime", required = false) @ApiParam("截止时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime endDateTime,
+                              @RequestParam(value = "expectPosition", required = false) @ApiParam("预期职位") String expectPosition,
+                              @RequestParam(value = "postName", required = false) @ApiParam("职位名称") String postName,
+                              @RequestParam(value = "deptId", required = false) @ApiParam("部门id") Integer deptId,
+                              @RequestParam(value = "deptName", required = false) @ApiParam("部门名称") String deptName,
+                              @RequestParam(value = "positionId", required = false) @ApiParam("岗位id") Integer positionId,
+                              @RequestParam(value = "positionName", required = false) @ApiParam("岗位名称") String positionName,
+                              @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
+                              @RequestParam(value = "platform", required = false) @ApiParam("平台名称") String platform,
+                              @RequestParam(value = "sortMap", required = false) @ApiParam("排序，格式{字段code:-1/1}") Map<String, Integer> sortMap,
+                              @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) throws IOException {
+        resumeManager.exportResumesToExcel(response, getUserId(), id, type, post_id, name, startDateTime, endDateTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform, sortMap);
     }
 }
