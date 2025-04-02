@@ -142,13 +142,17 @@ public class AmClientTaskManager {
             AmClientTasksVo amClientTasksVo = new AmClientTasksVo();
             amClientTasksVo.setDetail(amClientTask.getDetail());
             amClientTasksVo.setId(amClientTask.getId());
-            amClientTasksVo.setSuccessCount(0);
+            amClientTasksVo.setSuccessCount(1);
             amClientTasksVo.setTotalCount(1);
             amClientTasksVo.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
             amClientTasksVo.setTaskType(amClientTask.getTaskType());
             amClientTasksVo.setReason(amClientTask.getReason());
             amClientTasksVo.setCreateTime(amClientTask.getCreateTime());
             amClientTasksVo.setUpdateTime(amClientTask.getUpdateTime());
+            if (amClientTask.getStatus().equals(AmClientTaskStatusEnums.FAILURE.getStatus())){
+                amClientTasksVo.setSuccessCount(0);
+                amClientTasksVo.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
+            }
             // 获取任务类型
             if (amClientTask.getTaskType().equals(ClientTaskTypeEnums.SEND_MESSAGE.getType())){
                 String subType = amClientTask.getSubType();

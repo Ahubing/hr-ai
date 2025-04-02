@@ -544,7 +544,7 @@ public class AmChatBotGreetJob {
         searchObject.put("encrypt_friend_id", amResume.getEncryptGeekId());
         searchObject.put("name", amResume.getName());
         jsonObject.put("user_id", amChatbotGreetResult.getUserId());
-        jsonObject.put("message", Collections.singletonList(amChatbotOptionsItems.getContent()));
+        jsonObject.put("messages", Collections.singletonList(amChatbotOptionsItems.getContent()));
         jsonObject.put("search_data", searchObject);
         if (StringUtils.isNotBlank(chatId)){
             jsonObject.put("rechat_last_message_id", chatId);

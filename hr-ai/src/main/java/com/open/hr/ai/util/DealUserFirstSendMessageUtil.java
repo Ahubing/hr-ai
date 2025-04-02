@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
-import com.open.ai.eros.common.constants.InterviewStatusEnum;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -140,13 +139,19 @@ public class DealUserFirstSendMessageUtil {
             amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
+                String aiPrompt = AiReplyPromptUtil.buildBasePrompt(amResume, amNewMask, icRecord);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("DealUserFirstSendMessageUtil aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
                 }
-                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), aiPrompt);
+                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), aiPrompt);
                 messages.add(chatMessage);
+                String candidateBasePrompt = AiReplyPromptUtil.buildCandidateBasePrompt(amResume, amNewMask, icRecord);
+                ChatMessage candidateBaseChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), candidateBasePrompt);
+                messages.add(candidateBaseChatMessage);
+                String formatAndICRecordPrompt = AiReplyPromptUtil.buildFormatAndICRecordPrompt(amResume, amNewMask, icRecord);
+                ChatMessage formatAndICRecordPromptChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), formatAndICRecordPrompt);
+                messages.add(formatAndICRecordPromptChatMessage);
             } else {
                 log.info("DealUserFirstSendMessageUtil amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");

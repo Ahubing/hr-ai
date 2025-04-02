@@ -98,8 +98,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                         amChatMessageLambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
                         boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
                         log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
+                        amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     }
-                    amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     amResume.setPostId(amPositionServiceOne.getId());
                 }
             }

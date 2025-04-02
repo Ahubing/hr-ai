@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -218,14 +219,12 @@ public class SendMessageUtil {
     private static void saveAsyncMessage(AmResume resume, AmZpLocalAccouts account, String content) {
         AmClientTasks amClientTasks = new AmClientTasks();
         JSONObject jsonObject = new JSONObject();
-        List<String> messageList = new ArrayList<>();
         JSONObject searchObject = new JSONObject();
         searchObject.put("encrypt_friend_id", resume.getEncryptGeekId());
         searchObject.put("name", resume.getName());
         jsonObject.put("is_system_message",true);
         jsonObject.put("user_id", resume.getUid());
-        messageList.add(content);
-        jsonObject.put("messages", messageList);
+        jsonObject.put("messages", Collections.singletonList(content));
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType("send_message");

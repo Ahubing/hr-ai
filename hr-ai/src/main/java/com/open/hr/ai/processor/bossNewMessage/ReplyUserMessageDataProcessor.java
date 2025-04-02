@@ -6,7 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
-import com.open.ai.eros.common.constants.InterviewStatusEnum;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -26,7 +25,6 @@ import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -236,14 +234,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 如果有绑定ai角色,则获取ai角色进行回复
              amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
+                String aiPrompt = AiReplyPromptUtil.buildBasePrompt(amResume, amNewMask, icRecord);
                 log.info("aiPrompt={}", aiPrompt);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
                 }
-                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), aiPrompt);
+                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), aiPrompt);
                 messages.add(chatMessage);
+                String candidateBasePrompt = AiReplyPromptUtil.buildCandidateBasePrompt(amResume, amNewMask, icRecord);
+                ChatMessage candidateBaseChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), candidateBasePrompt);
+                messages.add(candidateBaseChatMessage);
             } else {
                 log.info("amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");
@@ -269,12 +270,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
         if (StringUtils.isNotBlank(buildSystemUserMessage.toString())) {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("message",Collections.singletonList(buildSystemUserMessage.toString()));
+            jsonObject.put("messages",Collections.singletonList(buildSystemUserMessage.toString()));
             messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), jsonObject.toJSONString()));
         }
+
+        String formatAndICRecordPrompt = AiReplyPromptUtil.buildFormatAndICRecordPrompt(amResume, amNewMask, icRecord);
+        ChatMessage formatAndICRecordPromptChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), formatAndICRecordPrompt);
+        messages.add(formatAndICRecordPromptChatMessage);
+
         if (StringUtils.isNotBlank(buildNewUserMessage.toString())) {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("message",Collections.singletonList(buildNewUserMessage.toString()));
+            jsonObject.put("messages",Collections.singletonList(buildNewUserMessage.toString()));
             messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), jsonObject.toJSONString()));
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
