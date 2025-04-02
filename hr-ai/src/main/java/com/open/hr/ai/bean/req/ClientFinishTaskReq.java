@@ -56,5 +56,8 @@ public class ClientFinishTaskReq {
     @ApiModelProperty(value = "data")
     private JSONObject data;
 
+    @ApiModelProperty(value = "not_retry")
+    private Boolean not_retry;
+
 
 }

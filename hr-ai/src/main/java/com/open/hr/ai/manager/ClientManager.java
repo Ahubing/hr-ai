@@ -407,7 +407,7 @@ public class ClientManager {
                 tasksServiceOne.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
                 tasksServiceOne.setUpdateTime(LocalDateTime.now());
             } else {
-                if (tasksServiceOne.getRetryTimes() < 3) {
+                if (tasksServiceOne.getRetryTimes() < 3 && !clientFinishTaskReq.getNot_retry()) {
                     dealErrorGreetTask(bossId,tasksServiceOne);
                     return ResultVO.success("任务要重试");
                 }

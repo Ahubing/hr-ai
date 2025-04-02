@@ -225,7 +225,7 @@ public class SendMessageUtil {
         jsonObject.put("is_system_message",true);
         jsonObject.put("user_id", resume.getUid());
         messageList.add(content);
-        jsonObject.put("message", messageList);
+        jsonObject.put("messages", messageList);
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType("send_message");
