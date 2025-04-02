@@ -21,7 +21,7 @@ public class updatePositionReq {
     /**
      * 岗位描述
      */
-    @ApiModelProperty(value = "必填，岗位描述", notes = "岗位描述")
+    @ApiModelProperty(value = "岗位描述", notes = "岗位描述")
     private String  desc;
 
     @ApiModelProperty("招聘渠道/平台id")
