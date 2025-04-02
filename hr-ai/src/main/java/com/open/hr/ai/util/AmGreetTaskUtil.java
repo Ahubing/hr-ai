@@ -15,9 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 处理临时打招呼数据任务添加
@@ -120,7 +118,7 @@ public class AmGreetTaskUtil {
             jsonObject.put("conditions", conditions);
             jsonObject.put("times", amChatbotGreetTask.getTaskNum());
             jsonObject.put("greetId", amChatbotGreetTask.getId());
-            JSONObject messageObject = new JSONObject();
+            List <String> messageList = new ArrayList<>();
 //            messageObject.put("content", GREET_MESSAGE);
 
             AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
@@ -133,7 +131,8 @@ public class AmGreetTaskUtil {
                 Long amMaskId = positionOption.getAmMaskId();
                 AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
                 if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
-                    messageObject.put("content", amNewMask.getGreetMessage());
+//                    messageObject.put("content", amNewMask.getGreetMessage());
+                    messageList.add(amNewMask.getGreetMessage());
                 }
 
                 AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
@@ -147,7 +146,7 @@ public class AmGreetTaskUtil {
             }else {
                 log.info("打招呼任务追加消息失败,未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
             }
-            jsonObject.put("message", messageObject);
+            jsonObject.put("message", messageList);
 
             amClientTasks.setData(jsonObject.toJSONString());
             amClientTasks.setCreateTime(LocalDateTime.now());

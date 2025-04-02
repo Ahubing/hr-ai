@@ -498,10 +498,8 @@ public class AmChatBotGreetJob {
 
                         jsonObject.put("conditions", conditions);
                         jsonObject.put("times", amChatbotGreetTask.getTaskNum());
-                        JSONObject messageObject = new JSONObject();
+                        List<String> messageList = new ArrayList<>();
 //                        messageObject.put("content", GREET_MESSAGE);
-
-
 
                         AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
                                 .eq(AmChatbotPositionOption::getAccountId, zpLocalAccouts.getId())
@@ -512,12 +510,13 @@ public class AmChatBotGreetJob {
                             Long amMaskId = positionOption.getAmMaskId();
                             AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
                             if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
-                                messageObject.put("content", amNewMask.getGreetMessage());
+                                messageList.add(amNewMask.getGreetMessage());
+//                                messageObject.put("content", amNewMask.getGreetMessage());
                             }
                         }else {
                             log.info("打招呼任务追加消息失败,未找到对应的职位:{}", chatbotGreetTask.getPositionId());
                         }
-                        jsonObject.put("message", messageObject);
+                        jsonObject.put("message", messageList);
                         amClientTasks.setData(jsonObject.toJSONString());
                         amClientTasks.setCreateTime(LocalDateTime.now());
                         amClientTasks.setUpdateTime(LocalDateTime.now());
