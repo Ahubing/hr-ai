@@ -40,4 +40,16 @@ public interface AmResumeMapper extends BaseMapper<AmResume> {
                     @Param("score") BigDecimal score, @Param("deptId") Integer deptId,
                     @Param("deptName") String deptName, @Param("positionId") Integer positionId,
                     @Param("positionName") String positionName,@Param("platform") String platform);
+
+    List<AmResume> exportResume(@Param("adminId") Long adminId,
+                                @Param("id") Integer id,
+                                @Param("type") Integer type,
+                                @Param("post_id") Integer post_id,@Param("name") String name,
+                                @Param("startDateTime") LocalDateTime startDateTime,
+                                @Param("endDateTime")LocalDateTime endDateTime,@Param("expectPosition") String expectPosition,
+                                @Param("postName") String postName,@Param("platformId") Integer platformId,
+                                @Param("score") BigDecimal score,@Param("deptId") Integer deptId,
+                                @Param("deptName") String deptName,@Param("positionId") Integer positionId,
+                                @Param("positionName") String positionName,@Param("platform") String platform,
+                                @Param("sortMap") Map<String, Integer> sortMap);
 }
