@@ -162,7 +162,7 @@ public class DealUserFirstSendMessageUtil {
         params.put("employeeUid", amResume.getUid());
         params.put("positionId", amResume.getPostId());
         params.put("accountId", amResume.getAccountId());
-        params.put("interviewId",icRecord.getId());
+        params.put("interviewId",icRecord != null ? icRecord.getId() : null);
 //        String preParams = "请记住下列参数和数据，后续会用到。当前角色的面具id maskId(String类型):" + amNewMask.getId() +
 //                                ",当前管理员/hr的id adminId(String类型):" + amZpLocalAccouts.getAdminId() +
 //                                ",当前求职者uid employeeUid(String类型):" + amResume.getUid() +
