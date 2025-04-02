@@ -122,8 +122,8 @@ public class CommonAIManager {
                 }
             }
 
-            String url = getUrl("https://vip.zen-ai.top/");
-            String token = "sk-hV2cfUMDd1N027qV012foenZzjmfRSKikPd4nrrwHsZa964K";
+            String url = getUrl("https://fast.bemore.lol/");
+            String token = "sk-RIcs0FN3f50qnO8d4f85Da40B9764399Bc161196E7492f74";
             OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], null);
 
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
