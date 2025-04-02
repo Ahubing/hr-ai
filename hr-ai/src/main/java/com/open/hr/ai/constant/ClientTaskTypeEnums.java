@@ -7,13 +7,13 @@ package com.open.hr.ai.constant;
  */
 public enum ClientTaskTypeEnums {
     GREET("greet", "打招呼",3),
-    GET_ALL_JOB("get_all_job", "获取全部岗位",5),
-    SWITCH_JOB_STATE("switch_job_state", "切换岗位开关状态",1),
+    GET_ALL_JOB("get_all_job", "同步职位",5),
+    SWITCH_JOB_STATE("switch_job_state", "开关职位",1),
     SEND_MESSAGE("send_message", "发送消息",4),
-    SEND_RECHAT_MESSAGE("send_message", "发送复聊消息消息",2),
+    SEND_RECHAT_MESSAGE("send_message", "发送复聊消息",2),
 
-    REQUEST_ALL_INFO("request_all_info", "请求用户的所有信息",1),
-    REQUEST_INFO("request_info", "请求用户的部分信息",3),
+    REQUEST_ALL_INFO("request_all_info", "读取求职者信息",1),
+    REQUEST_INFO("request_info", "请求求职者信息",3),
 
     ;
 
