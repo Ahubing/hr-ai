@@ -307,7 +307,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:deepseek-v3-250324", 0.8,statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
            if (Objects.isNull(chatMessage)) {
               continue;
            }
