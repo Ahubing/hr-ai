@@ -60,7 +60,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         queryWrapper.eq(AmResume::getUid, userId);
         queryWrapper.eq(AmResume::getAccountId, amZpLocalAccouts.getId());
         AmResume innerAmResume = amResumeService.getOne(queryWrapper, false);
-        log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
+//        log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
         if (Objects.nonNull(innerAmResume)) {
             BeanUtils.copyProperties(innerAmResume, amResume);
             if (Objects.nonNull(chatInfo.get("phone"))) {

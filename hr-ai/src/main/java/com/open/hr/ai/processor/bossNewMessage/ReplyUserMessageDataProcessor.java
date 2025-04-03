@@ -121,7 +121,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AtomicInteger firstTime,String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, bossId={} req={}", amResume, amZpLocalAccouts.getId(), req);
+        log.info("ReplyUserMessageDataProcessor dealBossNewMessage  bossId={} req={}", amZpLocalAccouts.getId(), req);
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }

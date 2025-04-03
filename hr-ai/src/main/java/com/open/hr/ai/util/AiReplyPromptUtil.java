@@ -83,7 +83,8 @@ public class AiReplyPromptUtil {
     public static final String currentTypePrompt =
             "# 当前状态\n" +
             "- 系统查询到的已预约的面试：{interview_info} \n"+
-            "- 当前所处进度：{currentType}\n";
+            "- 当前所处进度：{currentType}\n" +
+            "- 当前招聘平台：{platform}\n";
 
     public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
@@ -107,7 +108,8 @@ public class AiReplyPromptUtil {
 
 
     private static final List<String> userInfoPrompts = Arrays.asList(
-            "# 求职者信息\n- 求职者姓名：{userName}\n" ,
+            "# 求职者信息\n- 求职者姓名：{userName}\n" +
+            "# 求职者简历信息（这只是平台提供的线简历信息，不是求职者发送的简历）\n" ,
             "# 求职者简历信息\n {zpData} \n");
 
     /**
@@ -426,6 +428,8 @@ public class AiReplyPromptUtil {
                     Integer type = amResume.getType();
                     ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
                     dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{currentType}", enumByStatus.getDesc());
+                    dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{platform}", amResume.getPlatform());
+
                     stringBuilder.append(dynamicInterviewPrompt);
                     log.info("after interview_info：{}",stringBuilder);
                 }
