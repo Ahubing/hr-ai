@@ -363,10 +363,13 @@ public class AmChatBotGreetJob {
 
                         if (Objects.nonNull(amChatMessage)) {
                             log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage, conversationId);
-                            chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
-                            AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
-                            if (Objects.isNull(chatMessage)) {
-                                log.info("用户已经回复过消息:{}", chatMessage);
+                            LambdaQueryWrapper<AmChatMessage> aiChatMessageQueryWrapper = new LambdaQueryWrapper<>();
+                            aiChatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+                            aiChatMessageQueryWrapper.ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay());
+                            aiChatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
+                            AmChatMessage chatMessage = amChatMessageService.getOne(aiChatMessageQueryWrapper, false);
+                            if (Objects.nonNull(chatMessage)) {
+                                log.info("AI今天已经回复过消息:{}", chatMessage);
                                 jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                                 continue;
                             }

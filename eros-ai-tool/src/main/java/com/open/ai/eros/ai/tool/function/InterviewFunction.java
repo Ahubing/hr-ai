@@ -53,15 +53,5 @@ public class InterviewFunction {
         return status;
     }
 
-    /**
-     * 判断是否需要继续回复客户
-     * @param status
-     * @return
-     */
-    @Tool(name = "no_further_reply", value = {"调用此函数本次将不回复求职者消息。"})
-    public void no_further_reply() {
-      log.info("no_further_reply function");
-    }
-
 
 }
