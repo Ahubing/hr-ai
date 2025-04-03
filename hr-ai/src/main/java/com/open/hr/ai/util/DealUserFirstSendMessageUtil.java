@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -78,6 +79,11 @@ public class DealUserFirstSendMessageUtil {
         log.info("DealUserFirstSendMessageUtil dealBossNewMessage amResume={}, bossId={}", amResume, amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
+        }
+        if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
+            log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
+            SendMessageUtil.generateAsyncMessage(amResume,amZpLocalAccouts,null, "refuse");
+            return ResultVO.success();
         }
         String taskId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
 
@@ -259,7 +265,6 @@ public class DealUserFirstSendMessageUtil {
             return ResultVO.fail(404, "ai回复内容解析错误");
         }
         hashMap.put("search_data", searchDataMap);
-        hashMap.put("message", Collections.singletonList(content));
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("DealUserFirstSendMessageUtil dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);
