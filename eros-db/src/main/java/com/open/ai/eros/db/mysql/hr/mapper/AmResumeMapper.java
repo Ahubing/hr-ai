@@ -9,6 +9,7 @@ import com.open.ai.eros.db.mysql.hr.vo.AmResumeVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,11 @@ public interface AmResumeMapper extends BaseMapper<AmResume> {
                     @Param("positionName") String positionName,@Param("platform") String platform);
 
     List<AmResume> exportResume(@Param("adminId") Long adminId,
-                                @Param("id") Integer id,
+                                @Param("ids") List<Integer> ids,
                                 @Param("type") Integer type,
                                 @Param("post_id") Integer post_id,@Param("name") String name,
-                                @Param("startDateTime") LocalDateTime startDateTime,
-                                @Param("endDateTime")LocalDateTime endDateTime,@Param("expectPosition") String expectPosition,
+                                @Param("startDateTime") LocalDate startDateTime,
+                                @Param("endDateTime")LocalDate endDateTime,@Param("expectPosition") String expectPosition,
                                 @Param("postName") String postName,@Param("platformId") Integer platformId,
                                 @Param("score") BigDecimal score,@Param("deptId") Integer deptId,
                                 @Param("deptName") String deptName,@Param("positionId") Integer positionId,

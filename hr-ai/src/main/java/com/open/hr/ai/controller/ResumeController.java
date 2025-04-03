@@ -233,12 +233,12 @@ public class ResumeController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("resume/export")
     public void exportResumes(HttpServletResponse response,
-                              @RequestParam(value = "id", required = false) Integer id,
+                              @RequestParam(value = "ids", required = false) List<Integer> ids,
                               @RequestParam(value = "type", required = false) Integer type,
                               @RequestParam(value = "post_id", required = false) @ApiParam("职位id") Integer post_id,
                               @RequestParam(value = "name", required = false) String name,
-                              @RequestParam(value = "startDateTime", required = false) @ApiParam("开始时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime startDateTime,
-                              @RequestParam(value = "endDateTime", required = false) @ApiParam("截止时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime endDateTime,
+                              @RequestParam(value = "startDateTime", required = false) @ApiParam("开始时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDateTime,
+                              @RequestParam(value = "endDateTime", required = false) @ApiParam("截止时间") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDateTime,
                               @RequestParam(value = "expectPosition", required = false) @ApiParam("预期职位") String expectPosition,
                               @RequestParam(value = "postName", required = false) @ApiParam("职位名称") String postName,
                               @RequestParam(value = "deptId", required = false) @ApiParam("部门id") Integer deptId,
@@ -248,7 +248,15 @@ public class ResumeController extends HrAIBaseController {
                               @RequestParam(value = "platformId", required = false) @ApiParam("平台id") Integer platformId,
                               @RequestParam(value = "platform", required = false) @ApiParam("平台名称") String platform,
                               @RequestParam(value = "sortMap", required = false) @ApiParam("排序，格式{字段code:-1/1}") Map<String, Integer> sortMap,
-                              @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score) throws IOException {
-        resumeManager.exportResumesToExcel(response, getUserId(), id, type, post_id, name, startDateTime, endDateTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform, sortMap);
+                              @RequestParam(value = "score", required = false) @ApiParam("匹配分,不传为所有，-1则为未评分，大于等于0则按值筛选") BigDecimal score,
+                              @RequestParam(value = "exportFields", required = false) @ApiParam("导出字段列表，逗号分隔") String exportFields) throws IOException {
+        resumeManager.exportResumesToExcel(response, getUserId(), ids, type, post_id, name, startDateTime, endDateTime, expectPosition, postName, platformId, score, deptId, deptName, positionId, positionName, platform, sortMap, exportFields);
+    }
+
+    @ApiOperation("获取可导出简历字段")
+    @VerifyUserToken
+    @GetMapping("resume/exportFields")
+    public ResultVO<Map<String, String>> getExportFields() {
+        return ResultVO.success(resumeManager.getExportFieldsMap());
     }
 }
