@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -180,6 +181,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
             log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
+            SendMessageUtil.generateAsyncMessage(amResume,amZpLocalAccouts,null, "refuse");
             return ResultVO.success();
         }
 
