@@ -80,11 +80,6 @@ public class DealUserFirstSendMessageUtil {
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
-        if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
-            log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
-            SendMessageUtil.generateAsyncMessage(amResume,amZpLocalAccouts,null, "refuse");
-            return ResultVO.success();
-        }
         String taskId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
 
         LambdaQueryWrapper<AmChatMessage> messagesLambdaQueryWrapper = new LambdaQueryWrapper<>();
