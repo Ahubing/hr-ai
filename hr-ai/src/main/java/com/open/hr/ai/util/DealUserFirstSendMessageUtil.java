@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
+import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -234,7 +235,8 @@ public class DealUserFirstSendMessageUtil {
 
         List<AmChatMessage> aiMessages = new ArrayList<>();
         try {
-            JSONObject jsonObject = JSONArray.parseObject(content);
+            String jsonContent = AIJsonUtil.getJsonContent(content);
+            JSONObject jsonObject = JSONArray.parseObject(jsonContent);
             if (Objects.isNull(jsonObject.get("messages"))){
                 log.error("DealUserFirstSendMessageUtil dealBossNewMessage messages is null content={}",content);
                 return ResultVO.fail(404, "ai回复内容解析错误");
