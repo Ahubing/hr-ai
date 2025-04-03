@@ -1222,6 +1222,7 @@ public class ClientManager {
                         amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
                         amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
                         amChatMessage.setType(-1);
+                        amChatMessage.setChatId(UUID.randomUUID().toString());
                         amChatMessage.setContent(amNewMask.getGreetMessage());
                         amChatMessage.setCreateTime(LocalDateTime.now());
                         boolean save = amChatMessageService.save(amChatMessage);

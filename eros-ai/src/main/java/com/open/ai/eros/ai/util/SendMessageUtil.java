@@ -27,10 +27,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -257,6 +254,7 @@ public class SendMessageUtil {
             amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
             amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
             amChatMessage.setType(-1);
+            amChatMessage.setChatId(UUID.randomUUID().toString());
             amChatMessage.setContent(content);
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = chatMessageService.save(amChatMessage);

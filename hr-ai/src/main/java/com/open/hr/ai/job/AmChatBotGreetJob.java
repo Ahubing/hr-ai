@@ -382,7 +382,7 @@ public class AmChatBotGreetJob {
                         AmChatMessage lastMessage = amChatMessageService.getOne(lastMessageQueryWrapper, false);
 
                         String chatId = "";
-                        if (Objects.nonNull(lastMessage)){
+                        if (Objects.nonNull(lastMessage) &&!"0".equals(lastMessage.getChatId())){
                             chatId = lastMessage.getChatId();
                         }
                         buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts,chatId);
@@ -585,6 +585,7 @@ public class AmChatBotGreetJob {
             amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
             amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
             amChatMessage.setType(-1);
+            amChatMessage.setChatId(UUID.randomUUID().toString());
             amChatMessage.setContent(amChatbotOptionsItems.getContent());
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = amChatMessageService.save(amChatMessage);
