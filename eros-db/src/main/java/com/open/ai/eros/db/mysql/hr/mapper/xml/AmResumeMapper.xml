@@ -9,7 +9,7 @@
         ar.expect_position as expectPosition,
         ar.platform as platform,
         ar.create_time as createTime,
-        ar.competency_model as competencyModel,
+        ar.competency_model as competencyModelStr,
         ar.avatar as avatar,
         ar.age as age,
         ar.gender as gender,

@@ -247,6 +247,11 @@ public class AmResumeVo  {
      * 胜任力模型数据
      */
     private JSONObject competencyModel;
+    /**
+     * 胜任力模型数据
+     */
+   private String competencyModelStr;
+
 
 
 }
