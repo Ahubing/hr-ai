@@ -1,5 +1,6 @@
 package com.open.ai.eros.db.mysql.hr.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.time.LocalDateTime;
 import java.io.Serializable;
@@ -107,4 +108,10 @@ public class AmNewMask implements Serializable {
      * 系统默认的,用于用户注册自动绑定
      */
     private Integer systemExample;
+
+    /**
+     * 关联的模型ID
+     */
+    private Long modelId;
+
 }
