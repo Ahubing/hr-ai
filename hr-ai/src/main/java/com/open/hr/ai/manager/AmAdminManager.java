@@ -207,10 +207,10 @@ public class AmAdminManager {
         }
         boolean result = amAdminService.removeById(userId);
         if (result){
-            String userToken = AESUtil.encryptBase64(AESUtil.USER_TOKEN_KEY, admin.getUsername());
+            String userToken = AESUtil.encryptBase64(AESUtil.USER_TOKEN_KEY, user.getUsername());
             String key = String.format(CommonConstant.USER_LOGIN_TOKEN_KEY, userToken);
-            Long hdel = redisClient.hdel(key);
-            log.info("删除用户token, userId={},key={},result={}", userId, key, hdel);
+            Long del = redisClient.del(key);
+            log.info("删除用户token, userId={},key={},result={}", userId, key, del);
         }
         return result ? ResultVO.success() : ResultVO.fail("删除失败");
     }
@@ -230,10 +230,10 @@ public class AmAdminManager {
         user.setStatus(AmAdminStatusEnums.BAN.getStatus());
         boolean result = amAdminService.updateById(user);
         if (result){
-            String userToken = AESUtil.encryptBase64(AESUtil.USER_TOKEN_KEY, admin.getUsername());
+            String userToken = AESUtil.encryptBase64(AESUtil.USER_TOKEN_KEY, user.getUsername());
             String key = String.format(CommonConstant.USER_LOGIN_TOKEN_KEY, userToken);
-            Long hdel = redisClient.hdel(key);
-            log.info("删除用户token, userId={},key={},result={}", userId, key, hdel);
+            Long del = redisClient.del(key);
+            log.info("删除用户token, userId={},key={},result={}", userId, key, del);
         }
         return result ? ResultVO.success() : ResultVO.fail("禁用失败");
     }
