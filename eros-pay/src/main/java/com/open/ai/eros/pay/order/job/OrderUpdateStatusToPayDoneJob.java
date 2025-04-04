@@ -46,8 +46,8 @@ public class OrderUpdateStatusToPayDoneJob {
     /**
      * 扫描 支付成功，但是未成功 发放商品+ 订单状态
      */
-    @Async("OrderExecutor")
-    @Scheduled(fixedDelay = 20000 )
+//    @Async("OrderExecutor")
+//    @Scheduled(fixedDelay = 20000 )
     public void updateOrderStatusToSuccess(){
 
         log.info("开始扫描支付成功订单");
