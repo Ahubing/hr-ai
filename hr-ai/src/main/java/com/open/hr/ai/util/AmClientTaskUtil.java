@@ -39,9 +39,10 @@ public class AmClientTaskUtil {
         hashMap.put("user_id", uid);
         if (needAttachmentResume) {
             hashMap.put("info_type", Collections.singletonList("attachment_resume"));
+            amClientTasks.setDetail(String.format("请求用户%s附件简历信息",amResume.getName()));
         }else {
-            //空数组
             hashMap.put("info_type", Collections.singletonList("resume"));
+            amClientTasks.setDetail(String.format("请求用户%s在线简历信息",amResume.getName()));
         }
         if (Objects.nonNull(amResume.getEncryptGeekId())) {
             searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());

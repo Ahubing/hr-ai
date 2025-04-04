@@ -228,6 +228,8 @@ public class SendMessageUtil {
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType("send_message");
+        amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", resume.getName(), content));
+
         amClientTasks.setOrderNumber(2);
         amClientTasks.setBossId(resume.getAccountId());
         amClientTasks.setData(jsonObject.toJSONString());

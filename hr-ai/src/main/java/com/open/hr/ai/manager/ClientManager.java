@@ -166,6 +166,7 @@ public class ClientManager {
                 amClientTasks.setData(JSONObject.toJSONString(map));
                 amClientTasks.setCreateTime(LocalDateTime.now());
                 amClientTasks.setUpdateTime(LocalDateTime.now());
+                amClientTasks.setDetail("请求全部职位信息");
                 boolean result = amClientTasksService.save(amClientTasks);
                 log.info("amClientTasksService save result={},amClientTasks={}", result, amClientTasks);
 

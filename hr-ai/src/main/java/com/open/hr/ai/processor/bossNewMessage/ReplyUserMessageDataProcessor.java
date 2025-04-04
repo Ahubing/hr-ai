@@ -359,8 +359,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             }
             hashMap.put("messages", jsonObject.get("messages"));
             JSONArray jsonArray = jsonObject.getJSONArray("messages");
+            StringBuilder stringBuilder = new StringBuilder();
             for (Object object : jsonArray) {
                 AmChatMessage aiMessage = new AmChatMessage();
+                stringBuilder.append(object.toString()).append("\n");
                 aiMessage.setContent(object.toString());
                 aiMessage.setCreateTime(LocalDateTime.now());
                 aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
@@ -370,6 +372,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }
+            amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
         }catch (Exception e){
             log.error("ReplyUserMessageDataProcessor dealBossNewMessage content parse error content={}",content);
             return ResultVO.fail(404, "ai回复内容解析错误");
@@ -446,8 +449,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 List<String> infoType = new ArrayList<>();
                 if (amNewMaskAddReq.getOpenExchangePhone()) {
                     infoType.add("phone");
+                    amClientTasks.setDetail(String.format("请求用户%s手机信息",amResume.getName()));
                 }
                 if (amNewMaskAddReq.getOpenExchangeWeChat()) {
+                    amClientTasks.setDetail(String.format("请求用户%s微信信息",amResume.getName()));
                     infoType.add("wechat");
                 }
                 hashMap.put("info_type", infoType);

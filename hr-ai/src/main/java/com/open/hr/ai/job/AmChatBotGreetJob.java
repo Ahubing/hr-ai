@@ -316,8 +316,8 @@ public class AmChatBotGreetJob {
                         AmZpLocalAccouts amZpLocalAccouts = amZpLocalAccoutsService.getById(accountId);
 
                         //判断是否在线
-                        if (Objects.isNull(amZpLocalAccouts) || amZpLocalAccouts.getState() == AmLocalAccountStatusEnums.OFFLINE.getStatus()) {
-                            log.error("复聊任务处理失败,未找到账号或账号已下线:{}", accountId);
+                        if (Objects.isNull(amZpLocalAccouts) ) {
+                            log.error("复聊任务处理失败,未找到账号:{}", accountId);
                             jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
                             continue;
                         }
@@ -559,6 +559,8 @@ public class AmChatBotGreetJob {
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
         amClientTasks.setCreateTime(LocalDateTime.now());
+        amClientTasks.setDetail(String.format("对用户: %s 进行复聊, 复聊内容为: %s", amResume.getName(), amChatbotOptionsItems.getContent()));
+
         boolean result = amClientTasksService.save(amClientTasks);
 
         // 执行任务
@@ -603,21 +605,22 @@ public class AmChatBotGreetJob {
             try {
                 // 查出所有包含rechat的复聊服务,且状态为未开始或者开始的,判断他们的创建时间是否超出12小时,如果超出,则修改状态为失败,并且原因为超时
                 LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.like(AmClientTasks::getData, "rechat")
+                queryWrapper.like(AmClientTasks::getSubType, "rechat")
                         .and(wrapper -> wrapper
                                 .or(innerWrapper -> innerWrapper
                                         .eq(AmClientTasks::getStatus, AmClientTaskStatusEnums.NOT_START.getStatus())
                                         .or()
                                         .eq(AmClientTasks::getStatus, AmClientTaskStatusEnums.START.getStatus())
                                 )
-                                .le(AmClientTasks::getCreateTime, LocalDateTime.now().minusHours(12))
+                                .le(AmClientTasks::getCreateTime, LocalDateTime.now().minusHours(6))
                         );
                 List<AmClientTasks> amClientTasks = amClientTasksService.list(queryWrapper);
 
                 for (AmClientTasks amClientTask : amClientTasks) {
                     amClientTask.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
                     amClientTask.setUpdateTime(LocalDateTime.now());
-                    amClientTask.setReason("超时");
+                    amClientTask.setReason("超时删除");
+                    amClientTask.setDetail("复聊任务过期时删除");
                     amClientTasksService.updateById(amClientTask);
                 }
             }finally {

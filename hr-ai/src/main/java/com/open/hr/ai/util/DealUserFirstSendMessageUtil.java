@@ -243,8 +243,10 @@ public class DealUserFirstSendMessageUtil {
             }
             hashMap.put("messages", jsonObject.get("messages"));
             JSONArray jsonArray = jsonObject.getJSONArray("messages");
+            StringBuilder stringBuilder = new StringBuilder();
             for (Object object : jsonArray) {
                 AmChatMessage aiMessage = new AmChatMessage();
+                stringBuilder.append(object.toString()).append("\n");
                 aiMessage.setContent(object.toString());
                 aiMessage.setCreateTime(LocalDateTime.now());
                 aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
@@ -254,6 +256,7 @@ public class DealUserFirstSendMessageUtil {
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }
+            amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
         }catch (Exception e){
             log.error("DealUserFirstSendMessageUtil dealBossNewMessage content parse error content={}",content);
             return ResultVO.fail(404, "ai回复内容解析错误");
