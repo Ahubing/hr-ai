@@ -1,5 +1,6 @@
 package com.open.hr.ai.controller;
 
+import com.azure.core.annotation.Get;
 import com.open.ai.eros.common.annotation.VerifyUserToken;
 import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -15,6 +16,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -138,7 +140,17 @@ public class ChatBotPositionController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotPositionManager.savePost(req);
+        return chatBotPositionManager.savePost(req,getUserId());
+    }
+
+    @ApiOperation("删除岗位")
+    @VerifyUserToken
+    @GetMapping("position/del_post")
+    public ResultVO<?> delPost(@RequestParam List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return ResultVO.fail("参数不能为空");
+        }
+        return chatBotPositionManager.delPost(ids,getUserId());
     }
 
 
@@ -169,6 +181,16 @@ public class ChatBotPositionController extends HrAIBaseController {
         return chatBotPositionManager.editSection(req, getUserId());
     }
 
+    @ApiOperation("删除部门")
+    @VerifyUserToken
+    @GetMapping("position/del_section")
+    public ResultVO<?> delSection(@RequestParam List<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)) {
+            return ResultVO.fail("参数不能为空");
+        }
+        return chatBotPositionManager.delSection(ids,getUserId());
+    }
+
     @ApiOperation("查询职位详情")
     @VerifyUserToken
     @GetMapping("position/detail")
@@ -184,7 +206,8 @@ public class ChatBotPositionController extends HrAIBaseController {
         if (Objects.isNull(req)) {
             return ResultVO.fail("参数不能为空");
         }
-        return chatBotPositionManager.getPositionList(req, getUserId());
+        req.setAdminId(getUserId());
+        return chatBotPositionManager.getPositionList(req);
     }
 
 
