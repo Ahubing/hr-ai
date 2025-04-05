@@ -69,7 +69,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             return ResultVO.success();
         }
 
-        log.info("用户:{} 主动打招呼,请求用户信息 amResume={},bossId={}", req.getUser_id(), amResume, amZpLocalAccouts.getId());
+        log.info("用户:{} 主动打招呼,请求用户信息 bossId={}", req.getUser_id(), amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             log.error("用户信息异常 amResume is null");
             return ResultVO.fail(404, "用户信息异常");

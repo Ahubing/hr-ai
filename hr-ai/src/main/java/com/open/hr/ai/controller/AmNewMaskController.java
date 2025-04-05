@@ -59,7 +59,7 @@ public class AmNewMaskController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("/amNewMask/getById")
     public ResultVO getAmMaskDetail(@RequestParam(value = "id", required = true) Long id) {
-        return amNewMaskManager.searchAmMaskById( id,getUserId());
+        return amNewMaskManager.searchAmMaskById(id,getUserId());
     }
 
     @ApiOperation("查询面具")
@@ -80,8 +80,8 @@ public class AmNewMaskController extends HrAIBaseController {
     @ApiOperation("获取支持的模型模版列表")
     @VerifyUserToken
     @GetMapping("/amNewMask/model/list")
-    public ResultVO<List<AmModelVo>> model(@RequestParam(value = "template", required = false) String template) {
-        List<AmModelVo> modelVos = new ArrayList<>();
+    public ResultVO<List<AmModelVO>> model(@RequestParam(value = "template", required = false) String template) {
+        List<AmModelVO> modelVos = new ArrayList<>();
         for (ModelTemplateEnum value : ModelTemplateEnum.values()) {
             if (StringUtils.isNoneEmpty(template) && !value.getTemplate().equals(template)) {
                 continue;
@@ -89,7 +89,7 @@ public class AmNewMaskController extends HrAIBaseController {
             String modelTemplate = value.getTemplate();
             String desc = value.getDesc();
             for (String model : value.getModels()) {
-                AmModelVo modelVo = new AmModelVo();
+                AmModelVO modelVo = new AmModelVO();
                 modelVo.setName(String.format("%s:%s", desc, model));
                 modelVo.setValue(String.format("%s:%s", modelTemplate, model));
                 modelVos.add(modelVo);

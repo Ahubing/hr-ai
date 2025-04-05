@@ -60,7 +60,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
         queryWrapper.eq(AmResume::getUid, userId);
         queryWrapper.eq(AmResume::getAccountId, amZpLocalAccouts.getId());
         AmResume innerAmResume = amResumeService.getOne(queryWrapper, false);
-        log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
+//        log.info("ExtractResumeDataProcessor dealBossNewMessage innerAmResume={}", innerAmResume);
         if (Objects.nonNull(innerAmResume)) {
             BeanUtils.copyProperties(innerAmResume, amResume);
             if (Objects.nonNull(chatInfo.get("phone"))) {
@@ -76,7 +76,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfo.get("type").toString()));
                 amResumeService.updateType(amResume, false, statusEnums);
             }
-            if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
+            if (CollectionUtils.isNotEmpty(req.getAttachment_resume())) {
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
             if (Objects.nonNull(chatInfo.get("toPositionId"))) {
@@ -87,10 +87,10 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 AmPosition amPositionServiceOne = amPositionService.getOne(positionQueryWrapper, false);
                 if (Objects.nonNull(amPositionServiceOne)) {
                     // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
-                    if (!Objects.equals(amPositionServiceOne.getId(), amResume.getPostId())){
+                    if (!Objects.equals(amPositionServiceOne.getId(), amResume.getPostId())) {
                         amResumeService.updateType(amResume, false, ReviewStatusEnums.ABANDON);
                         // 重新发起请求
-                        amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
+                        amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume, false);
 
                         // 清空聊天记录
                         LambdaQueryWrapper<AmChatMessage> amChatMessageLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -98,8 +98,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                         amChatMessageLambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
                         boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
                         log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
+                        amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     }
-                    amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
                     amResume.setPostId(amPositionServiceOne.getId());
                 }
             }
@@ -107,19 +107,19 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             log.info("ExtractResumeDataProcessor dealBossNewMessage update amResume result={}", result);
         }
         else {
-            if (Objects.nonNull(chatInfo.get("encryptUid"))){
-            amResume.setEncryptGeekId(chatInfo.get("encryptUid").toString());
+            if (Objects.nonNull(chatInfo.get("encryptUid"))) {
+                amResume.setEncryptGeekId(chatInfo.get("encryptUid").toString());
             }
             if (Objects.nonNull(chatInfo.get("name"))) {
                 amResume.setName(chatInfo.get("name").toString());
             }
-            if (CollectionUtils.isNotEmpty(req.getAttachment_resume())){
+            if (CollectionUtils.isNotEmpty(req.getAttachment_resume())) {
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
             }
             amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
-            amResumeService.updateType(amResume,false, ReviewStatusEnums.RESUME_SCREENING);
+            amResumeService.updateType(amResume, false, ReviewStatusEnums.RESUME_SCREENING);
             if (Objects.nonNull(chatInfo.get("toPositionId"))) {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
@@ -132,9 +132,8 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             }
 
             boolean result = amResumeService.save(amResume);
-            log.info("ExtractResumeDataProcessor dealBossNewMessage save amResume={} result={}", amResume,result);
+            log.info("ExtractResumeDataProcessor dealBossNewMessage save amResume={} result={}", amResume, result);
         }
-
         return ResultVO.success();
     }
 

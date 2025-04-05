@@ -9,7 +9,7 @@
         ar.expect_position as expectPosition,
         ar.platform as platform,
         ar.create_time as createTime,
-        ar.competency_model as competencyModel,
+        ar.competency_model as competencyModelStr,
         ar.avatar as avatar,
         ar.age as age,
         ar.gender as gender,
@@ -207,8 +207,11 @@
             <if test="adminId != null">
                 AND ar.admin_id = #{adminId}
             </if>
-            <if test="id != null">
-                AND ar.id = #{id}
+            <if test="ids != null">
+                AND ar.id IN
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
             </if>
             <!-- 类型过滤 -->
             <choose>

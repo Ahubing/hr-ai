@@ -27,9 +27,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -181,6 +179,12 @@ public class SendMessageUtil {
         return cancelContent.replace("[time]", interviewTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
     }
 
+    private static String generateRefuseContent(){
+        String cancelContent =
+                "感谢您对我们的关注，但是您的简历与我们当前的职位要求并不完全匹配。祝您找到更合适的职位";
+        return cancelContent;
+    }
+
     private static String generateInterviewModifyContent(IcSpareTimeVo spareTimeVo, LocalDateTime interviewTime){
         String modifyContent =
                 "感谢您对我们的关注及面试准备。由于招聘流程调整，我们希望与您协商调整原定于[time]的面试安排。\n" +
@@ -209,6 +213,10 @@ public class SendMessageUtil {
             case "modify":
                 IcSpareTimeVo spareTimeVo = icAiManager.getSpareTime(new IcSpareTimeReq(record.getMaskId(), LocalDateTime.now(), LocalDateTime.now().plusDays(7))).getData();
                 content = generateInterviewModifyContent(spareTimeVo, record.getStartTime());
+                break;
+            case "refuse":
+                content = generateRefuseContent();
+                break;
         }
         log.info("generateAsyncMessage content:{}",content);
         saveAsyncMessage(resume, account, content);
@@ -218,17 +226,17 @@ public class SendMessageUtil {
     private static void saveAsyncMessage(AmResume resume, AmZpLocalAccouts account, String content) {
         AmClientTasks amClientTasks = new AmClientTasks();
         JSONObject jsonObject = new JSONObject();
-        List<String> messageList = new ArrayList<>();
         JSONObject searchObject = new JSONObject();
         searchObject.put("encrypt_friend_id", resume.getEncryptGeekId());
         searchObject.put("name", resume.getName());
         jsonObject.put("is_system_message",true);
         jsonObject.put("user_id", resume.getUid());
-        messageList.add(content);
-        jsonObject.put("messages", messageList);
+        jsonObject.put("messages", Collections.singletonList(content));
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType("send_message");
+        amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", resume.getName(), content));
+
         amClientTasks.setOrderNumber(2);
         amClientTasks.setBossId(resume.getAccountId());
         amClientTasks.setData(jsonObject.toJSONString());
@@ -240,8 +248,7 @@ public class SendMessageUtil {
         log.info("clientTasksService.save:{}" ,endTime - startTime);
         startTime = endTime;
 
-        //更新task临时status的状态
-        log.info("生成复聊任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
+        log.info("生成消息任务处理结果 amClientTask={} result={}", JSONObject.toJSONString(amClientTasks), result);
         if (result) {
             // 生成聊天记录
             AmChatMessage amChatMessage = new AmChatMessage();
@@ -249,6 +256,7 @@ public class SendMessageUtil {
             amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
             amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
             amChatMessage.setType(-1);
+            amChatMessage.setChatId(UUID.randomUUID().toString());
             amChatMessage.setContent(content);
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = chatMessageService.save(amChatMessage);

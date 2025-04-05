@@ -9,9 +9,11 @@ import com.open.ai.eros.common.vo.PageVO;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.MaskStatusEnum;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotPositionOption;
+import com.open.ai.eros.db.mysql.hr.entity.AmModel;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
 import com.open.ai.eros.db.mysql.hr.entity.IcConfig;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotPositionOptionServiceImpl;
+import com.open.ai.eros.db.mysql.hr.service.impl.AmModelServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmNewMaskServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.IcConfigServiceImpl;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
@@ -56,6 +58,8 @@ public class AmNewMaskManager {
     @Autowired
     private IcConfigServiceImpl icConfigService;
 
+    @Autowired
+    private AmModelServiceImpl amModelService;
     /**
      * 删除面具
      *
@@ -110,6 +114,7 @@ public class AmNewMaskManager {
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setGreetMessage(req.getGreetMessage());
+        amNewMask.setModelId(req.getModelId());
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -158,6 +163,9 @@ public class AmNewMaskManager {
         amNewMask.setGreetMessage(req.getGreetMessage());
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
+        amNewMask.setModelId(req.getModelId());
+        /*AmModel amModel = amModelService.getById(req.getModelId());
+        amNewMask.setModelName(amModel.getName());*/
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {
             log.info("updateNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -209,7 +217,10 @@ public class AmNewMaskManager {
         }
         Page<AmNewMask> page = new Page<>(pageNum, pageSize);
         Page<AmNewMask> amNewMaskPage = amNewMaskService.page(page, queryWrapper);
-        List<AmNewMaskVo> amNewMaskVos = amNewMaskPage.getRecords().stream().map(this::convertAmNewMaskVo).collect(Collectors.toList());
+        List<AmNewMaskVo> amNewMaskVos = amNewMaskPage.getRecords()
+                .stream()
+                .map(this::convertAmNewMaskVo)
+                .collect(Collectors.toList());
         return ResultVO.success(PageVO.build(amNewMaskPage.getTotal(), amNewMaskVos));
     }
 
@@ -249,6 +260,7 @@ public class AmNewMaskManager {
 
     public AmNewMaskVo convertAmNewMaskVo(AmNewMask amNewMask){
         AmNewMaskVo amNewMaskVo = new AmNewMaskVo();
+        //amNewMaskVo.setModelName(amNewMask.getModelName());
         amNewMaskVo.setId(amNewMask.getId());
         amNewMaskVo.setName(amNewMask.getName());
         amNewMaskVo.setType(amNewMask.getType());
@@ -261,6 +273,7 @@ public class AmNewMaskManager {
         amNewMaskVo.setGreetMessage(amNewMask.getGreetMessage());
         amNewMaskVo.setSkipHolidayStatus(amNewMask.getSkipHolidayStatus());
         amNewMaskVo.setInterviewType(amNewMask.getInterviewType());
+        amNewMaskVo.setModelId(amNewMask.getModelId());
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){

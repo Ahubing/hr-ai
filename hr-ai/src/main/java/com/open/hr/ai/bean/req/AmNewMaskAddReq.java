@@ -1,5 +1,6 @@
 package com.open.hr.ai.bean.req;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -186,4 +187,10 @@ public class AmNewMaskAddReq {
      */
     @ApiModelProperty(value = "打招呼话术",required = false,example = "打招呼话术")
     private String greetMessage;
+
+    /**
+     * 关联的模型ID
+     */
+    private Long modelId;
+
 }

@@ -35,5 +35,9 @@ public class AmMaskSearchReq {
     @ApiModelProperty("面具的状态")
     private Integer status;
 
+    /**
+     * 关联的模型ID
+     */
+    private Long modelId;
 
 }

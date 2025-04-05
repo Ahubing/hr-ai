@@ -1,5 +1,6 @@
 package com.open.hr.ai.bean.vo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.open.ai.eros.ai.bean.vo.IcConfigVo;
 import com.open.ai.eros.common.util.DateUtils;
@@ -210,4 +211,16 @@ public class AmNewMaskVo {
      */
     @ApiModelProperty(value = "打招呼话术")
     private String greetMessage;
+
+    /**
+     * 关联的模型ID
+     */
+    private Long modelId;
+
+/*    *//**
+     * 关联的模型d名称
+     *//*
+    @TableField(exist = false) // **表示这个字段不存数据库**
+    private String modelName;*/
+
 }

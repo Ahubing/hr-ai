@@ -4,8 +4,9 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
-import com.open.ai.eros.common.constants.InterviewStatusEnum;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
+import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -140,13 +141,19 @@ public class DealUserFirstSendMessageUtil {
             amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
 
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
+                String aiPrompt = AiReplyPromptUtil.buildBasePrompt(amResume, amNewMask, icRecord);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("DealUserFirstSendMessageUtil aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
                 }
-                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), aiPrompt);
+                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), aiPrompt);
                 messages.add(chatMessage);
+                String candidateBasePrompt = AiReplyPromptUtil.buildCandidateBasePrompt(amResume, amNewMask, icRecord);
+                ChatMessage candidateBaseChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), candidateBasePrompt);
+                messages.add(candidateBaseChatMessage);
+                String formatAndICRecordPrompt = AiReplyPromptUtil.buildFormatAndICRecordPrompt(amResume, amNewMask, icRecord);
+                ChatMessage formatAndICRecordPromptChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), formatAndICRecordPrompt);
+                messages.add(formatAndICRecordPromptChatMessage);
             } else {
                 log.info("DealUserFirstSendMessageUtil amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");
@@ -189,7 +196,7 @@ public class DealUserFirstSendMessageUtil {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
             if (Objects.isNull(chatMessage)) {
                 continue;
             }
@@ -229,15 +236,18 @@ public class DealUserFirstSendMessageUtil {
 
         List<AmChatMessage> aiMessages = new ArrayList<>();
         try {
-            JSONObject jsonObject = JSONArray.parseObject(content);
+            String jsonContent = AIJsonUtil.getJsonContent(content);
+            JSONObject jsonObject = JSONArray.parseObject(jsonContent);
             if (Objects.isNull(jsonObject.get("messages"))){
                 log.error("DealUserFirstSendMessageUtil dealBossNewMessage messages is null content={}",content);
                 return ResultVO.fail(404, "ai回复内容解析错误");
             }
             hashMap.put("messages", jsonObject.get("messages"));
             JSONArray jsonArray = jsonObject.getJSONArray("messages");
+            StringBuilder stringBuilder = new StringBuilder();
             for (Object object : jsonArray) {
                 AmChatMessage aiMessage = new AmChatMessage();
+                stringBuilder.append(object.toString()).append("\n");
                 aiMessage.setContent(object.toString());
                 aiMessage.setCreateTime(LocalDateTime.now());
                 aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
@@ -247,12 +257,12 @@ public class DealUserFirstSendMessageUtil {
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }
+            amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
         }catch (Exception e){
             log.error("DealUserFirstSendMessageUtil dealBossNewMessage content parse error content={}",content);
             return ResultVO.fail(404, "ai回复内容解析错误");
         }
         hashMap.put("search_data", searchDataMap);
-        hashMap.put("message", Collections.singletonList(content));
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("DealUserFirstSendMessageUtil dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);

@@ -6,8 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
-import com.open.ai.eros.common.constants.InterviewStatusEnum;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
+import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -26,7 +27,6 @@ import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
-import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -122,7 +122,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
      */
     @Override
     public ResultVO dealBossNewMessage(AtomicInteger firstTime,String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
-        log.info("ReplyUserMessageDataProcessor dealBossNewMessage amResume={}, bossId={} req={}", amResume, amZpLocalAccouts.getId(), req);
+        log.info("ReplyUserMessageDataProcessor dealBossNewMessage  bossId={} req={}", amZpLocalAccouts.getId(), req);
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
@@ -181,6 +181,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
             log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
+            SendMessageUtil.generateAsyncMessage(amResume,amZpLocalAccouts,null, "refuse");
             return ResultVO.success();
         }
 
@@ -236,14 +237,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             // 如果有绑定ai角色,则获取ai角色进行回复
              amNewMask = amNewMaskService.getById(amChatbotPositionOption.getAmMaskId());
             if (Objects.nonNull(amNewMask)) {
-                String aiPrompt = AiReplyPromptUtil.buildPrompt(amResume, amNewMask, icRecord);
+                String aiPrompt = AiReplyPromptUtil.buildBasePrompt(amResume, amNewMask, icRecord);
                 log.info("aiPrompt={}", aiPrompt);
                 if (StringUtils.isBlank(aiPrompt)) {
                     log.info("aiPrompt is null,amNewMask ={}", JSONObject.toJSONString(amNewMask));
                     return ResultVO.fail(404, "提取ai提示词失败,不继续下一个流程");
                 }
-                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), aiPrompt);
+                ChatMessage chatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), aiPrompt);
                 messages.add(chatMessage);
+                String candidateBasePrompt = AiReplyPromptUtil.buildCandidateBasePrompt(amResume, amNewMask, icRecord);
+                ChatMessage candidateBaseChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), candidateBasePrompt);
+                messages.add(candidateBaseChatMessage);
             } else {
                 log.info("amMask is null,amChatbotPositionOption ={}", JSONObject.toJSONString(amChatbotPositionOption));
                 return ResultVO.fail(404, "未找到对应的amMask配置,不继续下一个流程");
@@ -269,12 +273,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
 
         if (StringUtils.isNotBlank(buildSystemUserMessage.toString())) {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("message",Collections.singletonList(buildSystemUserMessage.toString()));
+            jsonObject.put("messages",Collections.singletonList(buildSystemUserMessage.toString()));
             messages.add(new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(), jsonObject.toJSONString()));
         }
+
+        String formatAndICRecordPrompt = AiReplyPromptUtil.buildFormatAndICRecordPrompt(amResume, amNewMask, icRecord);
+        ChatMessage formatAndICRecordPromptChatMessage = new ChatMessage(AIRoleEnum.SYSTEM.getRoleName(), formatAndICRecordPrompt);
+        messages.add(formatAndICRecordPromptChatMessage);
+
         if (StringUtils.isNotBlank(buildNewUserMessage.toString())) {
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("message",Collections.singletonList(buildNewUserMessage.toString()));
+            jsonObject.put("messages",Collections.singletonList(buildNewUserMessage.toString()));
             messages.add(new ChatMessage(AIRoleEnum.USER.getRoleName(), jsonObject.toJSONString()));
         }
         log.info("ReplyUserMessageDataProcessor dealBossNewMessage messages={}", JSONObject.toJSONString(messages));
@@ -301,7 +310,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:gpt-4o-2024-05-13", 0.8,statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
            if (Objects.isNull(chatMessage)) {
               continue;
            }
@@ -344,15 +353,18 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         hashMap.put("search_data", searchDataMap);
         List<AmChatMessage> aiMessages = new ArrayList<>();
         try {
-            JSONObject jsonObject = JSONArray.parseObject(content);
+            String jsonContent = AIJsonUtil.getJsonContent(content);
+            JSONObject jsonObject = JSONArray.parseObject(jsonContent);
             if (Objects.isNull(jsonObject.get("messages"))){
                 log.error("ReplyUserMessageDataProcessor dealBossNewMessage messages is null content={}",content);
                 return ResultVO.fail(404, "ai回复内容解析错误");
             }
             hashMap.put("messages", jsonObject.get("messages"));
             JSONArray jsonArray = jsonObject.getJSONArray("messages");
+            StringBuilder stringBuilder = new StringBuilder();
             for (Object object : jsonArray) {
                 AmChatMessage aiMessage = new AmChatMessage();
+                stringBuilder.append(object.toString()).append("\n");
                 aiMessage.setContent(object.toString());
                 aiMessage.setCreateTime(LocalDateTime.now());
                 aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
@@ -362,6 +374,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }
+            amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
         }catch (Exception e){
             log.error("ReplyUserMessageDataProcessor dealBossNewMessage content parse error content={}",content);
             return ResultVO.fail(404, "ai回复内容解析错误");
@@ -438,8 +451,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 List<String> infoType = new ArrayList<>();
                 if (amNewMaskAddReq.getOpenExchangePhone()) {
                     infoType.add("phone");
+                    amClientTasks.setDetail(String.format("请求用户%s手机信息",amResume.getName()));
                 }
                 if (amNewMaskAddReq.getOpenExchangeWeChat()) {
+                    amClientTasks.setDetail(String.format("请求用户%s微信信息",amResume.getName()));
                     infoType.add("wechat");
                 }
                 hashMap.put("info_type", infoType);

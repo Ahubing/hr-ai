@@ -15,6 +15,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
 import com.open.hr.ai.bean.vo.AmClientTasksVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.hr.ai.constant.PositionStatusEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,8 @@ public class AmClientTaskManager {
             amClientTasks.setTaskType(ClientTaskTypeEnums.SWITCH_JOB_STATE.getType());
             amClientTasks.setOrderNumber(ClientTaskTypeEnums.SWITCH_JOB_STATE.getOrder());
             amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+            String statusDetail = (PositionStatusEnums.POSITION_CLOSE.getStatus().equals(status)) ? "关闭" : "打开";
+            amClientTasks.setDetail(statusDetail + amPosition.getName() + "岗位");
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("encrypt_id", amPosition.getEncryptId());
             amClientTasks.setData(jsonObject.toJSONString());
@@ -80,6 +83,7 @@ public class AmClientTaskManager {
     public ResultVO getExecuteTask(String bossId,Integer limit) {
         LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
+        lambdaQueryWrapper.lt(AmClientTasks::getRetryTimes,3);
         lambdaQueryWrapper.in(AmClientTasks::getStatus,AmClientTaskStatusEnums.START.getStatus(),AmClientTaskStatusEnums.NOT_START.getStatus());
         lambdaQueryWrapper.orderByDesc(AmClientTasks::getOrderNumber);
         lambdaQueryWrapper.orderByAsc(AmClientTasks::getCreateTime);
@@ -142,13 +146,17 @@ public class AmClientTaskManager {
             AmClientTasksVo amClientTasksVo = new AmClientTasksVo();
             amClientTasksVo.setDetail(amClientTask.getDetail());
             amClientTasksVo.setId(amClientTask.getId());
-            amClientTasksVo.setSuccessCount(0);
+            amClientTasksVo.setSuccessCount(1);
             amClientTasksVo.setTotalCount(1);
             amClientTasksVo.setStatus(AmClientTaskStatusEnums.FINISH.getStatus());
             amClientTasksVo.setTaskType(amClientTask.getTaskType());
             amClientTasksVo.setReason(amClientTask.getReason());
             amClientTasksVo.setCreateTime(amClientTask.getCreateTime());
             amClientTasksVo.setUpdateTime(amClientTask.getUpdateTime());
+            if (amClientTask.getStatus().equals(AmClientTaskStatusEnums.FAILURE.getStatus())){
+                amClientTasksVo.setSuccessCount(0);
+                amClientTasksVo.setStatus(AmClientTaskStatusEnums.FAILURE.getStatus());
+            }
             // 获取任务类型
             if (amClientTask.getTaskType().equals(ClientTaskTypeEnums.SEND_MESSAGE.getType())){
                 String subType = amClientTask.getSubType();
@@ -201,7 +209,7 @@ public class AmClientTaskManager {
             // status 为 0 和 1
             lambdaQueryWrapper.in(AmClientTasks::getStatus, AmClientTaskStatusEnums.NOT_START.getStatus(), AmClientTaskStatusEnums.START.getStatus());
             // 将status 设置为 2,并且原因为 用户设置失效
-            lambdaQueryWrapper.set(AmClientTasks::getStatus, AmClientTaskStatusEnums.FINISH.getStatus());
+            lambdaQueryWrapper.set(AmClientTasks::getStatus, AmClientTaskStatusEnums.FAILURE.getStatus());
             lambdaQueryWrapper.set(AmClientTasks::getReason, "用户设置失效");
             boolean result = amClientTasksService.update(lambdaQueryWrapper);
             log.info("deleteAmClientTask result={}", result);

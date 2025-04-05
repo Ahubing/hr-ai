@@ -2,9 +2,7 @@ package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
-import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmNewMask;
-import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.IcRecord;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
@@ -14,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -25,9 +22,9 @@ import java.util.*;
 public class AiReplyPromptUtil {
 
 
-    public static final String baseInfoPrompt = "# 核心角色设定\n"+
-            " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。\n" +
-                    "# 回复格式\n" +
+    public static final String firstPrompt  = "# 核心角色设定\n"+
+            " 你是一位专业的人力资源AI助手，负责通过在线招聘平台以专业且友好的方式吸引优质求职者。你的任务是模拟资深HR的沟通方式与求职者互动。\n" ;
+    public static final String baseInfoPrompt =   "# 回复格式\n" +
                     "你需要使用JSON格式来对候选人进行回复，软件会自动解析数据格式发送给求职者。JSON格式如下：\n" +
                     "{\"messages\":[\"你的简历符合我们的招聘要求\", \"我们可以约一个时间面试\", \"你看一下这周什么时间方便？\"]}\n" +
                     "参数解释: \n" +
@@ -79,9 +76,15 @@ public class AiReplyPromptUtil {
             "- 特别福利：{welfare}\n" );
 
     public static final String interviewPrompt = "# 面试信息\n" +
-//            "如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n"  +
-            " - 系统查询到的已预约的面试：{interview_info} \n"+
-            " - 面试方式：{address} \n";
+            "如果当前无已预约面试，求职者提出修改面试时间则直接重新预约面试。\n"  +
+            "- 面试方式：{address} \n";
+
+
+    public static final String currentTypePrompt =
+            "# 当前状态\n" +
+            "- 系统查询到的已预约的面试：{interview_info} \n"+
+            "- 当前所处进度：{currentType}\n" +
+            "- 当前招聘平台：{platform}\n";
 
     public static final String otherInformationPrompt = "# 其他招聘信息\n {otherInformation}\n";
 
@@ -101,11 +104,13 @@ public class AiReplyPromptUtil {
             "   3. 体现DEI（多元化、公平、包容）原则\n");
 
 
-    private static final List<String> userInfoPrompts = Arrays.asList(
-            "# 求职者信息\n- 求职者姓名：{userName}\n" ,
-            "# 求职者简历信息\n {zpData} \n",
-            "# 求职者筛选提示词 根据下面的提示词对求职者进行筛选，如果不符合的调用工具函数标记为不符合————————————\n{filterWord}\n————————————");
+    private static final String userFilterPrompts =  "# 求职者筛选提示词\n 根据下面的提示词对求职者进行筛选，如果不符合的调用工具函数标记为不符合\n————————————\n{filterWord}\n————————————\n";
 
+
+    private static final List<String> userInfoPrompts = Arrays.asList(
+            "# 求职者信息\n- 求职者姓名：{userName}\n" +
+            "# 求职者简历信息（这只是平台提供的线简历信息，不是求职者发送的简历）\n" ,
+            "# 求职者简历信息\n {zpData} \n");
 
     /**
      * 流程控制prompt
@@ -119,8 +124,7 @@ public class AiReplyPromptUtil {
             "4. 等待面试：进入条件：已经约定好面试（时间，地点）；进入后动作：向求职者发送完整面试信息，并提示按时参加\n" +
 //            "5. 已发offer\n" +
 //            "6. 已入职\n" +
-            "5. 不符合：无意向或已被淘汰\n\n" +
-            "当前所处进度：{currentType}\n";
+            "5. 不符合：无意向或已被淘汰\n\n" ;
 
     /**
      * 工具调用prompt
@@ -137,23 +141,112 @@ public class AiReplyPromptUtil {
             "cancel_interview\n" +
             "appoint_interview\n" +
             "get_spare_time\n" +
-            "no_further_reply\n" +
             "set_status\n";
 
     private static String communicationScript =
             "# 候选人沟通脚本\n" +
             "{CommunicationScript}\n";
 
+
     /**
      *  示例对话
      */
-    private static final String exampleDialog = "# 示例对话数据\n" +
+    private static final String exampleDialog1 = "# 示例对话\n" +
+            "## 基础设置\n" +
+            "### 智能称呼\n" +
+            "场景说明：自动识别求职者姓氏并在跟进中亲切称呼，如\"黄先生\"\n" +
+            "男性称呼为“帅哥”\n" +
+            "女性称呼为“美女 ”\n" +
+            "并替换示例对话中的[\\智能称呼]部分\n" +
+            "## 基础场景\n" +
+            "### 求职者主动打招呼\n" +
+            "场景说明：回复主动沟通的求职者\n" +
+            "第一句：我们这边是从事做招聘文员的，工作轻松简单，上班打打电话，上班时间：十点到六点，工资：6000-12000\n" +
+            "### 不符合要求的主动求职者\n" +
+            "场景说明：对不符合要求的主动沟通求职者标记不合适和回复\n" +
+            "第一句：感谢您的关注，看了您的简历不太匹配我们的工作岗位，祝您在BOSS上找到更匹配的工作。\n" +
+            "### 拿到简历后回复\n" +
+            "场景说明：拿到简历后统一回复或者统一询问\n" +
+            "第一句：好的，收到了\n" +
+            "### 求职者需要考虑\n" +
+            "场景说明：求职者在沟通过程表示需要考虑一下时的回复\n" +
+            "第一句：咱们可以交换下微信联系，有需要您可以微信咨询我~\n" +
+            "第二句：那您这边考虑好了，可以直接加我微信了解待遇\n" +
+            "### 拿到微信后回复\n" +
+            "场景说明：在拿到微信后对应的沟通话术\n" +
+            "第一句：那我们微信上联系，到时记得加我一下。\n" +
+            "## 常规场景\n" +
+            "### 公司概况\n" +
+            "场景说明：你们公司是做什么的，规模实力是怎样的？\n" +
+            "第一句：你好 我们是哔哩哔哩音频直播，唠嗑聊天 唱歌互动 讲故事 讲笑话 互动小游戏 听歌交友 话题绿色健康 声音好听\n" +
+            "### 部门概况\n" +
+            "场景说明：这个部门有多少人，整体情况是怎么样的？\n" +
+            "第一句：我们是电台直播 电台分为聊天电台和唱见电台，也有视频主播需要颜值设备经验才艺展示，不知道您更倾向于哪种直播呢？ \n" +
+            "### 工作内容\n" +
+            "场景说明：方便介绍一下岗位吗，日常的工作形式和工作内容具体是怎样的？\n" +
+            "第一句：每天上班接听一下电话，上班摸摸鱼\n" +
+            "第二句：询问这个清楚了吗？\n" +
+            "### 工作时间\n" +
+            "场景说明：上班时间和休息时间是怎样的？单休还是双休？节假日？\n" +
+            "第一句：早上十点，到晚上六点，上六休一\n" +
+            "第二句：这个工作时间可以接受吗？\n" +
+            "### 加班\n" +
+            "场景说明：平时加班吗？加班多吗？一般加班到几点？\n" +
+            "第一句：加班的话，一般是到9:00多。\n" +
+            "第二句：销售岗位主要是以团队业绩为目标的，当天团队完成业绩目标，就可以准时下班，没有完成的话，就需要加班。\n" +
+            "第三句：这个清楚了吗？\n" +
+            "### 节假日\n" +
+            "场景说明：你们单休还是双休？节假日怎么放？\n" +
+            "第一句：我们公司是单休的，固定休息周日，节假日正常放假的\n" +
+            "### 薪酬\n" +
+            "场景说明：工资待遇怎么样的？试用期有多少？大概收入在什么水平？\n" +
+            "第一句：薪资是5000元无责底薪+提成（试用期2个月，4000元无责底薪+提成），基本收入是在9-15K。\n" +
+            "第二句：这个薪酬有在你预期范围内吗？\n" +
+            "### 五险一金\n" +
+            "场景说明：有五险一金吗？一入职（试用期就购买吗？\n" +
+            "第一句：我们这边有五险一金，转正后购买。\n" +
+            "### 福利-食宿补贴\n" +
+            "场景说明：公司提供住宿吗？包吃住吗？有其他补贴福利吗？\n" +
+            "第一句：我们这边包吃包住，有通勤、通讯、差旅和高温等各种补贴，每年免费旅游，以及各种员工活动（聚餐、郊游、运动会、员工生日会等）等着你的参与。\n" +
+            "## 岗位要求\n" +
+            "场景说明：工作要求？对经验和学历有什么要求吗？高中无经验可以吗？\n" +
+            "第一句：没有太多要求，在家直播，电脑手机都可以直播 音频直播不露脸。有才艺会唱歌优先，每一种声音都会有人欣赏。\n" +
+            "## 业绩要求\n" +
+            "场景说明：每一个月有业绩要求吗？有考核吗？KPI是多少？\n" +
+            "第一句：每个月有1.5w的标准线，不强制考核。\n" +
+            "### 试用期\n" +
+            "场景说明：试用期多久，多久能转正？转正有什么要求？\n" +
+            "第一句：试用期转正后一到三个月\n" +
+            "### 培训\n" +
+            "场景说明：有培训吗，是带薪的吗？我没有什么经验，会有人带吗，带多久？\n" +
+            "第一句：我们有专业的运营手把手培训，都有总结教学，让我们快速提升专业知识。\n" +
+            "### 是否招聘实习\n" +
+            "场景说明：请问这个职位招实习生吗？\n" +
+            "第一句：需要的\n" +
+            "## 尝试挽回的拒绝场景\n" +
+            "场景说明：在候选人因为距离问题拒绝时进行礼貌回复或挽回\n" +
+            "第一句：可以线上在家直播的，不需要到公司直播，您看还有哪些顾虑呢？\n" +
+            "### 拒绝场景-薪酬\n" +
+            "场景说明：在候选人因为薪酬问题拒绝时进行礼貌回复或挽回\n" +
+            "第一句：我们综合薪酬是很高的，而且上不设限。后期也会根据个人能力和上级的考核评估不断提升~\n" +
+            "### 拒绝场景-工作时间\n" +
+            "场景说明：在候选人因为工作时间问题拒绝时进行礼貌回复或挽回\n" +
+            "第一句：我们只需要播够3小时就好了，时间非常的灵活，自己规划\n" +
+            "### 拒绝场景-行业职位\n" +
+            "场景说明：在候选人因为行业职位问题拒绝时进行礼貌回复或挽回\n" +
+            "第一句：我们这边还有很多其他在招的职位，你想找哪一类型的工作呢？你可以看一下我们公司其他职位有没有合适的~\n" ;
+
+    /**
+     *  示例对话
+     */
+    private static final String exampleDialog2 =
+           "# 示例对话2\n" +
             "————————————\n" +
             "{exampleDialog}\n" +
             "————————————";
 
 
-    public static String buildPrompt(AmResume amResume, AmNewMask amNewMask, IcRecord icRecord) {
+    public static String buildBasePrompt(AmResume amResume, AmNewMask amNewMask, IcRecord icRecord) {
         try {
             log.info("buildPrompt icRecord={}", JSONObject.toJSONString(icRecord));
             StringBuilder stringBuilder = new StringBuilder();
@@ -161,7 +254,7 @@ public class AiReplyPromptUtil {
             if (StringUtils.isBlank(aiRequestParam)) {
                 return null;
             } else {
-                stringBuilder.append(baseInfoPrompt);
+                stringBuilder.append(firstPrompt);
                 AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
                 log.info("amNewMaskAddReq:{}", JSONObject.toJSONString(aiRequestParam));
 
@@ -209,27 +302,13 @@ public class AiReplyPromptUtil {
                     }
 
                 }
-
-                //面试信息
                 if(amNewMaskAddReq.getOpenInterviewSwitch()){
-                    log.info("before interview_info：{}",stringBuilder);
                     String dynamicInterviewPrompt = interviewPrompt;
                     String interviewAddress = amNewMaskAddReq.getInterviewAddress();
                     dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{address}", interviewAddress);
-                    log.info("buildPrompt icRecord={} isnull?:{}", JSONObject.toJSONString(icRecord),icRecord == null);
-                    if(Objects.nonNull(icRecord)){
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("interviewId",icRecord.getId());
-                        jsonObject.put("interviewTime", icRecord.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
-//                        stringBuilder.append(interviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject)));
-                    }else {
-                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "");
-//                        stringBuilder.append(interviewPrompt.replace("{interview_info}", ""));
-                    }
                     stringBuilder.append(dynamicInterviewPrompt);
-                    log.info("after interview_info：{}",stringBuilder);
                 }
+
 
                 // #其他招聘信息
                 String otherRecruitmentInfo = amNewMaskAddReq.getOtherRecruitmentInfo();
@@ -255,8 +334,42 @@ public class AiReplyPromptUtil {
                         }
                     }
                 }
-                // 求职者信息
+                stringBuilder.append(processControlPrompt);
+                    if (StringUtils.isNotBlank(amNewMaskAddReq.getFilterWords())){
+                        stringBuilder.append(userFilterPrompts.replace("{filterWord}", amNewMaskAddReq.getFilterWords()));
+                    }
+                String communicationScriptStr = communicationScript.replace("{CommunicationScript}", amNewMaskAddReq.getCommunicationScript());
+                stringBuilder.append(communicationScriptStr);
+                // 示例对话
+                stringBuilder.append(exampleDialog1);
+                String exampleDialogs = amNewMaskAddReq.getExampleDialogues();
+                if (StringUtils.isNotBlank(exampleDialogs)) {
+                    stringBuilder.append(exampleDialog2.replace("{exampleDialog}", exampleDialogs));
+                }
+                //工具调用
+                stringBuilder.append(toolPrompt);
+            }
+            return stringBuilder.toString();
+        } catch (Exception e) {
+            log.error("构建面具失败", e);
+        }
+        return null;
 
+    }
+
+
+
+    public static String buildCandidateBasePrompt(AmResume amResume, AmNewMask amNewMask, IcRecord icRecord) {
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            String aiRequestParam = amNewMask.getAiRequestParam();
+            if (StringUtils.isBlank(aiRequestParam)) {
+                return null;
+            } else {
+                AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
+                log.info("amNewMaskAddReq:{}", JSONObject.toJSONString(aiRequestParam));
+
+                // 求职者信息
                 for (String userInfoPrompt : userInfoPrompts) {
                     List<String> strings = VariableUtil.regexVariable(userInfoPrompt);
                     if (strings.isEmpty()){
@@ -269,11 +382,7 @@ public class AiReplyPromptUtil {
                                 stringBuilder.append(userInfoPrompt.replace("{zpData}", amResume.getZpData()));
                             }
                         }
-                        if (string.equals("filterWord")) {
-                            if (StringUtils.isNotBlank(amNewMaskAddReq.getFilterWords())){
-                                stringBuilder.append(userInfoPrompt.replace("{filterWord}", amNewMaskAddReq.getFilterWords()));
-                            }
-                        }
+
                         if (string.equals("userName")) {
                             if (StringUtils.isNotBlank(amResume.getName())) {
                                 stringBuilder.append(userInfoPrompt.replace("{userName}", amResume.getName()));
@@ -282,21 +391,49 @@ public class AiReplyPromptUtil {
 
                     }
                 }
+            }
+            return stringBuilder.toString();
+        } catch (Exception e) {
+            log.error("构建求职者消息失败", e);
+        }
+        return null;
 
-                // 流程控制
-                Integer type = amResume.getType();
-                ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
-                stringBuilder.append(processControlPrompt.replace("{currentType}", enumByStatus.getDesc()));
+    }
 
-                String communicationScriptStr = communicationScript.replace("{CommunicationScript}", amNewMaskAddReq.getCommunicationScript());
-                stringBuilder.append(communicationScriptStr);
-                // 示例对话
-                String exampleDialogs = amNewMaskAddReq.getExampleDialogues();
-                if (StringUtils.isNotBlank(exampleDialogs)) {
-                    stringBuilder.append(exampleDialog.replace("{exampleDialog}", exampleDialogs));
+    public static String buildFormatAndICRecordPrompt(AmResume amResume, AmNewMask amNewMask, IcRecord icRecord) {
+        try {
+            log.info("buildPrompt icRecord={}", JSONObject.toJSONString(icRecord));
+            StringBuilder stringBuilder = new StringBuilder();
+            String aiRequestParam = amNewMask.getAiRequestParam();
+            if (StringUtils.isBlank(aiRequestParam)) {
+                return null;
+            } else {
+                stringBuilder.append(baseInfoPrompt);
+                AmNewMaskAddReq amNewMaskAddReq = JSONObject.parseObject(aiRequestParam, AmNewMaskAddReq.class);
+                log.info("amNewMaskAddReq:{}", JSONObject.toJSONString(aiRequestParam));
+
+                //面试信息
+                if(amNewMaskAddReq.getOpenInterviewSwitch()){
+                    log.info("before interview_info：{}",stringBuilder);
+                    String dynamicInterviewPrompt = currentTypePrompt;
+                     log.info("buildPrompt icRecord={} isnull?:{}", JSONObject.toJSONString(icRecord),icRecord == null);
+                    if(Objects.nonNull(icRecord)){
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("interviewId",icRecord.getId());
+                        jsonObject.put("interviewTime", icRecord.getStartTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", JSONObject.toJSONString(jsonObject));
+                    }else {
+                        dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{interview_info}", "");
+                    }
+                    Integer type = amResume.getType();
+                    ReviewStatusEnums enumByStatus = ReviewStatusEnums.getEnumByStatus(type);
+                    dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{currentType}", enumByStatus.getDesc());
+                    dynamicInterviewPrompt =  dynamicInterviewPrompt.replace("{platform}", amResume.getPlatform());
+
+                    stringBuilder.append(dynamicInterviewPrompt);
+                    log.info("after interview_info：{}",stringBuilder);
                 }
-                //工具调用
-                stringBuilder.append(toolPrompt);
+
             }
             return stringBuilder.toString();
         } catch (Exception e) {
@@ -305,6 +442,8 @@ public class AiReplyPromptUtil {
         return null;
 
     }
+
+
 
 
 

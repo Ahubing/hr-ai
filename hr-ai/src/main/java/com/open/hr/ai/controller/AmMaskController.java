@@ -9,7 +9,7 @@ import com.open.hr.ai.bean.req.AmMaskUpdateReq;
 import com.open.hr.ai.bean.vo.AmMaskSearchReq;
 import com.open.hr.ai.bean.vo.AmMaskTypeVo;
 import com.open.hr.ai.bean.vo.AmMaskVo;
-import com.open.hr.ai.bean.vo.AmModelVo;
+import com.open.hr.ai.bean.vo.AmModelVO;
 import com.open.hr.ai.config.HrAIBaseController;
 import com.open.hr.ai.manager.AmMaskManager;
 import io.swagger.annotations.Api;
@@ -87,8 +87,8 @@ public class AmMaskController extends HrAIBaseController {
     @ApiOperation("获取支持的模型模版列表")
     @VerifyUserToken
     @GetMapping("/model/list")
-    public ResultVO<List<AmModelVo>> model(@RequestParam(value = "template", required = false) String template) {
-        List<AmModelVo> modelVos = new ArrayList<>();
+    public ResultVO<List<AmModelVO>> model(@RequestParam(value = "template", required = false) String template) {
+        List<AmModelVO> modelVos = new ArrayList<>();
         for (ModelTemplateEnum value : ModelTemplateEnum.values()) {
             if (StringUtils.isNoneEmpty(template) && !value.getTemplate().equals(template)) {
                 continue;
@@ -96,7 +96,7 @@ public class AmMaskController extends HrAIBaseController {
             String modelTemplate = value.getTemplate();
             String desc = value.getDesc();
             for (String model : value.getModels()) {
-                AmModelVo modelVo = new AmModelVo();
+                AmModelVO modelVo = new AmModelVO();
                 modelVo.setName(String.format("%s:%s", desc, model));
                 modelVo.setValue(String.format("%s:%s", modelTemplate, model));
                 modelVos.add(modelVo);
