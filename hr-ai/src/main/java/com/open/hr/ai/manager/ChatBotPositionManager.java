@@ -402,27 +402,30 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO savePost(AddPositionPostReq req) {
+    public ResultVO savePost(AddPositionPostReq req,Long adminId) {
         try {
+            LambdaQueryWrapper<AmPositionPost> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmPositionPost::getSectionId, req.getSection_id());
+            queryWrapper.eq(AmPositionPost::getName, req.getName());
+            AmPositionPost postByName = amPositionPostService.getOne(queryWrapper, false);
             if (Objects.nonNull(req.getId())) {
                 AmPositionPost amPositionPost = amPositionPostService.getById(req.getId());
                 if (Objects.isNull(amPositionPost)) {
                     return ResultVO.fail("岗位不存在");
                 }
-                if(1 == amPositionPost.getId()){
+                if(1 == amPositionPost.getDefaultPost()){
                     return ResultVO.fail("默认岗位不能编辑");
+                }
+                if(postByName != null && !postByName.getId().equals(req.getId())){
+                    return ResultVO.fail("同一部门下岗位名称不能重复");
                 }
                 amPositionPost.setSectionId(req.getSection_id());
                 amPositionPost.setName(req.getName());
                 boolean result = amPositionPostService.updateById(amPositionPost);
                 return result ? ResultVO.success("编辑-岗位成功") : ResultVO.fail("编辑-岗位失败");
             }
-            LambdaQueryWrapper<AmPositionPost> queryWrapper = new LambdaQueryWrapper<>();
-            queryWrapper.eq(AmPositionPost::getSectionId, req.getSection_id());
-            queryWrapper.eq(AmPositionPost::getName, req.getName());
-            AmPositionPost amPositionPost = amPositionPostService.getOne(queryWrapper, false);
-            if (Objects.nonNull(amPositionPost)) {
-                return ResultVO.fail("岗位已经存在");
+            if(postByName != null){
+                return ResultVO.fail("部门下已存在此名称岗位");
             }
             AmPositionPost newAmPosition = new AmPositionPost();
             newAmPosition.setName(req.getName());
@@ -482,6 +485,10 @@ public class ChatBotPositionManager {
      */
     public ResultVO editSection(AddOrUpdateSectionReq req, Long adminId) {
         try {
+            AmPositionSection sectionByName = amPositionSectionService
+                    .getOne(new LambdaQueryWrapper<AmPositionSection>()
+                            .eq(AmPositionSection::getName, req.getName())
+                            .eq(AmPositionSection::getAdminId, adminId));
             if (Objects.nonNull(req.getId())) {
                 AmPositionSection section = amPositionSectionService.getById(req.getId());
                 if (Objects.isNull(section)) {
@@ -490,9 +497,15 @@ public class ChatBotPositionManager {
                 if(1 == section.getDefaultSection()){
                     return ResultVO.fail("默认部门不能编辑");
                 }
+                if(sectionByName != null && !sectionByName.getId().equals(req.getId())){
+                    return ResultVO.fail("部门名称不能重复");
+                }
                 section.setName(req.getName());
                 boolean result = amPositionSectionService.updateById(section);
                 return result ? ResultVO.success("编辑-部门成功") : ResultVO.fail("编辑-部门失败");
+            }
+            if(sectionByName != null){
+                return ResultVO.fail("部门名称已存在");
             }
             AmPositionSection amPositionSection = new AmPositionSection();
             amPositionSection.setName(req.getName());
@@ -568,11 +581,10 @@ public class ChatBotPositionManager {
      *
      * @return
      */
-    public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req, Long adminId) {
+    public ResultVO<PageVO<AmPositionVo>> getPositionList(SearchPositionListReq req) {
         try {
-            req.setAdminId(adminId);
             LambdaQueryWrapper<AmZpLocalAccouts> accoutsQueryWrapper = new LambdaQueryWrapper<>();
-            accoutsQueryWrapper.eq(AmZpLocalAccouts::getAdminId, adminId);
+            accoutsQueryWrapper.eq(AmZpLocalAccouts::getAdminId, req.getAdminId());
             accoutsQueryWrapper.eq(AmZpLocalAccouts::getStatus, 1);
             List<AmZpLocalAccouts> localAccouts = amZpLocalAccoutsService.list(accoutsQueryWrapper);
 
@@ -622,4 +634,43 @@ public class ChatBotPositionManager {
     }
 
 
+    public ResultVO<?> delPost(List<Integer> ids,Long adminId) {
+        int count = amPositionService.count(new LambdaQueryWrapper<AmPosition>().in(AmPosition::getPostId, ids));
+        if(count > 0){
+            return ResultVO.fail("不能删除被职位关联的岗位");
+        }
+        int defaultCount = amPositionPostService.count(new LambdaQueryWrapper<AmPositionPost>()
+                .in(AmPositionPost::getId, ids)
+                .eq(AmPositionPost::getDefaultPost, 1));
+        if(defaultCount > 0){
+            return ResultVO.fail("不能删除默认岗位");
+        }
+        List<AmPositionPost> postList = amPositionPostService.list(new LambdaQueryWrapper<AmPositionPost>().in(AmPositionPost::getId, ids));
+        if(CollectionUtils.isEmpty(postList)){
+            return ResultVO.fail("岗位不存在");
+        }
+        List<Integer> sectionIds = postList.stream().map(AmPositionPost::getSectionId).collect(Collectors.toList());
+        List<AmPositionSection> sections = amPositionSectionService.list(new LambdaQueryWrapper<AmPositionSection>().in(AmPositionSection::getId, sectionIds).eq(AmPositionSection::getAdminId, adminId));
+        List<Integer> sectionIdList = sections.stream().map(AmPositionSection::getId).collect(Collectors.toList());
+        return ResultVO.success(amPositionPostService.remove(new LambdaQueryWrapper<AmPositionPost>()
+                .in(AmPositionPost::getId,ids)
+                .in(AmPositionPost::getSectionId,sectionIdList)));
+    }
+
+    public ResultVO<?> delSection(List<Integer> ids, Long adminId) {
+        int count = amPositionPostService.count(new LambdaQueryWrapper<AmPositionPost>().in(AmPositionPost::getSectionId, ids));
+        if(count > 0){
+            return ResultVO.fail("不能删除被岗位关联的部门");
+        }
+        int defaultCount = amPositionSectionService.count(new LambdaQueryWrapper<AmPositionSection>()
+                .in(AmPositionSection::getId, ids)
+                .eq(AmPositionSection::getDefaultSection, 1));
+        if(defaultCount > 0){
+            return ResultVO.fail("不能删除默认部门");
+        }
+        return ResultVO.success(amPositionSectionService
+                .remove(new LambdaQueryWrapper<AmPositionSection>()
+                        .in(AmPositionSection::getId, ids)
+                        .eq(AmPositionSection::getAdminId,adminId)));
+    }
 }
