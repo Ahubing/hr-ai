@@ -617,7 +617,7 @@ public class ChatBotPositionManager {
 
         } catch (Exception e) {
             log.error("查询职位详情异常 req={}", JSONObject.toJSONString(req), e);
-            return ResultVO.fail("系统异常, 获取成功失败");
+            return ResultVO.fail("系统异常, 获取失败");
         }
     }
 
