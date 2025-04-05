@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -180,6 +181,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
             log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
+            SendMessageUtil.generateAsyncMessage(amResume,amZpLocalAccouts,null, "refuse");
             return ResultVO.success();
         }
 
@@ -308,7 +310,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
            if (Objects.isNull(chatMessage)) {
               continue;
            }

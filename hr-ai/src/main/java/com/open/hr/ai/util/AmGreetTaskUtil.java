@@ -123,17 +123,15 @@ public class AmGreetTaskUtil {
             JSONObject messageObject = new JSONObject();
 //            messageObject.put("content", GREET_MESSAGE);
 
-            AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
-                    .eq(AmChatbotPositionOption::getAccountId, amChatbotGreetTask.getAccountId())
-                    .eq(AmChatbotPositionOption::getPositionId, amChatbotGreetTask.getPositionId())
-                    .one();
-
-
+            LambdaQueryWrapper<AmChatbotPositionOption> positionOptionQueryWrapper = new LambdaQueryWrapper<>();
+            positionOptionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amChatbotGreetTask.getAccountId());
+            positionOptionQueryWrapper.eq(AmChatbotPositionOption::getPositionId, amChatbotGreetTask.getPositionId());
+            AmChatbotPositionOption positionOption = amChatbotPositionOptionService.getOne(positionOptionQueryWrapper, false);
             if (positionOption != null) {
                 Long amMaskId = positionOption.getAmMaskId();
                 AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
                 if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
-                    messageObject.put("content", amNewMask.getGreetMessage());
+                    messageObject.put("contents", amNewMask.getGreetMessage());
                 }
 
                 AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();

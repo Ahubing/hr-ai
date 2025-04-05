@@ -354,23 +354,26 @@ public class AmChatBotGreetJob {
                         String conversationId = amZpLocalAccouts.getId() + "_" + amResume.getUid();
 
                         // 查询今天是否已经回复过消息
-                        LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
-                        chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
-                        chatMessageQueryWrapper.ne(AmChatMessage::getType, -1);
-                        chatMessageQueryWrapper.ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay());
-                        AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
+//                        LambdaQueryWrapper<AmChatMessage> chatMessageQueryWrapper = new LambdaQueryWrapper<>();
+//                        chatMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
+//                        chatMessageQueryWrapper.ne(AmChatMessage::getType, -1);
+//                        chatMessageQueryWrapper.ge(AmChatMessage::getCreateTime, LocalDate.now().atStartOfDay());
+//                        AmChatMessage amChatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
 
 
-                        if (Objects.nonNull(amChatMessage)) {
-                            log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage, conversationId);
-                            chatMessageQueryWrapper.eq(AmChatMessage::getType, -1);
-                            AmChatMessage chatMessage = amChatMessageService.getOne(chatMessageQueryWrapper, false);
-                            if (Objects.isNull(chatMessage)) {
-                                log.info("用户已经回复过消息:{}", chatMessage);
-                                jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
-                                continue;
-                            }
-                        }
+//                        if (Objects.nonNull(amChatMessage)) {
+//                            log.info("用户已经回复过消息:{}, conversationId={}", amChatMessage, conversationId);
+//                            LambdaQueryWrapper<AmChatMessage> aiChatMessageQueryWrapper = new LambdaQueryWrapper<>();
+//                            aiChatMessageQueryWrapper.orderByDesc(AmChatMessage::getCreateTime);
+//                            // 如果最后一条消息是 assistant 或者 没有 assistant 的数据,则需要发送复聊任务
+//                            aiChatMessageQueryWrapper.last("limit 1");
+//                            AmChatMessage chatMessage = amChatMessageService.getOne(aiChatMessageQueryWrapper, false);
+//                            if (Objects.nonNull(chatMessage) ) {
+//                                log.info("AI今天已经回复过消息:{}", chatMessage);
+//                                jedisClient.zrem(RedisKyeConstant.AmChatBotReChatTask, reChatTask);
+//                                continue;
+//                            }
+//                        }
                         // 获取最后一条消息
                         LambdaQueryWrapper<AmChatMessage> lastMessageQueryWrapper = new LambdaQueryWrapper<>();
                         lastMessageQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
@@ -379,7 +382,7 @@ public class AmChatBotGreetJob {
                         AmChatMessage lastMessage = amChatMessageService.getOne(lastMessageQueryWrapper, false);
 
                         String chatId = "";
-                        if (Objects.nonNull(lastMessage)){
+                        if (Objects.nonNull(lastMessage) &&!"0".equals(lastMessage.getChatId())){
                             chatId = lastMessage.getChatId();
                         }
                         buildReChatTask(amResume, amChatbotOptionsItems, amChatbotGreetResult, amZpLocalAccouts,chatId);
@@ -584,6 +587,7 @@ public class AmChatBotGreetJob {
             amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
             amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
             amChatMessage.setType(-1);
+            amChatMessage.setChatId(UUID.randomUUID().toString());
             amChatMessage.setContent(amChatbotOptionsItems.getContent());
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = amChatMessageService.save(amChatMessage);

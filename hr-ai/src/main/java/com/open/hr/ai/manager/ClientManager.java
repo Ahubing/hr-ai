@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
@@ -898,8 +899,13 @@ public class ClientManager {
                     log.info("dealUserAllInfoData update result={},amResume={}", result, JSONObject.toJSONString(amResume));
                 }
                 AmClientTasks amClientTasks = amClientTasksService.getById(taskId);
-                if (Objects.nonNull(amClientTasks) && !Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())) {
+                if (Objects.nonNull(amClientTasks) ) {
                     // 处理在线简历
+                    if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
+                        log.info("不符合的用户,不进行回答问题  uid={} status={}",amResume.getUid(),amResume.getType());
+                        SendMessageUtil.generateAsyncMessage(amResume,amZpLocalAccouts,null, "refuse");
+                        return;
+                    }
                     if (amClientTasks.getData().contains("[\"resume\"]")) {
                         dealUserFirstSendMessageUtil.dealBossNewMessage(amResume, amZpLocalAccouts);
                     }
@@ -1217,6 +1223,7 @@ public class ClientManager {
                         amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
                         amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
                         amChatMessage.setType(-1);
+                        amChatMessage.setChatId(UUID.randomUUID().toString());
                         amChatMessage.setContent(amNewMask.getGreetMessage());
                         amChatMessage.setCreateTime(LocalDateTime.now());
                         boolean save = amChatMessageService.save(amChatMessage);

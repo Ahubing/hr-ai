@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -195,7 +196,7 @@ public class DealUserFirstSendMessageUtil {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
             if (Objects.isNull(chatMessage)) {
                 continue;
             }
@@ -262,7 +263,6 @@ public class DealUserFirstSendMessageUtil {
             return ResultVO.fail(404, "ai回复内容解析错误");
         }
         hashMap.put("search_data", searchDataMap);
-        hashMap.put("message", Collections.singletonList(content));
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("DealUserFirstSendMessageUtil dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);
