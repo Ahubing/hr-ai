@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
 import com.open.ai.eros.ai.util.SendMessageUtil;
+import com.open.ai.eros.common.constants.RequestInfoTypeEnum;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -434,9 +435,9 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
             queryWrapper.like(AmClientTasks::getData, userId);
             queryWrapper.and(wrapper ->
-                    wrapper.like(AmClientTasks::getData, "phone")
+                    wrapper.like(AmClientTasks::getData, RequestInfoTypeEnum.PHONE.getType())
                             .or()
-                            .like(AmClientTasks::getData, "wechat")
+                            .like(AmClientTasks::getData, RequestInfoTypeEnum.WECHAT.getType())
             );
 
             AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
@@ -450,12 +451,12 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 hashMap.put("user_id", userId);
                 List<String> infoType = new ArrayList<>();
                 if (amNewMaskAddReq.getOpenExchangePhone()) {
-                    infoType.add("phone");
+                    infoType.add(RequestInfoTypeEnum.PHONE.getType());
                     amClientTasks.setDetail(String.format("请求用户%s手机信息",amResume.getName()));
                 }
                 if (amNewMaskAddReq.getOpenExchangeWeChat()) {
                     amClientTasks.setDetail(String.format("请求用户%s微信信息",amResume.getName()));
-                    infoType.add("wechat");
+                    infoType.add(RequestInfoTypeEnum.WECHAT.getType());
                 }
                 hashMap.put("info_type", infoType);
                 if (Objects.nonNull(amResume.getEncryptGeekId())) {
@@ -497,7 +498,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmClientTasks::getBossId, amZpLocalAccouts.getId());
         queryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.REQUEST_INFO.getType());
-        queryWrapper.like(AmClientTasks::getData, "attachment_resume");
+        queryWrapper.like(AmClientTasks::getData, RequestInfoTypeEnum.ATTACHMENT_RESUME.getType());
         queryWrapper.like(AmClientTasks::getData, uid);
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
