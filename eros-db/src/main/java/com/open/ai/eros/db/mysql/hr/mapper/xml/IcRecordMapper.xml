@@ -57,6 +57,12 @@
             <if test="req.postName != null and req.postName != ''">
                 AND ap.name LIKE CONCAT('%', #{req.postName}, '%')
             </if>
+            <if test="req.positionId != null">
+                AND app.id = #{req.positionId}
+            </if>
+            <if test="req.positionName != null and req.positionName != ''">
+                AND app.name LIKE CONCAT('%', #{req.positionName}, '%')
+            </if>
 
             <!-- 状态条件 -->
             <choose>
