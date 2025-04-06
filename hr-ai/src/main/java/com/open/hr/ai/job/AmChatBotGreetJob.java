@@ -149,7 +149,7 @@ public class AmChatBotGreetJob {
     /**
      * 复聊任务处理, 筛选出今天需要复聊的用户,并用redis存入队列,根据具体的执行时间进行复聊
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void runRechatTimer() {
         Lock lock = DistributedLockUtils.getLock("run_tmp_timer", 30);
         if (lock.tryLock()) {
@@ -162,6 +162,11 @@ public class AmChatBotGreetJob {
                 List<AmZpLocalAccouts> localAccounts = amZpLocalAccoutsService.lambdaQuery()
                         .ne(AmZpLocalAccouts::getState, AmLocalAccountStatusEnums.OFFLINE.getStatus())
                         .list();
+
+                if (CollectionUtils.isEmpty(localAccounts)) {
+                    log.info("复聊任务跳过: 没有活跃账号");
+                    return;
+                }
 
                 Map<String, AmChatbotGreetConfig> greetConfigMap = amChatbotGreetConfigService.lambdaQuery()
                         .in(AmChatbotGreetConfig::getAccountId, localAccounts.stream().map(AmZpLocalAccouts::getId).collect(Collectors.toList()))
