@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+import java.util.Arrays;
 
 import com.open.ai.eros.common.constants.AmAdminStatusEnums;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
@@ -203,9 +204,13 @@ public class AmResume implements Serializable {
 
     /**
      * @param newType 新状态
-     * @param isAlUpdate 是否是ai更新
+     * @param isAiUpdate 是否是ai更新
      */
     public void updateType(ReviewStatusEnums newType,Boolean isAiUpdate){
+        if(isAiUpdate && !Arrays.asList(ReviewStatusEnums.ABANDON,ReviewStatusEnums.BUSINESS_SCREENING,ReviewStatusEnums.INVITATION_FOLLOW_UP).contains(newType)){
+            return;
+        }
+
         if(newType == null || newType.getStatus().equals(this.type)){
             return;
         }
