@@ -1,6 +1,7 @@
 package com.open.hr.ai.util;
 
 import com.alibaba.fastjson.JSONObject;
+import com.open.ai.eros.common.constants.RequestInfoTypeEnum;
 import com.open.ai.eros.db.mysql.hr.entity.AmClientTasks;
 import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
@@ -38,7 +39,7 @@ public class AmClientTaskUtil {
         HashMap<String, Object> searchDataMap = new HashMap<>();
         hashMap.put("user_id", uid);
         if (needAttachmentResume) {
-            hashMap.put("info_type", Collections.singletonList("attachment_resume"));
+            hashMap.put("info_type", Collections.singletonList(RequestInfoTypeEnum.ATTACHMENT_RESUME.getType()));
             amClientTasks.setDetail(String.format("请求用户%s附件简历信息",amResume.getName()));
         }else {
             hashMap.put("info_type", Collections.singletonList("resume"));
