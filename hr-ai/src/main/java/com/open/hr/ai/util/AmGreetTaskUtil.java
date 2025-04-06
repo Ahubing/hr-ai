@@ -131,7 +131,7 @@ public class AmGreetTaskUtil {
                 Long amMaskId = positionOption.getAmMaskId();
                 AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
                 if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
-                    messageObject.put("contents", amNewMask.getGreetMessage());
+                    messageObject.put("content", amNewMask.getGreetMessage());
                 }
 
                 AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
