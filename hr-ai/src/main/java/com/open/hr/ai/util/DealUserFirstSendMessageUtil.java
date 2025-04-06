@@ -45,30 +45,26 @@ public class DealUserFirstSendMessageUtil {
     @Resource
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
 
-
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
     @Resource
     private IcRecordServiceImpl recordService;
 
-
     @Resource
     private AmNewMaskServiceImpl amNewMaskService;
     @Resource
     private AmPositionServiceImpl amPositionService;
 
-
     @Resource
     private AmResumeServiceImpl amResumeService;
-
 
     @Resource
     private CommonAIManager commonAIManager;
 
-
     @Resource
     private AmChatbotOptionsConfigServiceImpl amChatbotOptionsConfigService;
+
     @Resource
     private ReplyUserMessageDataProcessor replyUserMessageDataProcessor;
 
@@ -76,7 +72,7 @@ public class DealUserFirstSendMessageUtil {
      * 处理临时任务,一次性塞到队列里面执行
      */
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts) {
-        log.info("DealUserFirstSendMessageUtil dealBossNewMessage amResume={}, bossId={}", amResume, amZpLocalAccouts.getId());
+        log.info("DealUserFirstSendMessageUtil dealBossNewMessage uid={}, bossId={}", amResume.getUid(), amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }

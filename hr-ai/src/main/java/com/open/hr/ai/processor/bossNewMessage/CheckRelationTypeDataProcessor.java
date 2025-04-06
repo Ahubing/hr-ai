@@ -38,19 +38,8 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
     @Resource
     private AmClientTasksServiceImpl amClientTasksService;
 
-
     @Resource
     private AmClientTaskUtil amClientTaskUtil;
-    @Resource
-    private AmChatbotOptionsItemsServiceImpl amChatbotOptionsItemsService;
-    @Resource
-    private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
-    @Resource
-    private AmChatbotGreetResultServiceImpl amChatbotGreetResultService;
-
-
-    @Resource
-    private JedisClientImpl jedisClient;
 
     @Resource
     private ReplyUserMessageDataProcessor replyUserMessageDataProcessor;
@@ -64,7 +53,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
     @Override
     public ResultVO dealBossNewMessage(AtomicInteger statusCode, String platform, AmResume amResume, AmZpLocalAccouts amZpLocalAccouts, ClientBossNewMessageReq req) {
 
-        if (statusCode.get() == 1){
+        if (statusCode.get() == 1) {
             log.info("用户:{} 主动打招呼,其他流程已经完成拦截请求", req.getUser_id());
             return ResultVO.success();
         }
@@ -75,7 +64,7 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
             return ResultVO.fail(404, "用户信息异常");
         }
 
-        if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())){
+        if (Objects.equals(amResume.getType(), ReviewStatusEnums.ABANDON.getStatus())) {
             log.info("用户:{} 主动打招呼,用户状态为不符合,继续流程", amResume.getEncryptGeekId());
             return ResultVO.fail(404, "用户状态为不符合");
         }
@@ -89,11 +78,10 @@ public class CheckRelationTypeDataProcessor implements BossNewMessageProcessor {
         AmClientTasks tasksServiceOne = amClientTasksService.getOne(queryWrapper, false);
         if (Objects.isNull(tasksServiceOne)) {
             statusCode.set(1);
-            amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume,false);
-            replyUserMessageDataProcessor.dealReChatTask( amResume,amZpLocalAccouts);
+            amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume, false);
+            replyUserMessageDataProcessor.dealReChatTask(amResume, amZpLocalAccouts);
             log.info("用户:{} 主动打招呼,没有用户信息, 需要拦截本次请求, ", req.getUser_id());
-        }
-        else {
+        } else {
             queryWrapper.eq(AmClientTasks::getStatus, AmClientTaskStatusEnums.FINISH.getStatus());
             int count = amClientTasksService.count(queryWrapper);
             if (count == 0) {
