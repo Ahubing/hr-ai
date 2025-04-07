@@ -114,4 +114,6 @@ public class AmNewMask implements Serializable {
      */
     private Long modelId;
 
+
+    private String modelName;
 }

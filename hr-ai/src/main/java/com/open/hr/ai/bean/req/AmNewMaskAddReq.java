@@ -193,4 +193,9 @@ public class AmNewMaskAddReq {
      */
     private Long modelId;
 
+    /**
+     * 关联的模型ID
+     */
+    //private String modelName;
+
 }

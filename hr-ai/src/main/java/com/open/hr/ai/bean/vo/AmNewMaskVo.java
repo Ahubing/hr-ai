@@ -222,5 +222,5 @@ public class AmNewMaskVo {
      *//*
     @TableField(exist = false) // **表示这个字段不存数据库**
     private String modelName;*/
-
+    private String modelName;
 }
