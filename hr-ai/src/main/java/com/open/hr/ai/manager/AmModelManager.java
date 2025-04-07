@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -141,7 +142,7 @@ public class AmModelManager {
         }
 
         // 验证模型名称和值是否与其他模型重复
-        if (req.getName() != null || req.getValue() != null) {
+        /*if (req.getName() != null || req.getValue() != null) {
             LambdaQueryWrapper<AmModel> queryWrapper = new LambdaQueryWrapper<>();
             if (req.getName() != null) {
                 queryWrapper.eq(AmModel::getName, req.getName());
@@ -154,7 +155,7 @@ public class AmModelManager {
             if (count > 0) {
                 return ResultVO.fail("模型名称或值已存在");
             }
-        }
+        }*/
 
         AmModel model = new AmModel();
         BeanUtils.copyProperties(req, model);
@@ -274,7 +275,11 @@ public class AmModelManager {
         return ResultVO.success(models);
     }
 
-    public List<AmModel> getAvailableModels() {
+    public List<AmModel> getAvailableModels(Long adminId) {
+        AmAdmin admin = amAdminService.getById(adminId);
+        if (admin.getRole().equals(AmAdminRoleEnum.COMMON.getType()) || admin.getRole().equals(AmAdminRoleEnum.VIP.getType())) {
+            return Collections.emptyList();
+        }
         LambdaQueryWrapper<AmModel> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AmModel::getStatus, 1);  // 只查询可用状态的模型
 

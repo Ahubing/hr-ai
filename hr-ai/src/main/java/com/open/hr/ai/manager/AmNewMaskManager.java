@@ -106,7 +106,7 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
+        //amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setCreateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
@@ -115,6 +115,7 @@ public class AmNewMaskManager {
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setGreetMessage(req.getGreetMessage());
         amNewMask.setModelId(req.getModelId());
+
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -154,7 +155,7 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
+        //amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setStatus(req.getStatus());
         amNewMask.setUpdateTime(LocalDateTime.now());
@@ -264,7 +265,7 @@ public class AmNewMaskManager {
         amNewMaskVo.setId(amNewMask.getId());
         amNewMaskVo.setName(amNewMask.getName());
         amNewMaskVo.setType(amNewMask.getType());
-        amNewMaskVo.setTemplateModel(Arrays.asList(amNewMask.getTemplateModel().split(",")));
+        //amNewMaskVo.setTemplateModel(Arrays.asList(amNewMask.getTemplateModel().split(",")));
         amNewMaskVo.setIntro(amNewMask.getIntro());
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
