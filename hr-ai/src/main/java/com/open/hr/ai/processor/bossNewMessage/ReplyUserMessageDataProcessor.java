@@ -19,7 +19,7 @@ import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.AmNewMaskAddReq;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.RedisKyeConstant;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.AiReplyPromptUtil;

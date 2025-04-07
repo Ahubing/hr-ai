@@ -3,6 +3,7 @@ package com.open.hr.ai.manager;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;

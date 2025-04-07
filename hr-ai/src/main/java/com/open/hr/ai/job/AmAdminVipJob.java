@@ -1,21 +1,11 @@
 package com.open.hr.ai.job;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.open.ai.eros.common.util.DateUtils;
 import com.open.ai.eros.common.util.DistributedLockUtils;
 import com.open.ai.eros.db.mysql.hr.entity.AmAdmin;
-import com.open.ai.eros.db.mysql.hr.entity.AmClientTasks;
-import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmAdminServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmZpLocalAccoutsServiceImpl;
 import com.open.hr.ai.constant.AmAdminRoleEnum;
-import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.AmLocalAccountStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import io.grpc.xds.shaded.io.envoyproxy.envoy.config.bootstrap.v3.Admin;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;

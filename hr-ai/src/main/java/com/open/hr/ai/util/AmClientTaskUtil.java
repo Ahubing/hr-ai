@@ -7,7 +7,7 @@ import com.open.ai.eros.db.mysql.hr.entity.AmResume;
 import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;

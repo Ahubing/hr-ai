@@ -6,7 +6,7 @@ import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.MessageTypeEnums;
 import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
 import lombok.extern.slf4j.Slf4j;
