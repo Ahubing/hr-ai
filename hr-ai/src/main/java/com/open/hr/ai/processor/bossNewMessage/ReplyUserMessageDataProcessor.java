@@ -155,24 +155,24 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         for (ChatMessage message : bossNewMessages) {
             // 判断是否存在消息id, 不存在则构建插入
             if (exitAmChatMessages.stream().noneMatch(amChatbotGreetMessage -> amChatbotGreetMessage.getChatId().equals(message.getId()))) {
-                AmChatMessage greetMessages = new AmChatMessage();
-                greetMessages.setContent(message.getContent().toString());
-                greetMessages.setCreateTime(LocalDateTime.now());
+                AmChatMessage chatMessage = new AmChatMessage();
+                chatMessage.setContent(message.getContent().toString());
+                chatMessage.setCreateTime(LocalDateTime.now());
                 if (message.getRole().equals("user")) {
                     buildNewUserMessage.append(message.getContent().toString()).append("\n\n");
-                    greetMessages.setUserId(Long.parseLong(req.getUser_id()));
-                    greetMessages.setRole(AIRoleEnum.USER.getRoleName());
+                    chatMessage.setUserId(Long.parseLong(req.getUser_id()));
+                    chatMessage.setRole(AIRoleEnum.USER.getRoleName());
                 } else {
                     buildSystemUserMessage.append(message.getContent().toString()).append("\n\n");
-                    greetMessages.setUserId(Long.parseLong(req.getRecruiter_id()));
-                    greetMessages.setRole(AIRoleEnum.ASSISTANT.getRoleName());
+                    chatMessage.setUserId(Long.parseLong(req.getRecruiter_id()));
+                    chatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
                 }
                 //  招聘账号id + 用户id作为任务id
-                greetMessages.setConversationId(taskId);
-                greetMessages.setChatId(message.getId());
-                greetMessages.setCreateTime(LocalDateTime.now());
-                boolean result = amChatMessageService.save(greetMessages);
-                log.info("SaveMessageDataProcessor dealBossNewMessage greetMessages={} save result={}", JSONObject.toJSONString(greetMessages), result);
+                chatMessage.setConversationId(taskId);
+                chatMessage.setChatId(message.getId());
+                chatMessage.setCreateTime(LocalDateTime.now());
+                boolean result = amChatMessageService.save(chatMessage);
+                log.info("SaveMessageDataProcessor dealBossNewMessage greetMessages={} save result={}", JSONObject.toJSONString(chatMessage), result);
             }
         }
 
@@ -530,13 +530,6 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             return;
         }
 
-        AmChatbotGreetResult amChatbotGreetResult = new AmChatbotGreetResult();
-        amChatbotGreetResult.setRechatItem(0);
-        amChatbotGreetResult.setSuccess(1);
-        amChatbotGreetResult.setAccountId(accoutsId);
-        amChatbotGreetResult.setCreateTime(LocalDateTime.now());
-        amChatbotGreetResult.setTaskId(one.getId());
-        amChatbotGreetResult.setUserId(amResume.getUid());
         /**
          * 3、生成复聊任务, 如果存在复聊方案
          */
@@ -552,12 +545,22 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
             return;
         }
 
+        AmChatbotGreetResult amChatbotGreetResult = new AmChatbotGreetResult();
+        amChatbotGreetResult.setSuccess(1);
+        amChatbotGreetResult.setAccountId(accoutsId);
+        amChatbotGreetResult.setCreateTime(LocalDateTime.now());
+//        amChatbotGreetResult.setTaskId(one.getId());
+        amChatbotGreetResult.setUserId(amResume.getUid());
         for (AmChatbotOptionsItems amChatbotOptionsItem : amChatbotOptionsItems) {
-            // 处理复聊任务, 存入队列里面, 用于定时任务处理
+            // 处理复聊任务, 存入队列里面, 用于定时复聊任务处理
             amChatbotGreetResult.setRechatItem(amChatbotOptionsItem.getId());
-            amChatbotGreetResult.setTaskId(one.getId());
-            amChatbotGreetResultService.updateById(amChatbotGreetResult);
-            Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime())* 1000L;
+            amChatbotGreetResult.setTaskId(amChatbotOptionsItem.getOptionId());
+            boolean result = amChatbotGreetResultService.save(amChatbotGreetResult);
+            if (!result) {
+                log.error("复聊任务处理开始, 账号:{}, 复聊任务添加失败", amZpLocalAccouts.getId());
+                return;
+            }
+            Long operateTime = System.currentTimeMillis() + Integer.parseInt(amChatbotOptionsItem.getExecTime()) * 1000L;
             Long zadd = jedisClient.zadd(RedisKyeConstant.AmChatBotReChatTask, operateTime, JSONObject.toJSONString(amChatbotGreetResult));
             log.info("复聊任务处理开始, 账号:{}, 复聊任务添加结果:{}", amZpLocalAccouts.getId(), zadd);
         }
