@@ -1042,7 +1042,7 @@ public class ClientManager {
                 queryWrapper.eq(AmPositionSyncTask::getAccountId, bossId).set(AmPositionSyncTask::getStatus, 2);
                 amPositionSyncTaskService.update(queryWrapper);
             }
-            if (amClientTasks.getSubType().equals("rechat")) {
+            if (amClientTasks.getSubType().equals(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType())) {
                 String id = amClientTasks.getId();
                 LambdaQueryWrapper<AmChatMessage> queryWrapper = new LambdaQueryWrapper<>();
                 queryWrapper.eq(AmChatMessage::getChatId, id);

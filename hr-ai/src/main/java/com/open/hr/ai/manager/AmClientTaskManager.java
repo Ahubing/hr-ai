@@ -193,7 +193,7 @@ public class AmClientTaskManager {
             if (StringUtils.isNotBlank(taskType)) {
                 if ("rechat".equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.SEND_MESSAGE.getType());
-                    lambdaQueryWrapper.eq(AmClientTasks::getSubType, "rechat");
+                    lambdaQueryWrapper.eq(AmClientTasks::getSubType, ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType());
                 } else if (ClientTaskTypeEnums.SEND_MESSAGE.getType().equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
                     lambdaQueryWrapper.eq(AmClientTasks::getData, ClientTaskTypeEnums.SEND_MESSAGE.getType());

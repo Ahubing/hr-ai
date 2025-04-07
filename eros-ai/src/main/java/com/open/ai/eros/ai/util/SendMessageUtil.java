@@ -237,7 +237,7 @@ public class SendMessageUtil {
 
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
-        amClientTasks.setSubType("send_message");
+        amClientTasks.setSubType(ClientTaskTypeEnums.SEND_MESSAGE.getSubType());
         amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", resume.getName(), content));
 
         amClientTasks.setBossId(resume.getAccountId());

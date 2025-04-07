@@ -516,7 +516,7 @@ public class AmChatBotGreetJob {
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getType());
         //复聊任务优先级最低
         amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getOrder());
-        amClientTasks.setSubType("rechat");
+        amClientTasks.setSubType(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType());
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
@@ -568,7 +568,7 @@ public class AmChatBotGreetJob {
             try {
                 // 查出所有包含rechat的复聊服务,且状态为未开始或者开始的,判断他们的创建时间是否超出12小时,如果超出,则修改状态为失败,并且原因为超时
                 LambdaQueryWrapper<AmClientTasks> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.like(AmClientTasks::getSubType, "rechat")
+                queryWrapper.like(AmClientTasks::getSubType, ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType())
                         .and(wrapper -> wrapper
                                 .or(innerWrapper -> innerWrapper
                                         .eq(AmClientTasks::getStatus, AmClientTaskStatusEnums.NOT_START.getStatus())
