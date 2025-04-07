@@ -282,7 +282,11 @@ public class AmNewMaskManager {
         amNewMaskVo.setInterviewType(amNewMask.getInterviewType());
         amNewMaskVo.setModelId(amNewMask.getModelId());
         AmModel amModel = amModelService.getById(amNewMask.getModelId());
-        amNewMaskVo.setModelName(amModel.getName());
+        if(amModel != null){
+            amNewMaskVo.setModelName(amModel.getName());
+        }else {
+            log.error("amModel is null");
+        }
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){
