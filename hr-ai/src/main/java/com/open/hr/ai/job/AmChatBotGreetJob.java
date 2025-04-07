@@ -148,7 +148,7 @@ public class AmChatBotGreetJob {
     /**
      * 复聊用户主动打招呼的任务处理
      */
-    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0 0/20 * * * ?")
     public void runRechatTimer() {
         Lock lock = DistributedLockUtils.getLock("run_rechat_timer", 30);
         if (lock.tryLock()) {
