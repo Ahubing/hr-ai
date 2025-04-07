@@ -101,12 +101,13 @@ public class AmNewMaskManager {
      * @return
      */
     public ResultVO addAmNewMask(Long adminId, AmNewMaskAddReq req) {
+
         AmNewMask amNewMask = new AmNewMask();
         amNewMask.setAiRequestParam(JSONObject.toJSONString(req));
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
+        //amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setCreateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
@@ -114,7 +115,17 @@ public class AmNewMaskManager {
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setGreetMessage(req.getGreetMessage());
-        amNewMask.setModelId(req.getModelId());
+
+        AmModel model = amModelService.getById(req.getModelId());
+        model = model == null ? amModelService.getDefalutModel() : model;
+        amNewMask.setModelId(model.getId());
+        amNewMask.setModelName(model.getName());
+
+//        if (model != null) {
+//            amNewMask.setModelName(model.getName());
+//        } else {
+//            log.warn("Model not found for modelId={}", amNewMask.getModelId());
+//        }
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -154,7 +165,7 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
+        //amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setStatus(req.getStatus());
         amNewMask.setUpdateTime(LocalDateTime.now());
@@ -164,6 +175,10 @@ public class AmNewMaskManager {
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setModelId(req.getModelId());
+        AmModel amModel = amModelService.getById(req.getModelId());
+        amNewMask.setModelName(amModel.getName());
+
+        //amNewMask.setModelId(req.getModelId());
         /*AmModel amModel = amModelService.getById(req.getModelId());
         amNewMask.setModelName(amModel.getName());*/
         boolean updated = amNewMaskService.updateById(amNewMask);
@@ -264,7 +279,7 @@ public class AmNewMaskManager {
         amNewMaskVo.setId(amNewMask.getId());
         amNewMaskVo.setName(amNewMask.getName());
         amNewMaskVo.setType(amNewMask.getType());
-        amNewMaskVo.setTemplateModel(Arrays.asList(amNewMask.getTemplateModel().split(",")));
+        //amNewMaskVo.setTemplateModel(Arrays.asList(amNewMask.getTemplateModel().split(",")));
         amNewMaskVo.setIntro(amNewMask.getIntro());
         amNewMaskVo.setAdminId(amNewMask.getAdminId());
         amNewMaskVo.setContentsNumber(amNewMask.getContentsNumber());
@@ -274,6 +289,12 @@ public class AmNewMaskManager {
         amNewMaskVo.setSkipHolidayStatus(amNewMask.getSkipHolidayStatus());
         amNewMaskVo.setInterviewType(amNewMask.getInterviewType());
         amNewMaskVo.setModelId(amNewMask.getModelId());
+        AmModel amModel = amModelService.getById(amNewMask.getModelId());
+        if(amModel != null){
+            amNewMaskVo.setModelName(amModel.getName());
+        }else {
+            log.error("amModel is null");
+        }
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){

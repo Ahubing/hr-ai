@@ -94,7 +94,7 @@ public class AmModelController extends HrAIBaseController {
     @VerifyUserToken
     @GetMapping("/amModel/select/list")
     public ResultVO<List<AmModel>> getModelList() {
-        List<AmModel> models = amModelManager.getAvailableModels();
+        List<AmModel> models = amModelManager.getAvailableModels(getUserId());
         return ResultVO.success(models);
     }
 

@@ -39,7 +39,7 @@ public class AmNewMask implements Serializable {
     /**
      * 模型来源  aws  az gpt  claude
      */
-    private String templateModel;
+    //private String templateModel;
 
     /**
      * 面具的简单说明
@@ -114,4 +114,6 @@ public class AmNewMask implements Serializable {
      */
     private Long modelId;
 
+
+    private String modelName;
 }

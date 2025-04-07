@@ -201,6 +201,8 @@ public class AmNewMaskUpdateReq {
     /**
      * 关联的模型ID
      */
+    @ApiModelProperty(value = "关联模型id",required = false)
     private Long modelId;
+
 
 }
