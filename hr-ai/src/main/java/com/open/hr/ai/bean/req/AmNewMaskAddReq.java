@@ -191,11 +191,7 @@ public class AmNewMaskAddReq {
     /**
      * 关联的模型ID
      */
+    @ApiModelProperty(value = "关联模型ID",required = false)
     private Long modelId;
-
-    /**
-     * 关联的模型ID
-     */
-    private String modelName;
 
 }

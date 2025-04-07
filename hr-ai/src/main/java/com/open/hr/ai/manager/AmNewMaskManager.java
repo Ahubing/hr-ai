@@ -101,6 +101,7 @@ public class AmNewMaskManager {
      * @return
      */
     public ResultVO addAmNewMask(Long adminId, AmNewMaskAddReq req) {
+
         AmNewMask amNewMask = new AmNewMask();
         amNewMask.setAiRequestParam(JSONObject.toJSONString(req));
         amNewMask.setContentsNumber(req.getContentsNumber());
@@ -114,12 +115,17 @@ public class AmNewMaskManager {
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setGreetMessage(req.getGreetMessage());
+
         AmModel model = amModelService.getById(req.getModelId());
-        if (model != null) {
-            amNewMask.setModelName(model.getName());
-        } else {
-            log.warn("Model not found for modelId={}", amNewMask.getModelId());
-        }
+        model = model == null ? amModelService.getDefalutModel() : model;
+        amNewMask.setModelId(model.getId());
+        amNewMask.setModelName(model.getName());
+
+//        if (model != null) {
+//            amNewMask.setModelName(model.getName());
+//        } else {
+//            log.warn("Model not found for modelId={}", amNewMask.getModelId());
+//        }
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -168,8 +174,10 @@ public class AmNewMaskManager {
         amNewMask.setGreetMessage(req.getGreetMessage());
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
-        AmModel amModel = amModelService.getById(amNewMask.getModelId());
+        amNewMask.setModelId(req.getModelId());
+        AmModel amModel = amModelService.getById(req.getModelId());
         amNewMask.setModelName(amModel.getName());
+
         //amNewMask.setModelId(req.getModelId());
         /*AmModel amModel = amModelService.getById(req.getModelId());
         amNewMask.setModelName(amModel.getName());*/

@@ -26,6 +26,5 @@ public class AmdialogsController {
     @GetMapping("/dialogs/add")
     public ResultVO deleteAmMask(@RequestParam(value = "id", required = true) Long id) {
 
-
     }*/
 }
