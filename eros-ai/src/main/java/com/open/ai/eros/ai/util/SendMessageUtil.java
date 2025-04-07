@@ -235,6 +235,7 @@ public class SendMessageUtil {
         jsonObject.put("search_data", searchObject);
 
         amClientTasks.setTaskType("send_message");
+        amClientTasks.setSubType("send_message");
         amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", resume.getName(), content));
 
         amClientTasks.setOrderNumber(2);

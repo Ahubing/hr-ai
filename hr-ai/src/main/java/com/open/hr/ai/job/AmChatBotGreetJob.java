@@ -162,10 +162,6 @@ public class AmChatBotGreetJob {
                     log.info("复聊任务跳过: 没有账号");
                     return;
                 }
-                // 批量查询对应的ai配置
-                Map<String, AmChatbotGreetConfig> greetConfigMap = amChatbotGreetConfigService.lambdaQuery()
-                        .in(AmChatbotGreetConfig::getAccountId, localAccounts.stream().map(AmZpLocalAccouts::getId).collect(Collectors.toList()))
-                        .list().stream().collect(Collectors.toMap(AmChatbotGreetConfig::getAccountId, config -> config));
 
                 for (AmZpLocalAccouts localAccount : localAccounts) {
                     String accountId = localAccount.getId();
@@ -175,12 +171,7 @@ public class AmChatBotGreetJob {
                         continue;
                     }
 
-                    // 获取复聊方案
-                    AmChatbotGreetConfig greetConfig = greetConfigMap.get(accountId);
-                    if (greetConfig == null || greetConfig.getIsAllOn() == 0 || greetConfig.getIsRechatOn() == 0) {
-                        log.info("复聊任务跳过: 账号:{}, 未找到复聊任务配置 或总开关关闭 或未开启复聊", accountId);
-                        continue;
-                    }
+
 
                     List<String> distinctUserIds = amChatbotGreetResultService.lambdaQuery().select(AmChatbotGreetResult::getUserId)
                             .eq(AmChatbotGreetResult::getAccountId, accountId)
