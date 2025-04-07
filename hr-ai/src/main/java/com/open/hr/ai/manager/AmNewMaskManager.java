@@ -114,13 +114,12 @@ public class AmNewMaskManager {
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setInterviewType(req.getInterviewType());
         amNewMask.setGreetMessage(req.getGreetMessage());
-        AmModel model = amModelService.getById(amNewMask.getModelId());
-        amNewMask.setModelName(model.getName());
-        //amNewMask.setModelName(req.getModelName());
-
-        //Object obj = amModelService.getObj(req.getModelId());
-        //AmModel model = amModelService.getById(amNewMask.getModelId());
-        //amNewMask.setModelName(model.getName());
+        AmModel model = amModelService.getById(req.getModelId());
+        if (model != null) {
+            amNewMask.setModelName(model.getName());
+        } else {
+            log.warn("Model not found for modelId={}", amNewMask.getModelId());
+        }
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -282,6 +281,8 @@ public class AmNewMaskManager {
         amNewMaskVo.setSkipHolidayStatus(amNewMask.getSkipHolidayStatus());
         amNewMaskVo.setInterviewType(amNewMask.getInterviewType());
         amNewMaskVo.setModelId(amNewMask.getModelId());
+        AmModel amModel = amModelService.getById(amNewMask.getModelId());
+        amNewMaskVo.setModelName(amModel.getName());
         List<IcConfig> configList = icConfigService
                 .list(new LambdaQueryWrapper<IcConfig>().eq(IcConfig::getMaskId, amNewMask.getId()));
         if(CollectionUtil.isNotEmpty(configList)){

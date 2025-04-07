@@ -196,6 +196,6 @@ public class AmNewMaskAddReq {
     /**
      * 关联的模型ID
      */
-    //private String modelName;
+    private String modelName;
 
 }

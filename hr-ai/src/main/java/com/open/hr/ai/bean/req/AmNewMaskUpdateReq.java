@@ -203,4 +203,5 @@ public class AmNewMaskUpdateReq {
      */
     private Long modelId;
 
+    private String modelName;
 }
