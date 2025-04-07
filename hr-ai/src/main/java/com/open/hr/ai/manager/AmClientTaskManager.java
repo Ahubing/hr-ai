@@ -97,7 +97,7 @@ public class AmClientTaskManager {
             amClientTasksVo.setId(amClientTask.getId());
             amClientTasksVo.setSuccessCount(0);
             amClientTasksVo.setTotalCount(1);
-            amClientTasksVo.setStatus(AmClientTaskStatusEnums.START.getStatus());
+            amClientTasksVo.setStatus(amClientTask.getStatus());
             amClientTasksVo.setReason(amClientTask.getReason());
             amClientTasksVo.setTaskType(amClientTask.getTaskType());
             amClientTasksVo.setCreateTime(amClientTask.getCreateTime());
