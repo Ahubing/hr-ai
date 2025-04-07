@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -44,30 +45,26 @@ public class DealUserFirstSendMessageUtil {
     @Resource
     private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
 
-
     @Resource
     private AmChatMessageServiceImpl amChatMessageService;
 
     @Resource
     private IcRecordServiceImpl recordService;
 
-
     @Resource
     private AmNewMaskServiceImpl amNewMaskService;
     @Resource
     private AmPositionServiceImpl amPositionService;
 
-
     @Resource
     private AmResumeServiceImpl amResumeService;
-
 
     @Resource
     private CommonAIManager commonAIManager;
 
-
     @Resource
     private AmChatbotOptionsConfigServiceImpl amChatbotOptionsConfigService;
+
     @Resource
     private ReplyUserMessageDataProcessor replyUserMessageDataProcessor;
 
@@ -75,7 +72,7 @@ public class DealUserFirstSendMessageUtil {
      * 处理临时任务,一次性塞到队列里面执行
      */
     public ResultVO dealBossNewMessage(AmResume amResume, AmZpLocalAccouts amZpLocalAccouts) {
-        log.info("DealUserFirstSendMessageUtil dealBossNewMessage amResume={}, bossId={}", amResume, amZpLocalAccouts.getId());
+        log.info("DealUserFirstSendMessageUtil dealBossNewMessage uid={}, bossId={}", amResume.getUid(), amZpLocalAccouts.getId());
         if (Objects.isNull(amResume) || StringUtils.isBlank(amResume.getEncryptGeekId())) {
             return ResultVO.fail(404, "用户信息异常");
         }
@@ -195,7 +192,7 @@ public class DealUserFirstSendMessageUtil {
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time","no_further_reply"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"), "OpenAI:deepseek-r1", 0.8,statusCode,needToReply,isAiSetStatus,params);
             if (Objects.isNull(chatMessage)) {
                 continue;
             }
@@ -237,7 +234,9 @@ public class DealUserFirstSendMessageUtil {
         try {
             String jsonContent = AIJsonUtil.getJsonContent(content);
             JSONObject jsonObject = JSONArray.parseObject(jsonContent);
-            if (Objects.isNull(jsonObject.get("messages"))){
+            // 如果messages 里面为[]
+
+            if (Objects.isNull(jsonObject.get("messages")) || jsonObject.get("messages").toString().equals("[]")) {
                 log.error("DealUserFirstSendMessageUtil dealBossNewMessage messages is null content={}",content);
                 return ResultVO.fail(404, "ai回复内容解析错误");
             }
@@ -262,7 +261,6 @@ public class DealUserFirstSendMessageUtil {
             return ResultVO.fail(404, "ai回复内容解析错误");
         }
         hashMap.put("search_data", searchDataMap);
-        hashMap.put("message", Collections.singletonList(content));
         amClientTasks.setData(JSONObject.toJSONString(hashMap));
         boolean result = amClientTasksService.save(amClientTasks);
         log.info("DealUserFirstSendMessageUtil dealBossNewMessage  amClientTasks ={} result={}", JSONObject.toJSONString(amClientTasks), result);

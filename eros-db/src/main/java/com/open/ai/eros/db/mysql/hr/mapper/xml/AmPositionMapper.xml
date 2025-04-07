@@ -30,7 +30,7 @@
                 AND ap.uid = #{req.uid}
             </if>
             <if test="req.channel != null">
-                AND ap.channel = #{req.channel}=
+                AND ap.channel = #{req.channel}
             </if>
             <if test="req.positionId != null">
                 AND ap.post_id = #{req.positionId}
