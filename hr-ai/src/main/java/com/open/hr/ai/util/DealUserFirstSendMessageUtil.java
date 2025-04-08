@@ -276,7 +276,7 @@ public class DealUserFirstSendMessageUtil {
                 boolean mockSaveResult = amChatMessageService.saveBatch(aiMessages);
                 log.info("DealUserFirstSendMessageUtil dealBossNewMessage save result={}", mockSaveResult);
             }
-            amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()));
+            amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()),false);
             // 请求微信和手机号
             replyUserMessageDataProcessor.generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,amResume.getUid());
             boolean updateResume = amResumeService.updateById(amResume);

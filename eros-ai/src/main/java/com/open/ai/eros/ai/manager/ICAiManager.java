@@ -304,7 +304,7 @@ public class ICAiManager {
                 }
             }
             //在线则发送消息通知受聘者
-            resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON);
+            resumeService.updateType(resume, false, ReviewStatusEnums.ABANDON,false);
             boolean update = resumeService.updateById(resume);
             return update ? ResultVO.success(true) : ResultVO.fail("面试取消失败");
         }
@@ -334,7 +334,7 @@ public class ICAiManager {
             icRecord.setCancelStatus(InterviewStatusEnum.CANCEL.getStatus());
             icRecord.setCancelWho(modifyWho);
             icRecordService.updateById(icRecord);
-            resumeService.updateType(resume, false, ReviewStatusEnums.INVITATION_FOLLOW_UP);
+            resumeService.updateType(resume, false, ReviewStatusEnums.INVITATION_FOLLOW_UP,false);
             resumeService.updateById(resume);
             return ResultVO.success(true);
         }

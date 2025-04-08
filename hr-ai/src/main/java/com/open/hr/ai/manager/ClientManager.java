@@ -871,7 +871,7 @@ public class ClientManager {
                     amResume.setWechat(Objects.nonNull(chatInfoJSONObject.get("weixin")) ? chatInfoJSONObject.get("weixin").toString() : "");
                     if (Objects.nonNull(chatInfoJSONObject.get("type"))) {
                         ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfoJSONObject.get("type").toString()));
-                        amResumeService.updateType(amResume, false, statusEnums);
+                        amResumeService.updateType(amResume, false, statusEnums,false);
                     }
                     // ---- end 从chat_info结构提取数据  ----
 
@@ -897,7 +897,7 @@ public class ClientManager {
                     }
                     if (Objects.nonNull(chatInfoJSONObject.get("type"))) {
                         ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfoJSONObject.get("type").toString()));
-                        amResumeService.updateType(amResume, false, statusEnums);
+                        amResumeService.updateType(amResume, false, statusEnums,false);
                     }
                     // ---- end 从chat_info结构提取数据  ----
 
@@ -969,7 +969,7 @@ public class ClientManager {
         }
 
         // 初筛
-        amResumeService.updateType(amResume,false, ReviewStatusEnums.BUSINESS_SCREENING);
+        amResumeService.updateType(amResume,false, ReviewStatusEnums.BUSINESS_SCREENING,false);
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setPlatform(platform);
 
@@ -1112,7 +1112,7 @@ public class ClientManager {
                 queryWrapper.eq(AmResume::getUid, userId);
                 queryWrapper.eq(AmResume::getAccountId, bossId);
                 AmResume amResume = amResumeService.getOne(queryWrapper, false);
-                amResumeService.updateType(amResume,false,ReviewStatusEnums.ABANDON);
+                amResumeService.updateType(amResume,false,ReviewStatusEnums.ABANDON,false);
                 boolean result = amResumeService.updateById(amResume);
                 log.info("sendMessage update result={},amResume={}", result, amResume);
             }

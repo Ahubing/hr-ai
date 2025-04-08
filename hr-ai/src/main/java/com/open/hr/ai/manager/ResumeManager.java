@@ -1,11 +1,13 @@
 package com.open.hr.ai.manager;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.PageVO;
@@ -88,6 +90,9 @@ public class ResumeManager {
 
     @Resource
     private AmResumeMapper resumeMapper;
+
+    @Resource
+    private IcRecordServiceImpl icRecordService;
 
     public ResultVO<AmResumeVo> resumeDetail(Integer id) {
         try {
@@ -627,5 +632,63 @@ public class ResumeManager {
     }
 
 
+    public ResultVO<Boolean> setToAbandon(List<Integer> ids, Long adminId) {
+        log.info("setToAbandon ids:" + ids);
+        if(CollectionUtil.isEmpty(ids)){
+            return ResultVO.fail("id不能为空");
+        }
+        List<AmResume> resumeList = amResumeService
+                .list(new LambdaQueryWrapper<AmResume>().in(AmResume::getId, ids).eq(AmResume::getAdminId, adminId));
+        if(CollectionUtil.isNotEmpty(resumeList)){
+            for (AmResume resume : resumeList){
+                if(Arrays.asList(ReviewStatusEnums.ABANDON.getStatus(),
+                        ReviewStatusEnums.ONBOARD.getStatus()).contains(resume.getType())){
+                    return ResultVO.fail("'不合适'状态和'已入职'状态的简历无法置为不合适!");
+                }
+            }
+            resumeList.forEach(resume -> amResumeService.updateType(resume,false, ReviewStatusEnums.ABANDON,false));
+            amResumeService.updateBatchById(resumeList);
+        }
+        return ResultVO.success(true);
+    }
+
+
+    public ResultVO<Boolean> hasInterview(List<Integer> ids, Long adminId) {
+        log.info("setToAbandon ids:" + ids);
+        if(CollectionUtil.isEmpty(ids)){
+            return ResultVO.fail("id不能为空");
+        }
+        List<AmResume> resumeList = amResumeService.list(new LambdaQueryWrapper<AmResume>()
+                .in(AmResume::getId, ids).eq(AmResume::getAdminId, adminId));
+        if(CollectionUtil.isEmpty(resumeList)){
+            return ResultVO.fail("id不存在");
+        }
+        for(AmResume resume : resumeList){
+            IcRecord icRecord = icRecordService.getOneNormalIcRecord(resume.getUid(), adminId, resume.getAccountId(), resume.getPostId());
+            if(icRecord != null){
+                return ResultVO.success(true);
+            }
+        }
+        return ResultVO.success(false);
+    }
+
+    public ResultVO<Boolean> sendOffer(List<Integer> ids, Long adminId) {
+        log.info("sendOffer ids:" + ids);
+        if(CollectionUtil.isEmpty(ids)){
+            return ResultVO.fail("id不能为空");
+        }
+        List<AmResume> resumeList = amResumeService
+                .list(new LambdaQueryWrapper<AmResume>().in(AmResume::getId, ids).eq(AmResume::getAdminId, adminId));
+        if(CollectionUtil.isNotEmpty(resumeList)){
+            for (AmResume resume : resumeList){
+                if(!ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus().equals(resume.getType())){
+                    return ResultVO.fail("当前状态无法发放offer!");
+                }
+            }
+            resumeList.forEach(resume -> amResumeService.updateType(resume,false, ReviewStatusEnums.OFFER_ISSUED,false));
+            amResumeService.updateBatchById(resumeList);
+        }
+        return ResultVO.success(true);
+    }
 }
 

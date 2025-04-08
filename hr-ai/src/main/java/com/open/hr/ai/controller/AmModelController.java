@@ -9,7 +9,6 @@ import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
 import com.open.hr.ai.bean.req.*;
 import com.open.hr.ai.bean.vo.*;
 import com.open.hr.ai.config.HrAIBaseController;
-//import com.open.hr.ai.constant.ClientTaskTypeEnums;
 import com.open.hr.ai.manager.AmClientTaskManager;
 import com.open.hr.ai.manager.AmModelManager;
 import com.open.hr.ai.manager.ChatBotManager;
