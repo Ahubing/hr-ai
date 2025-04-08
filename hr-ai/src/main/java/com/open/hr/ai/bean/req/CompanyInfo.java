@@ -79,8 +79,8 @@ public class CompanyInfo {
     private Integer recruitingNumbers;
 
 
-    @ApiModelProperty(value = "工作经验", required = true)
-    @NotEmpty(message = "工作经验不能为空")
+    @ApiModelProperty(value = "工作经验")
+//    @NotEmpty(message = "工作经验不能为空")
     private String experienceName;
 
     @ApiModelProperty(value = "职位名称", required = true)
@@ -92,17 +92,17 @@ public class CompanyInfo {
     private String locationName;
 
 
-    @ApiModelProperty(value = "专业技能", required = true)
-    @NotEmpty(message = "专业技能不能为空")
+    @ApiModelProperty(value = "专业技能")
+//    @NotEmpty(message = "专业技能不能为空")
     private String skillRequire;
 
 
-    @ApiModelProperty(value = "岗位职责", required = true)
-    @NotEmpty(message = "岗位职责不能为空")
+    @ApiModelProperty(value = "岗位职责")
+//    @NotEmpty(message = "岗位职责不能为空")
     private String responsibilities;
 
-    @ApiModelProperty(value = "学历要求", required = true)
-    @NotEmpty(message = "学历要求不能为空")
+    @ApiModelProperty(value = "学历要求")
+//    @NotEmpty(message = "学历要求不能为空")
     private String degreeName;
 
 }
