@@ -259,4 +259,25 @@ public class ResumeController extends HrAIBaseController {
     public ResultVO<Map<String, String>> getExportFields() {
         return ResultVO.success(resumeManager.getExportFieldsMap());
     }
+
+    @ApiOperation("将简历设置为不合适")
+    @VerifyUserToken
+    @GetMapping("resume/setToAbandon")
+    public ResultVO<Boolean> setToAbandon(@RequestParam(value = "ids") List<Integer> ids) {
+        return resumeManager.setToAbandon(ids,getUserId());
+    }
+
+    @ApiOperation("查看简历id是否关联面试")
+    @VerifyUserToken
+    @GetMapping("resume/hasInterview")
+    public ResultVO<Boolean> hasInterview(@RequestParam(value = "ids") List<Integer> ids) {
+        return resumeManager.hasInterview(ids,getUserId());
+    }
+
+    @ApiOperation("发offer(设置到发放offer状态)")
+    @VerifyUserToken
+    @GetMapping("resume/sendOffer")
+    public ResultVO<Boolean> sendOffer(@RequestParam(value = "ids") List<Integer> ids) {
+        return resumeManager.sendOffer(ids,getUserId());
+    }
 }

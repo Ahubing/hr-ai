@@ -395,7 +395,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 log.info("DealUserFirstSendMessageUtil dealBossNewMessage save result={}", mockSaveResult);
             }
             // 更新简历状态
-            amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()));
+            amResumeService.updateType(amResume,isAiSetStatus.get(),ReviewStatusEnums.getEnumByStatus(statusCode.get()),false);
 
             // 请求微信和手机号
             generateRequestInfo(statusCode.get(),amNewMask,amZpLocalAccouts,amResume,req.getUser_id());

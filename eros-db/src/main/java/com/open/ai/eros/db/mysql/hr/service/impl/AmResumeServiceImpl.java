@@ -30,13 +30,25 @@ public class AmResumeServiceImpl extends ServiceImpl<AmResumeMapper, AmResume> i
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public void updateType(AmResume amResume, Boolean isAlUpdate, ReviewStatusEnums newType){
+    /**
+     * 此方法会修改参数中的amResume的type属性值，也会修改数据库中的实际值
+     * @param amResume
+     * @param isAlUpdate
+     * @param newType
+     */
+    public void updateType(AmResume amResume, Boolean isAlUpdate, ReviewStatusEnums newType, Boolean updateToDb){
+        if(updateToDb == null){
+            updateToDb = false;
+        }
         ReviewStatusEnums oldType = ReviewStatusEnums.getEnumByStatus(amResume.getType());
         log.info("updateType event：oldType:{},newType :{}", oldType,newType);
         amResume.updateType(newType, isAlUpdate);
         if(!oldType.equals(newType)){
             ReviewTypeUpdatedEvent updatedEvent = new ReviewTypeUpdatedEvent(amResume, oldType, newType);
             eventPublisher.publishEvent(updatedEvent);
+            if(updateToDb){
+                updateById(amResume);
+            }
         }
     }
 }

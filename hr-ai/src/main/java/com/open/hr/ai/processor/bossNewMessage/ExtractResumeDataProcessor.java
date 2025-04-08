@@ -74,7 +74,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             }
             if (Objects.nonNull(chatInfo.get("type"))) {
                 ReviewStatusEnums statusEnums = ReviewStatusEnums.getEnumByStatus(Integer.parseInt(chatInfo.get("type").toString()));
-                amResumeService.updateType(amResume, false, statusEnums);
+                amResumeService.updateType(amResume, false, statusEnums,false);
             }
             if (CollectionUtils.isNotEmpty(req.getAttachment_resume())) {
                 amResume.setAttachmentResume(JSONObject.toJSONString(req.getAttachment_resume()));
@@ -88,7 +88,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                 if (Objects.nonNull(amPositionServiceOne)) {
                     // 通过chat_info检测到职位变动要重新request_info在线简历，并清空聊天记录。然后再去发送消息
                     if (!Objects.equals(amPositionServiceOne.getId(), amResume.getPostId())) {
-                        amResumeService.updateType(amResume, false, ReviewStatusEnums.ABANDON);
+                        amResumeService.updateType(amResume, false, ReviewStatusEnums.ABANDON,false);
                         // 重新发起请求
                         amClientTaskUtil.buildRequestTask(amZpLocalAccouts, Integer.parseInt(amResume.getUid()), amResume, false);
 
@@ -119,7 +119,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
-            amResumeService.updateType(amResume, false, ReviewStatusEnums.BUSINESS_SCREENING);
+            amResumeService.updateType(amResume, false, ReviewStatusEnums.BUSINESS_SCREENING,false);
             if (Objects.nonNull(chatInfo.get("toPositionId"))) {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();
