@@ -20,7 +20,6 @@ public enum ReviewStatusEnums {
      */
 
     ABANDON(-1, "abandon","不符合"),
-    RESUME_SCREENING(0, "resume_screening","简历初筛"),
     BUSINESS_SCREENING(1, "business_screening","业务筛选"),
     INVITATION_FOLLOW_UP(2, "invitation_follow","邀约跟进"),
     INTERVIEW_ARRANGEMENT(3, "interview_arrangement","面试安排"),
@@ -95,6 +94,6 @@ public enum ReviewStatusEnums {
                 return e;
             }
         }
-        return RESUME_SCREENING;
+        return BUSINESS_SCREENING;
     }
 }

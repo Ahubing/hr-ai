@@ -969,7 +969,7 @@ public class ClientManager {
         }
 
         // 初筛
-        amResumeService.updateType(amResume,false, ReviewStatusEnums.RESUME_SCREENING);
+        amResumeService.updateType(amResume,false, ReviewStatusEnums.BUSINESS_SCREENING);
         amResume.setCreateTime(LocalDateTime.now());
         amResume.setPlatform(platform);
 
@@ -1325,7 +1325,7 @@ public class ClientManager {
         amResume.setProjects(Objects.nonNull(resumeObject.get("projects")) ? resumeObject.getJSONArray("projects").toJSONString() : "");
         amResume.setEncryptGeekId(Objects.nonNull(resumeObject.get("encryptGeekId")) ? resumeObject.get("encryptGeekId").toString() : "");
         amResume.setSkills(Objects.nonNull(resumeObject.get("skills")) ? resumeObject.get("skills").toString() : "");
-        amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
+        amResume.setType(ReviewStatusEnums.BUSINESS_SCREENING.getStatus());
         // ---- end 从resume数据结构提取数据  ----
 //        amResumeService.updateType(amResume,false,ReviewStatusEnums.RESUME_SCREENING);
         amResume.setCreateTime(LocalDateTime.now());
