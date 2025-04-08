@@ -62,7 +62,7 @@ public class AiReplyPromptUtil {
             "- 学历要求：{degreeName}\n" ,
             "- 工作经验：{experienceName}\n" ,
             "- 专业技能：{skillRequire}\n" ,
-            "- 岗位技能：{responsibilities}\n" ,
+            "- 岗位职责：{responsibilities}\n" ,
             "- 其他要求：{otherArgue}\n"
     );
 

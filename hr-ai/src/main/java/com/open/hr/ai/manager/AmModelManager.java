@@ -63,18 +63,6 @@ public class AmModelManager {
         return ResultVO.success(amModelPage);
 
     }
-    /*public ResultVO<List<AmModel>> getAllModels(Long adminId) {
-        AmAdmin admin = amAdminService.getById(adminId);
-        if (admin.getRole().equals(AmAdminRoleEnum.COMMON.getType()) || admin.getRole().equals(AmAdminRoleEnum.VIP.getType())) {
-            return ResultVO.fail("没有权限进行操作");
-        }
-        // 获取状态为启用的模型
-        LambdaQueryWrapper<AmModel> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AmModel::getStatus, 1);
-        List<AmModel> models = amModelService.list(queryWrapper);
-        return ResultVO.success(models);
-    }*/
-
     /**
      * 根据ID获取模型
      */
@@ -112,13 +100,11 @@ public class AmModelManager {
         if (req.getIsDefault() != null && req.getIsDefault() == 1) {
             resetDefaultModel();
         }
-
         // 判断是否为第一个模型创建，如果是，则自动设置为默认模型
         boolean isFirstModel = amModelService.count(new LambdaQueryWrapper<AmModel>().eq(AmModel::getIsDefault, 1)) == 0;
         if (isFirstModel) {
             req.setIsDefault(1); // 自动将第一个模型设为默认模型
         }
-
         AmModel model = new AmModel();
         BeanUtils.copyProperties(req, model);
         model.setStatus(1); // 默认启用
@@ -150,7 +136,6 @@ public class AmModelManager {
 
         // 如果设置为默认模型，需要取消其他默认模型
         if (req.getIsDefault() != null && req.getIsDefault() == 1) {
-            // 重置其他模型的默认状态
             resetDefaultModel();
         }
 
@@ -281,11 +266,6 @@ public class AmModelManager {
         queryWrapper.eq(AmModel::getStatus, 1);  // 只查询可用状态的模型
 
         List<AmModel> models = amModelService.list(queryWrapper);
-
-        //转换为 VO 只返回 id 和 name
-    /*return models.stream()
-            .map(model -> new AmModelVO(model.getId(), model.getName()))
-            .collect(Collectors.toList());*/
         return models;
     }
 }
