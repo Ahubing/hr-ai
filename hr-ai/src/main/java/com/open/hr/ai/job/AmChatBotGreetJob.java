@@ -212,10 +212,11 @@ public class AmChatBotGreetJob {
                         }
 
                         // 获取职位选项
-                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
-                                .eq(AmChatbotPositionOption::getAccountId, accountId)
-                                .eq(AmChatbotPositionOption::getPositionId, greetTask.getPositionId())
-                                .one();
+                        LambdaQueryWrapper<AmChatbotPositionOption> positionOptionQueryWrapper = new LambdaQueryWrapper<>();
+                        positionOptionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, accountId);
+                        positionOptionQueryWrapper.eq(AmChatbotPositionOption::getPositionId, greetTask.getPositionId());
+
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.getOne(positionOptionQueryWrapper, false);
 
                         if (positionOption == null) {
                             log.info("复聊任务跳过: 账号:{}, 未找到对应的职位", accountId);
@@ -337,11 +338,10 @@ public class AmChatBotGreetJob {
                             continue;
                         }
 
-                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
-                                .eq(AmChatbotPositionOption::getAccountId, accountId)
-                                .eq(AmChatbotPositionOption::getPositionId, amResume.getPostId())
-                                .one();
-
+                        LambdaQueryWrapper<AmChatbotPositionOption> positionOptionQueryWrapper = new LambdaQueryWrapper<>();
+                        positionOptionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, accountId);
+                        positionOptionQueryWrapper.eq(AmChatbotPositionOption::getPositionId, amResume.getPostId());
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.getOne(positionOptionQueryWrapper, false);
                         if (positionOption != null) {
                             Long amMaskId = positionOption.getAmMaskId();
                             AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
@@ -509,10 +509,11 @@ public class AmChatBotGreetJob {
                         JSONObject messageObject = new JSONObject();
 //                        messageObject.put("content", GREET_MESSAGE);
 
-                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.lambdaQuery()
-                                .eq(AmChatbotPositionOption::getAccountId, zpLocalAccouts.getId())
-                                .eq(AmChatbotPositionOption::getPositionId, chatbotGreetTask.getPositionId())
-                                .one();
+                        LambdaQueryWrapper<AmChatbotPositionOption> positionOptionQueryWrapper = new LambdaQueryWrapper<>();
+                        positionOptionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, zpLocalAccouts.getId());
+                        positionOptionQueryWrapper.eq(AmChatbotPositionOption::getPositionId, chatbotGreetTask.getPositionId());
+
+                        AmChatbotPositionOption positionOption = amChatbotPositionOptionService.getOne(positionOptionQueryWrapper, false);
 
                         if (positionOption != null) {
                             Long amMaskId = positionOption.getAmMaskId();
