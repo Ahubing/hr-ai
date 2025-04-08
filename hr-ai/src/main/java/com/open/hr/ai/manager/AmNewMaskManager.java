@@ -74,7 +74,7 @@ public class AmNewMaskManager {
             return ResultVO.fail("删除不存在！");
         }
         if (!amNewMask.getAdminId().equals(adminId) ) {
-            return ResultVO.fail("没有该面具操作的权限");
+            return ResultVO.fail("没有该面具操作权限");
         }
 
         //判断是否该面具绑定了chatbot
@@ -107,7 +107,6 @@ public class AmNewMaskManager {
         amNewMask.setContentsNumber(req.getContentsNumber());
         amNewMask.setIntro(req.getIntro());
         amNewMask.setName(req.getName());
-        //amNewMask.setTemplateModel(String.join(",", req.getTemplateModel()));
         amNewMask.setType(req.getType());
         amNewMask.setCreateTime(LocalDateTime.now());
         amNewMask.setAdminId(adminId);
@@ -121,11 +120,6 @@ public class AmNewMaskManager {
         amNewMask.setModelId(model.getId());
         amNewMask.setModelName(model.getName());
 
-//        if (model != null) {
-//            amNewMask.setModelName(model.getName());
-//        } else {
-//            log.warn("Model not found for modelId={}", amNewMask.getModelId());
-//        }
         boolean save = amNewMaskService.save(amNewMask);
         if (!save) {
             log.info("addNewMask error mask={}", JSONObject.toJSONString(amNewMask));
@@ -181,9 +175,6 @@ public class AmNewMaskManager {
         }
         amNewMask.setModelName(amModel.getName());
 
-        //amNewMask.setModelId(req.getModelId());
-        /*AmModel amModel = amModelService.getById(req.getModelId());
-        amNewMask.setModelName(amModel.getName());*/
         boolean updated = amNewMaskService.updateById(amNewMask);
         if (!updated) {
             log.info("updateNewMask error mask={}", JSONObject.toJSONString(amNewMask));

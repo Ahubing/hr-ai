@@ -26,7 +26,7 @@ import java.util.List;
  */
 
 @Slf4j
-@Api(tags = "新的AI角色管理类")
+@Api(tags = "新的AI角色管理")
 @RestController
 public class AmNewMaskController extends HrAIBaseController {
 
