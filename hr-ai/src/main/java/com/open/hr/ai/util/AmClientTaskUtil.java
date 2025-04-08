@@ -46,7 +46,7 @@ public class AmClientTaskUtil {
             amClientTasks.setDetail(String.format("请求用户%s在线简历信息",amResume.getName()));
         }
         if (Objects.nonNull(amResume.getEncryptGeekId())) {
-            searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
+            searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
         }
         if (StringUtils.isNotBlank(amResume.getName())) {
             searchDataMap.put("name", amResume.getName());

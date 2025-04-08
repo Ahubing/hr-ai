@@ -464,7 +464,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 }
                 hashMap.put("info_type", infoType);
                 if (Objects.nonNull(amResume.getEncryptGeekId())) {
-                    searchDataMap.put("encrypt_geek_id", amResume.getEncryptGeekId());
+                    searchDataMap.put("encrypt_friend_id", amResume.getEncryptGeekId());
                 }
                 if (Objects.nonNull(amResume.getName())) {
                     searchDataMap.put("name", amResume.getName());
