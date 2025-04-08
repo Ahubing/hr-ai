@@ -1,31 +1,18 @@
 package com.open.hr.ai.processor.bossNewMessage;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.common.vo.ResultVO;
-import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatMessageServiceImpl;
-import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotGreetMessagesServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
-import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import com.open.hr.ai.constant.MessageTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * 用于分析当前用户的prompt

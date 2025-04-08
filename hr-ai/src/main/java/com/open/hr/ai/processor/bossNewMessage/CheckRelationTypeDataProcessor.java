@@ -1,29 +1,21 @@
 package com.open.hr.ai.processor.bossNewMessage;
 
-import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
-import com.open.ai.eros.db.redis.impl.JedisClientImpl;
 import com.open.hr.ai.bean.req.ClientBossNewMessageReq;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
-import com.open.hr.ai.constant.RedisKyeConstant;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.BossNewMessageProcessor;
 import com.open.hr.ai.util.AmClientTaskUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 

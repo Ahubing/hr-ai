@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
-import com.open.ai.eros.ai.util.SendMessageUtil;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -13,7 +12,7 @@ import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.hr.entity.*;
 import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.bossNewMessage.ReplyUserMessageDataProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -218,6 +217,8 @@ public class DealUserFirstSendMessageUtil {
             content = content.substring(content.indexOf("</think>") + 8);
         }
         AmClientTasks amClientTasks = new AmClientTasks();
+        String clientTaskId = UUID.randomUUID().toString();
+        amClientTasks.setId(clientTaskId);
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
@@ -255,7 +256,7 @@ public class DealUserFirstSendMessageUtil {
                 aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
                 aiMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
                 aiMessage.setConversationId(taskId);
-                aiMessage.setChatId(UUID.randomUUID().toString());
+                aiMessage.setChatId(clientTaskId);
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }

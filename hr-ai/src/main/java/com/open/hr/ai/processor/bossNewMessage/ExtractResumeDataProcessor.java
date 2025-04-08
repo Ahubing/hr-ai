@@ -98,7 +98,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
                         amChatMessageLambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId);
                         boolean remove = amChatMessageService.remove(amChatMessageLambdaQueryWrapper);
                         log.info("dealUserAllInfoData remove amChatMessage result={},conversationId={}", remove, conversationId);
-                        amResume.setType(ReviewStatusEnums.RESUME_SCREENING.getStatus());
+                        amResume.setType(ReviewStatusEnums.BUSINESS_SCREENING.getStatus());
                     }
                     amResume.setPostId(amPositionServiceOne.getId());
                 }
@@ -119,7 +119,7 @@ public class ExtractResumeDataProcessor implements BossNewMessageProcessor {
             amResume.setUid(userId);
             amResume.setAdminId(amZpLocalAccouts.getAdminId());
             amResume.setAccountId(amZpLocalAccouts.getId());
-            amResumeService.updateType(amResume, false, ReviewStatusEnums.RESUME_SCREENING);
+            amResumeService.updateType(amResume, false, ReviewStatusEnums.BUSINESS_SCREENING);
             if (Objects.nonNull(chatInfo.get("toPositionId"))) {
                 String toPositionId = chatInfo.get("toPositionId").toString();
                 LambdaQueryWrapper<AmPosition> positionQueryWrapper = new LambdaQueryWrapper<>();

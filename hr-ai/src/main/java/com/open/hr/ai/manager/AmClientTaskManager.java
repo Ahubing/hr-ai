@@ -9,12 +9,11 @@ import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.mysql.hr.entity.AmChatbotGreetTask;
 import com.open.ai.eros.db.mysql.hr.entity.AmClientTasks;
 import com.open.ai.eros.db.mysql.hr.entity.AmPosition;
-import com.open.ai.eros.db.mysql.hr.entity.AmZpLocalAccouts;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmChatbotGreetTaskServiceImpl;
 import com.open.ai.eros.db.mysql.hr.service.impl.AmClientTasksServiceImpl;
 import com.open.hr.ai.bean.vo.AmClientTasksVo;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
-import com.open.hr.ai.constant.ClientTaskTypeEnums;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.hr.ai.constant.PositionStatusEnums;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -83,7 +82,7 @@ public class AmClientTaskManager {
     public ResultVO getExecuteTask(String bossId,Integer limit) {
         LambdaQueryWrapper<AmClientTasks> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(AmClientTasks::getBossId,bossId);
-        lambdaQueryWrapper.lt(AmClientTasks::getRetryTimes,3);
+        lambdaQueryWrapper.le(AmClientTasks::getRetryTimes,3);
         lambdaQueryWrapper.in(AmClientTasks::getStatus,AmClientTaskStatusEnums.START.getStatus(),AmClientTaskStatusEnums.NOT_START.getStatus());
         lambdaQueryWrapper.orderByDesc(AmClientTasks::getOrderNumber);
         lambdaQueryWrapper.orderByAsc(AmClientTasks::getCreateTime);
@@ -98,7 +97,7 @@ public class AmClientTaskManager {
             amClientTasksVo.setId(amClientTask.getId());
             amClientTasksVo.setSuccessCount(0);
             amClientTasksVo.setTotalCount(1);
-            amClientTasksVo.setStatus(AmClientTaskStatusEnums.START.getStatus());
+            amClientTasksVo.setStatus(amClientTask.getStatus());
             amClientTasksVo.setReason(amClientTask.getReason());
             amClientTasksVo.setTaskType(amClientTask.getTaskType());
             amClientTasksVo.setCreateTime(amClientTask.getCreateTime());
@@ -194,7 +193,7 @@ public class AmClientTaskManager {
             if (StringUtils.isNotBlank(taskType)) {
                 if ("rechat".equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, ClientTaskTypeEnums.SEND_MESSAGE.getType());
-                    lambdaQueryWrapper.eq(AmClientTasks::getSubType, "rechat");
+                    lambdaQueryWrapper.eq(AmClientTasks::getSubType, ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType());
                 } else if (ClientTaskTypeEnums.SEND_MESSAGE.getType().equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
                     lambdaQueryWrapper.eq(AmClientTasks::getData, ClientTaskTypeEnums.SEND_MESSAGE.getType());

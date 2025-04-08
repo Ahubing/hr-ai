@@ -6,6 +6,7 @@ import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
 import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
 import com.open.ai.eros.ai.bean.vo.MaskSseConversationVo;
 import com.open.ai.eros.ai.manager.ICAiManager;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.ai.eros.db.constants.AIRoleEnum;
 import com.open.ai.eros.db.mysql.ai.service.IChatMessageService;
 import com.open.ai.eros.db.mysql.hr.entity.*;
@@ -234,10 +235,11 @@ public class SendMessageUtil {
         jsonObject.put("messages", Collections.singletonList(content));
         jsonObject.put("search_data", searchObject);
 
-        amClientTasks.setTaskType("send_message");
+        amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
+        amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
+        amClientTasks.setSubType(ClientTaskTypeEnums.SEND_MESSAGE.getSubType());
         amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", resume.getName(), content));
 
-        amClientTasks.setOrderNumber(2);
         amClientTasks.setBossId(resume.getAccountId());
         amClientTasks.setData(jsonObject.toJSONString());
         amClientTasks.setStatus(0);
@@ -256,7 +258,7 @@ public class SendMessageUtil {
             amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
             amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
             amChatMessage.setType(-1);
-            amChatMessage.setChatId(UUID.randomUUID().toString());
+            amChatMessage.setChatId(amClientTasks.getId());
             amChatMessage.setContent(content);
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = chatMessageService.save(amChatMessage);
