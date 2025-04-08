@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AmModelServiceImpl extends ServiceImpl<AmModelMapper, AmModel> implements IAmModelService {
 
-    public AmModel getDefalutModel() {
+    public AmModel getDefaultModel() {
         QueryWrapper<AmModel> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_default", 1);
 

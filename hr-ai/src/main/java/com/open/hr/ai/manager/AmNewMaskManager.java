@@ -117,7 +117,7 @@ public class AmNewMaskManager {
         amNewMask.setGreetMessage(req.getGreetMessage());
 
         AmModel model = amModelService.getById(req.getModelId());
-        model = model == null ? amModelService.getDefalutModel() : model;
+        model = model == null ? amModelService.getDefaultModel() : model;
         amNewMask.setModelId(model.getId());
         amNewMask.setModelName(model.getName());
 
@@ -176,6 +176,9 @@ public class AmNewMaskManager {
         amNewMask.setSkipHolidayStatus(req.getSkipHolidayStatus());
         amNewMask.setModelId(req.getModelId());
         AmModel amModel = amModelService.getById(req.getModelId());
+        if (amModel == null || amModel.getStatus() != 1) {
+            return ResultVO.fail("AI模型不可用");
+        }
         amNewMask.setModelName(amModel.getName());
 
         //amNewMask.setModelId(req.getModelId());
@@ -366,9 +369,4 @@ public class AmNewMaskManager {
         }
         return true;
     }
-
-
-
-
-
 }

@@ -112,6 +112,13 @@ public class AmModelManager {
         if (req.getIsDefault() != null && req.getIsDefault() == 1) {
             resetDefaultModel();
         }
+
+        // 判断是否为第一个模型创建，如果是，则自动设置为默认模型
+        boolean isFirstModel = amModelService.count(new LambdaQueryWrapper<AmModel>().eq(AmModel::getIsDefault, 1)) == 0;
+        if (isFirstModel) {
+            req.setIsDefault(1); // 自动将第一个模型设为默认模型
+        }
+
         AmModel model = new AmModel();
         BeanUtils.copyProperties(req, model);
         model.setStatus(1); // 默认启用
@@ -141,21 +148,11 @@ public class AmModelManager {
             return ResultVO.fail("模型不存在");
         }
 
-        // 验证模型名称和值是否与其他模型重复
-        /*if (req.getName() != null || req.getValue() != null) {
-            LambdaQueryWrapper<AmModel> queryWrapper = new LambdaQueryWrapper<>();
-            if (req.getName() != null) {
-                queryWrapper.eq(AmModel::getName, req.getName());
-            }
-            if (req.getValue() != null) {
-                queryWrapper.or().eq(AmModel::getValue, req.getValue());
-            }
-            queryWrapper.ne(AmModel::getId, req.getId());
-            int count = amModelService.count(queryWrapper);
-            if (count > 0) {
-                return ResultVO.fail("模型名称或值已存在");
-            }
-        }*/
+        // 如果设置为默认模型，需要取消其他默认模型
+        if (req.getIsDefault() != null && req.getIsDefault() == 1) {
+            // 重置其他模型的默认状态
+            resetDefaultModel();
+        }
 
         AmModel model = new AmModel();
         BeanUtils.copyProperties(req, model);
@@ -267,9 +264,9 @@ public class AmModelManager {
     public ResultVO<List<AmModel>> getAvailableModelsForSelect() {
         // 只获取状态为启用的模型
         LambdaQueryWrapper<AmModel> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(AmModel::getStatus, 1)
-                .orderByDesc(AmModel::getIsDefault) // 默认模型排在前面
-                .orderByDesc(AmModel::getCreateTime); // 然后按创建时间倒序
+        queryWrapper.eq(AmModel::getStatus, 1);
+                //.orderByDesc(AmModel::getIsDefault) // 默认模型排在前面
+                //.orderByDesc(AmModel::getCreateTime); // 然后按创建时间倒序
 
         List<AmModel> models = amModelService.list(queryWrapper);
         return ResultVO.success(models);

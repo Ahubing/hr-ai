@@ -401,6 +401,7 @@ public class ResumeManager {
             List<AmResume> list = resumeMapper.exportResume(adminId, ids, type, post_id, name, startDateTime,
                     endDateTime, expectPosition, postName, platformId, score,
                     deptId, deptName, positionId, positionName, platform, sortMap);
+            System.out.println("查询结果：" + list);
             if (list.isEmpty()) {
                 response.setContentType("text/plain; charset=UTF-8");
                 response.getWriter().write("未找到符合条件的简历数据");
@@ -431,7 +432,7 @@ public class ResumeManager {
             List<String> selectedFields = new ArrayList<>();
             if (StringUtils.isNotBlank(exportFields)) {
                 selectedFields = Arrays.asList(exportFields.split(","));
-                selectedFields = new ArrayList<>(Arrays.asList(exportFields.split(",")));
+                //selectedFields = new ArrayList<>(Arrays.asList(exportFields.split(",")));
             } else {
                 // 如果前端没有指定导出字段，则使用默认字段
                 selectedFields = new ArrayList<>(Arrays.asList("name", "gender", "phone", "wechat", "platform", "expectPosition", "score", "createTime"));
@@ -465,6 +466,8 @@ public class ResumeManager {
             // 填充简历数据
             for (int i = 0; i < list.size(); i++) {
                 AmResume resume = list.get(i);
+                System.out.println("getphone()" + resume.getPhone());
+                System.out.println("resume" + resume);
                 Row row = sheet.createRow(i + 1);
                 for (int j = 0; j < finalExportFields.size(); j++) {
                     String field = finalExportFields.get(j);

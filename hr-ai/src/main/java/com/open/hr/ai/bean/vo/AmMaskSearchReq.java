@@ -38,6 +38,6 @@ public class AmMaskSearchReq {
     /**
      * 关联的模型ID
      */
-    private Long modelId;
+//    private Long modelId;
 
 }

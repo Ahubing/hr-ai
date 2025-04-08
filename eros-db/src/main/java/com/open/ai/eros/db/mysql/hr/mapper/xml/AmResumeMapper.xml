@@ -185,6 +185,8 @@
         SELECT
         ar.id as id,
         ar.name as name,
+        ar.phone as phone,
+        ar.wechat as wechat,
         ar.expect_position as expectPosition,
         ar.platform as platform,
         ar.create_time as createTime,

@@ -17,6 +17,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -69,9 +70,11 @@ public class AmModelController extends HrAIBaseController {
         return amModelManager.updateModel(req, getUserId());
     }
 
+
     @ApiOperation(value = "删除AI模型", notes = "删除指定的AI模型")
     @VerifyUserToken
     @PostMapping("/amModel/delete/{id}")
+    @Transactional
     public ResultVO<Boolean> deleteModel(@PathVariable Long id) {
         return amModelManager.deleteModel(id, getUserId());
     }
