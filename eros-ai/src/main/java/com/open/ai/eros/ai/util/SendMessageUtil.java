@@ -258,7 +258,7 @@ public class SendMessageUtil {
             amChatMessage.setUserId(Long.parseLong(account.getExtBossId()));
             amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
             amChatMessage.setType(-1);
-            amChatMessage.setChatId(UUID.randomUUID().toString());
+            amChatMessage.setChatId(amClientTasks.getId());
             amChatMessage.setContent(content);
             amChatMessage.setCreateTime(LocalDateTime.now());
             boolean save = chatMessageService.save(amChatMessage);

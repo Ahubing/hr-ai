@@ -213,6 +213,8 @@ public class DealUserFirstSendMessageUtil {
             content = content.substring(content.indexOf("</think>") + 8);
         }
         AmClientTasks amClientTasks = new AmClientTasks();
+        String clientTaskId = UUID.randomUUID().toString();
+        amClientTasks.setId(clientTaskId);
         amClientTasks.setBossId(amZpLocalAccouts.getId());
         amClientTasks.setTaskType(ClientTaskTypeEnums.SEND_MESSAGE.getType());
         amClientTasks.setOrderNumber(ClientTaskTypeEnums.SEND_MESSAGE.getOrder());
@@ -250,7 +252,7 @@ public class DealUserFirstSendMessageUtil {
                 aiMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
                 aiMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
                 aiMessage.setConversationId(taskId);
-                aiMessage.setChatId(UUID.randomUUID().toString());
+                aiMessage.setChatId(clientTaskId);
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }

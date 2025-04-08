@@ -1042,18 +1042,20 @@ public class ClientManager {
                 queryWrapper.eq(AmPositionSyncTask::getAccountId, bossId).set(AmPositionSyncTask::getStatus, 2);
                 amPositionSyncTaskService.update(queryWrapper);
             }
-            if (amClientTasks.getSubType().equals(ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType())) {
-                String id = amClientTasks.getId();
-                LambdaQueryWrapper<AmChatMessage> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(AmChatMessage::getChatId, id);
-                AmChatMessage amChatMessage = amChatMessageService.getOne(queryWrapper, false);
-                if (Objects.isNull(amChatMessage)) {
-                    log.info("dealErrorTask amChatMessage is null,bossId={},id={}", bossId, id);
-                    return;
+            if (amClientTasks.getTaskType().equals(ClientTaskTypeEnums.SEND_MESSAGE.getType())) {
+                if (jsonObject.containsKey("user_id")) {
+                    String userId = jsonObject.get("user_id").toString();
+                    String conversationId = bossId + "_" + userId;
+                    LambdaQueryWrapper<AmChatMessage> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+                    lambdaQueryWrapper.eq(AmChatMessage::getConversationId, conversationId)
+                            .eq(AmChatMessage::getType,-1)
+                            .eq(AmChatMessage::getChatId,amClientTasks.getId())
+                            .eq(AmChatMessage::getRole,AIRoleEnum.ASSISTANT.getRoleName());
+                    boolean remove = amChatMessageService.remove(lambdaQueryWrapper);
+                    log.info("dealErrorTask amChatMessageService remove result={},amChatMessage={}", remove, lambdaQueryWrapper);
+                }else {
+                    log.info("dealErrorTask user_id is null,bossId={}", bossId);
                 }
-                //删除已经生成消息
-                boolean result = amChatMessageService.removeById(amChatMessage.getId());
-                log.info("dealErrorTask amChatMessageService remove result={},amChatMessage={}", result, amChatMessage);
             }
         } catch (Exception e) {
             log.error("处理失败任务异常 taskId={},bossId={}", taskId, amZpLocalAccouts.getId(), e);
@@ -1242,7 +1244,7 @@ public class ClientManager {
                         amChatMessage.setUserId(Long.parseLong(amZpLocalAccouts.getExtBossId()));
                         amChatMessage.setRole(AIRoleEnum.ASSISTANT.getRoleName());
                         amChatMessage.setType(-1);
-                        amChatMessage.setChatId(UUID.randomUUID().toString());
+                        amChatMessage.setChatId(amClientTasks.getId());
                         amChatMessage.setContent(amNewMask.getGreetMessage());
                         amChatMessage.setCreateTime(LocalDateTime.now());
                         boolean save = amChatMessageService.save(amChatMessage);
