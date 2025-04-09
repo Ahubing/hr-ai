@@ -317,6 +317,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
            if (Objects.isNull(chatMessage)) {
               continue;
            }
+           log.info("ReplyUserMessageDataProcessor printf chatMessage={}", JSONObject.toJSONString(chatMessage));
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;
@@ -358,8 +359,13 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         hashMap.put("search_data", searchDataMap);
         List<AmChatMessage> aiMessages = new ArrayList<>();
         try {
+            log.info("ReplyUserMessageDataProcessor  content={}", content);
             String jsonContent = AIJsonUtil.getJsonContent(content);
             JSONObject jsonObject = JSONArray.parseObject(jsonContent);
+            if (Objects.nonNull(jsonObject.get("elimination_reason"))) {
+                String eliminationReason = jsonObject.get("elimination_reason").toString();
+                amClientTasks.setDetail("用户不符合的原因: "+eliminationReason+"\n");
+            }
             if (Objects.isNull(jsonObject.get("messages")) || jsonObject.get("messages").toString().equals("[]")) {
                 log.error("ReplyUserMessageDataProcessor dealBossNewMessage messages is null content={}",content);
                 return ResultVO.fail(404, "ai回复内容解析错误");
