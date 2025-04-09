@@ -199,6 +199,7 @@ public class DealUserFirstSendMessageUtil {
             if (Objects.isNull(chatMessage)) {
                 continue;
             }
+            log.info("ReplyUserMessageDataProcessor printf chatMessage={}", JSONObject.toJSONString(chatMessage));
             content = chatMessage.getContent().toString();
             if (StringUtils.isNotBlank(content)) {
                 break;

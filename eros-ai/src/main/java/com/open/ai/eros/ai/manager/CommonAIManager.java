@@ -76,7 +76,7 @@ public class CommonAIManager {
 
 
         try {
-
+            log.info("aiNoStream begin");
             Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
             Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
 
