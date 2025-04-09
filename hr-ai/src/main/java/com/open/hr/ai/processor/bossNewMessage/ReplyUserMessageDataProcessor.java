@@ -360,6 +360,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         try {
             String jsonContent = AIJsonUtil.getJsonContent(content);
             JSONObject jsonObject = JSONArray.parseObject(jsonContent);
+            if (Objects.nonNull(jsonObject.get("elimination_reason"))) {
+                String eliminationReason = jsonObject.get("elimination_reason").toString();
+                amClientTasks.setDetail("用户不符合的原因: "+eliminationReason+"\n");
+            }
             if (Objects.isNull(jsonObject.get("messages")) || jsonObject.get("messages").toString().equals("[]")) {
                 log.error("ReplyUserMessageDataProcessor dealBossNewMessage messages is null content={}",content);
                 return ResultVO.fail(404, "ai回复内容解析错误");
