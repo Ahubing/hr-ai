@@ -432,6 +432,20 @@ public class ResumeManager {
             allFields.put("email", "邮箱");
             allFields.put("age", "年龄");
             allFields.put("postName", "职位名称");
+            allFields.put("company", "公司");
+            allFields.put("city", "城市");
+            allFields.put("experiences", "工作经验");
+            allFields.put("projects", "项目经验");
+            allFields.put("postId", "职位 ID");
+            allFields.put("applyStatus", "申请状态");
+            allFields.put("zpData", "招聘信息");
+            allFields.put("lowSalary", "最低薪资");
+            allFields.put("highSalary", "最高薪资");
+            allFields.put("resumeType", "简历类型");
+            allFields.put("competencyModel", "胜任力模型数据");
+            allFields.put("intention", "求职意向");
+            allFields.put("degree", "学历等级");
+            allFields.put("isStudent", "是否为学生");
 
             // 解析前端传来的导出字段
             List<String> selectedFields = new ArrayList<>();

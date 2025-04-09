@@ -70,7 +70,6 @@ public class AmClientTaskManager {
      */
     public ResultVO<Map<String, Integer>> getTaskList(String bossId) {
         Map<String, Integer> amClientTaskData = amClientTasksService.getAmClientTaskData(bossId);
-        log.info("getTaskList amClientTaskData={}", amClientTaskData);
         return ResultVO.success(amClientTaskData);
     }
 
@@ -123,7 +122,6 @@ public class AmClientTaskManager {
             }
             amClientTaskData.add(amClientTasksVo);
         }
-        log.info("getTaskList amClientTaskData={}", amClientTaskData);
         return ResultVO.success(amClientTaskData);
     }
 
@@ -177,7 +175,6 @@ public class AmClientTaskManager {
             }
             amClientTaskData.add(amClientTasksVo);
         }
-        log.info("getTaskList amClientTaskData={}", amClientTaskData);
         return ResultVO.success(PageVO.build(amClientTasksPage.getTotal(), amClientTaskData));
     }
 

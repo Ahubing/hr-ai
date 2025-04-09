@@ -6,6 +6,7 @@ import com.open.ai.eros.common.util.DateUtils;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -40,17 +41,23 @@ public class InterviewFunction {
     ONBOARD(5, "onboard","已入职");
      *
      */
-    @Tool(name = "set_status", value = {"判断当前沟通进行到了哪一步并调用本函数设置跟进状态,状态码对应的code如下, 业务筛选:business_screening, 邀约跟进:invitation_follow,  面试安排:interview_arrangement, 不符合:abandon"})
-    public String set_status(@P("设置沟通状态") String status) {
+    @Tool(name = "set_status", value = {"判断当前沟通进行到了哪一步并调用本函数设置跟进状态,状态码对应的code如下, 业务筛选:business_screening, 邀约跟进:invitation_follow,  面试安排:interview_arrangement, 不符合:abandon","对不符合对候选人输出不符合的原因, 其他状态直接返回对应的code"})
+    public String set_status(@P("设置沟通状态") String status,
+                             @P("不符合的原因") String reason) {
         log.info("set_status function params status:{}", status);
+        JSONObject params = new JSONObject();
+        params.put("status", status);
+        if (StringUtils.isNotBlank(reason)) {
+            params.put("reason", reason);
+        }
         // 注意 AI只需要跟进到这个阶段，后面的阶段由人工进行操作
         ReviewStatusEnums anEnum = ReviewStatusEnums.getEnum(status);
         if (Objects.nonNull(anEnum) && (anEnum.getStatus() > 3 )) {
-            return ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getKey();
+            params.put("status", ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getKey());
+             return JSONObject.toJSONString(params);
         }
-
         // 返回结构化的 JSON 格式结果
-        return status;
+        return JSONObject.toJSONString(params);
     }
 
 

@@ -148,7 +148,16 @@ public class CommonAIManager {
                         // 特殊业务逻辑,后续替换为策略模式
                         if ("set_status".equals(name)) {
                             resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                            ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey(result);
+                            log.info("设置状态: tool={}, result={}", name, result);
+                            JSONObject jsonObject = JSONObject.parseObject(result);
+                            if (jsonObject == null) {
+                                log.error("工具执行失败: tool={}, result={}", name, result);
+                                continue;
+                            }
+                            if (jsonObject.containsKey("reason")){
+                                preParams.put("reason",jsonObject.get("reason"));
+                            }
+                            ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey( jsonObject.get("status").toString());
                             if (Objects.nonNull(enums)) {
                                 statusCode.set(enums.getStatus());
                                 isAiSetStatus.set(Boolean.TRUE);

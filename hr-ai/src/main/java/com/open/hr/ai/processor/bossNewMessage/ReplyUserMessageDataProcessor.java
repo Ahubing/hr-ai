@@ -358,17 +358,17 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         }
         hashMap.put("search_data", searchDataMap);
         List<AmChatMessage> aiMessages = new ArrayList<>();
+        if (Objects.nonNull(params.get("reason"))) {
+            String reason = params.get("reason").toString();
+            amClientTasks.setDetail("用户不符合的原因: "+reason+"\n");
+        }
         try {
             log.info("ReplyUserMessageDataProcessor  content={}", content);
             String jsonContent = AIJsonUtil.getJsonContent(content);
             JSONObject jsonObject = JSONArray.parseObject(jsonContent);
-            if (Objects.nonNull(jsonObject.get("elimination_reason"))) {
-                String eliminationReason = jsonObject.get("elimination_reason").toString();
-                amClientTasks.setDetail("用户不符合的原因: "+eliminationReason+"\n");
-            }
             if (Objects.isNull(jsonObject.get("messages")) || jsonObject.get("messages").toString().equals("[]")) {
                 log.error("ReplyUserMessageDataProcessor dealBossNewMessage messages is null content={}",content);
-                return ResultVO.fail(404, "ai回复内容解析错误");
+                return ResultVO.fail(404, "ai回复内容解析错误,不生成任务");
             }
             hashMap.put("messages", jsonObject.get("messages"));
             JSONArray jsonArray = jsonObject.getJSONArray("messages");
