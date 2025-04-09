@@ -266,7 +266,8 @@ public class DealUserFirstSendMessageUtil {
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }
-            amClientTasks.setDetail(String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
+            String detail = amClientTasks.getDetail();
+            amClientTasks.setDetail(detail+"\n"+String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
         }catch (Exception e){
             log.error("DealUserFirstSendMessageUtil dealBossNewMessage content parse error content={}",content);
             return ResultVO.fail(404, "ai回复内容解析错误");
