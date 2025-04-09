@@ -8,6 +8,7 @@
         ar.name as name,
         ar.expect_position as expectPosition,
         ar.platform as platform,
+        ar.uid as uid,
         ar.create_time as createTime,
         ar.competency_model as competencyModelStr,
         ar.avatar as avatar,
