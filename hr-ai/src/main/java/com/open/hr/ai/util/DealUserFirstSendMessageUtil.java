@@ -237,18 +237,19 @@ public class DealUserFirstSendMessageUtil {
 
         List<AmChatMessage> aiMessages = new ArrayList<>();
         try {
+            log.info("DealUserFirstSendMessageUtil  content={}", content);
             String jsonContent = AIJsonUtil.getJsonContent(content);
             JSONObject jsonObject = JSONArray.parseObject(jsonContent);
             // 如果messages 里面为[]
-
-            if (Objects.isNull(jsonObject.get("messages")) || jsonObject.get("messages").toString().equals("[]")) {
-                log.error("DealUserFirstSendMessageUtil dealBossNewMessage messages is null content={}",content);
-                return ResultVO.fail(404, "ai回复内容解析错误");
-            }
             if (Objects.nonNull(jsonObject.get("elimination_reason"))) {
                 String eliminationReason = jsonObject.get("elimination_reason").toString();
                 amClientTasks.setDetail("用户不符合的原因: "+eliminationReason+"\n");
             }
+            if (Objects.isNull(jsonObject.get("messages")) || jsonObject.get("messages").toString().equals("[]")) {
+                log.error("DealUserFirstSendMessageUtil dealBossNewMessage messages is null content={}",content);
+                return ResultVO.fail(404, "ai回复内容解析错误");
+            }
+
             hashMap.put("messages", jsonObject.get("messages"));
             JSONArray jsonArray = jsonObject.getJSONArray("messages");
             StringBuilder stringBuilder = new StringBuilder();

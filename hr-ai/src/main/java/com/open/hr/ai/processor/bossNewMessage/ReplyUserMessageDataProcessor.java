@@ -358,6 +358,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         hashMap.put("search_data", searchDataMap);
         List<AmChatMessage> aiMessages = new ArrayList<>();
         try {
+            log.info("ReplyUserMessageDataProcessor  content={}", content);
             String jsonContent = AIJsonUtil.getJsonContent(content);
             JSONObject jsonObject = JSONArray.parseObject(jsonContent);
             if (Objects.nonNull(jsonObject.get("elimination_reason"))) {
