@@ -193,7 +193,6 @@ public class AmClientTaskManager {
                     lambdaQueryWrapper.eq(AmClientTasks::getSubType, ClientTaskTypeEnums.SEND_RECHAT_MESSAGE.getSubType());
                 } else if (ClientTaskTypeEnums.SEND_MESSAGE.getType().equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
-                    lambdaQueryWrapper.eq(AmClientTasks::getData, ClientTaskTypeEnums.SEND_MESSAGE.getType());
                 } else if (ClientTaskTypeEnums.GREET.getType().equals(taskType)) {
                     lambdaQueryWrapper.eq(AmClientTasks::getTaskType, taskType);
                 } else if ("other".equals(taskType)) {

@@ -450,8 +450,7 @@ public class ResumeManager {
             // 解析前端传来的导出字段
             List<String> selectedFields = new ArrayList<>();
             if (StringUtils.isNotBlank(exportFields)) {
-                selectedFields = Arrays.asList(exportFields.split(","));
-                //selectedFields = new ArrayList<>(Arrays.asList(exportFields.split(",")));
+                selectedFields = new ArrayList<>(Arrays.asList(exportFields.split(",")));                //selectedFields = new ArrayList<>(Arrays.asList(exportFields.split(",")));
             } else {
                 // 如果前端没有指定导出字段，则使用默认字段
                 selectedFields = new ArrayList<>(Arrays.asList("name", "gender", "phone", "wechat", "platform", "expectPosition", "score", "createTime"));
