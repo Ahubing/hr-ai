@@ -456,13 +456,13 @@ public class ResumeManager {
                 selectedFields = new ArrayList<>(Arrays.asList("name", "gender", "phone", "wechat", "platform", "expectPosition", "score", "createTime"));
             }
 
-            // 强制加入 wechat 和 phone
-            if (!selectedFields.contains("wechat")) {
-                selectedFields.add("wechat");
-            }
-            if (!selectedFields.contains("phone")) {
-                selectedFields.add("phone");
-            }
+//            // 强制加入 wechat 和 phone
+//            if (!selectedFields.contains("wechat")) {
+//                selectedFields.add("wechat");
+//            }
+//            if (!selectedFields.contains("phone")) {
+//                selectedFields.add("phone");
+//            }
 
             // 创建标题行
             Row headerRow = sheet.createRow(0);
