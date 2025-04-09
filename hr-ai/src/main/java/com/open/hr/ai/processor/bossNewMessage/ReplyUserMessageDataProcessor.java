@@ -386,7 +386,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
                 aiMessage.setType(-1);
                 aiMessages.add(aiMessage);
             }
-            String detail = amClientTasks.getDetail();
+            String detail = "";
+            if (StringUtils.isNotBlank( amClientTasks.getDetail())){
+                 detail = amClientTasks.getDetail();
+            }
             amClientTasks.setDetail(detail+"\n"+String.format("回复用户: %s , 回复内容为: %s", amResume.getName(), stringBuilder.toString()));
         }catch (Exception e){
             log.error("ReplyUserMessageDataProcessor dealBossNewMessage content parse error content={}",content);
