@@ -240,6 +240,7 @@ public class DealUserFirstSendMessageUtil {
         try {
             if (Objects.nonNull(params.get("reason"))) {
                 String reason = params.get("reason").toString();
+                log.info("DealUserFirstSendMessageUtil  reason={}", reason);
                 amClientTasks.setDetail("用户不符合的原因: "+reason+"\n");
             }
 

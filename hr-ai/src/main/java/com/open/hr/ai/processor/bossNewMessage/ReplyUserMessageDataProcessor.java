@@ -360,6 +360,7 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         List<AmChatMessage> aiMessages = new ArrayList<>();
         if (Objects.nonNull(params.get("reason"))) {
             String reason = params.get("reason").toString();
+            log.info("ReplyUserMessageDataProcessor  reason={}", reason);
             amClientTasks.setDetail("用户不符合的原因: "+reason+"\n");
         }
         try {
