@@ -1,0 +1,55 @@
+package com.open.ai.eros.ai.tool.function;
+
+import com.alibaba.fastjson.JSONObject;
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.server.Jsp;
+import org.springframework.stereotype.Component;
+
+@Component
+@Slf4j
+public class InterviewCalendarFunction {
+
+    @Tool(name = "get_spare_time", value = {"查询可用面试时间。返回时间段内所有可面试时间"})
+    public String get_spare_time(@P("开始时间（格式为yyyy-MM-ddTHH:mm:ss）") String startTime,
+                                 @P("结束时间（格式为yyyy-MM-ddTHH:mm:ss）") String endTime) {
+        log.info("get_spare_time function params startTime:{} endTime:{}", startTime, endTime);
+        JSONObject params = new JSONObject();
+        params.put("startTime", startTime);
+        params.put("endTime", endTime);
+//        params.put("maskId", maskId);
+        return JSONObject.toJSONString(params);
+    }
+
+    @Tool(name = "appoint_interview", value = {"为求职者预约面试时间"})
+    public String appoint_interview(@P("求职者期望的面试开始时间（格式为yyyy-MM-ddTHH:mm:ss）") String startTime) {
+        log.info("appoint_interview function params startTime:{} ", startTime);
+        JSONObject params = new JSONObject();
+//        params.put("maskId", maskId);
+//        params.put("adminId", adminId);
+//        params.put("employeeUid", employeeUid);
+        params.put("startTime", startTime);
+//        params.put("positionId", positionId);
+//        params.put("accountId", accountId);
+        return JSONObject.toJSONString(params);
+    }
+
+    @Tool(name = "cancel_interview", value = {"取消面试"})
+    public String cancel_interview() {
+//        log.info("cancel_interview function params interviewId:{}", interviewId);
+        JSONObject params = new JSONObject();
+//        params.put("interviewId", interviewId);
+        return JSONObject.toJSONString(params);
+    }
+
+    @Tool(name = "modify_interview_time", value = {"修改面试时间"})
+    public String modify_interview_time(@P("修改到的新时间（格式为yyyy-MM-ddTHH:mm:ss）") String newTime) {
+        log.info("modify_interview_time function params newTime:{}", newTime);
+        JSONObject params = new JSONObject();
+//        params.put("interviewId", interviewId);
+        params.put("newTime", newTime);
+        return JSONObject.toJSONString(params);
+    }
+
+}

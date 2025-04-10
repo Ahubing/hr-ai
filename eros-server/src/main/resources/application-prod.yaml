@@ -1,0 +1,135 @@
+server:
+  port: 8099
+  tomcat:
+    threads:
+      max: 8000
+
+
+spring:
+  mvc:
+    async:
+      request-timeout: 300000 # 例如，设置为300秒
+  # redis配置
+  redis:
+    # Redis数据库索引（默认为0）
+    database: 0
+    # Redis服务器地址
+    host: 124.156.137.182
+    # Redis服务器连接端口
+    port: 6388
+    # Redis服务器连接密码（默认为空）
+    password: blueCat666!
+    # 连接超时时间
+    timeout: 5s
+    jedis:
+      pool:
+        # 连接池最大连接数
+        max-active: 5000
+        # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-wait: 500ms
+        # 连接池中的最大空闲连接
+        max-idle: 20
+        # 连接池中的最小空闲连接
+        min-idle: 10
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://118.24.73.184:3377/hr-ai?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: blueCat666
+
+  # 邮箱基本配置
+  mail:
+    # 配置 smtp 服务主机地址
+    # qq 邮箱     smtp.qq.com    端口号 465 或 587
+    # sina       smtp.sina.com
+    # aliyun     smtp.aliyun.com
+    # 163        smtp.163.com   端口号 465 或 994
+    host: smtp.qq.com
+    # 发送者邮箱
+    username: 37314253@qq.com
+    # 在邮箱内申请的授权码
+    password: bvrifvdjglilbidd
+    # 端口号
+    port: 587
+    # 默认的邮件编码为UTF-8
+    default-encoding: UTF-8
+    # 其他参数
+    properties:
+      mail:
+        # 配置SSL 加密工厂
+        smtp:
+          ssl:
+            # 本地测试， 先放开ssl
+            enable: false
+            required: false
+          #开启debug模式，这样邮件发送过程的日志会在控制台打印出来，方便排查错误
+        debug: true
+
+privacy:
+  crypto:
+    key: jshfdiwhfkjncwolmas
+
+
+project.name: ErosAI
+
+#  临时文件存储地址
+file-save-path: "/www/wwwroot/default/dist/%s/"
+
+# 项目域名
+domain-name: "https://www.hr-ai.cloud/"
+
+
+# 邀请好友获取的奖励 积分  0.2 刀
+invitationCode.balance : 2000000
+
+# -----------------------------------------------------
+# 支付的域名
+pay.cdn : "https://pay.flcat.top/"
+
+# API接口支付
+pay.payUrl : "mapi.php"
+
+# 支付方式
+pay.way : "alipay"
+
+# 支付方式回调
+pay.notifyUrl : "https://www.quwen.chat/eros/ai/pay/notify"
+
+# 打开mybatis的日志
+#mybatis-plus:
+#  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+pay.pid : 1000
+
+pay.orderQueryUrl : "api.php"
+
+pay.sign : "ByU5vh39B3V3303079v53UKy3UYzQ7BW"
+
+pay.signType : "md5"
+
+#          ------------支付
+langchain4j:
+  milvus:
+    host: 23.225.116.137
+    port: 19530
+    dimension: 1536
+
+
+knowledge.docs.ai.url: https://bluecatai.net/
+
+knowledge.docs.ai.token: sk-0051196c7a464cd18778e581cb3d7ca6
+
+knowledge.docs.ai.inferModel: gpt-4o-2024-05-13
+
+knowledge.docs.ai.checkInferModel: gpt-4o-2024-05-13
+
+mybatis-plus:
+  mapper-locations: classpath*:com/open/ai/eros/db/mysql/**/*.xml

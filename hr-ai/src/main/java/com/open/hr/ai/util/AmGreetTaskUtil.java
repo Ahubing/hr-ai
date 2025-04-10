@@ -1,0 +1,160 @@
+package com.open.hr.ai.util;
+
+import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.open.ai.eros.db.mysql.hr.entity.*;
+import com.open.ai.eros.db.mysql.hr.service.impl.*;
+import com.open.ai.eros.db.mysql.hr.vo.AmGreetConditionVo;
+import com.open.hr.ai.constant.AmClientTaskStatusEnums;
+import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
+import com.open.hr.ai.constant.MessageTypeEnums;
+import com.open.hr.ai.convert.AmChatBotGreetNewConditionConvert;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.UUID;
+
+/**
+ * 处理临时打招呼数据任务添加
+ *
+ * @Date 2025/1/18 00:17
+ */
+@Slf4j
+@Component
+public class AmGreetTaskUtil {
+
+    @Resource
+    private AmChatbotGreetTaskServiceImpl amChatbotGreetTaskService;
+
+    @Resource
+    private AmChatbotGreetMessagesServiceImpl amChatbotGreetMessagesService;
+
+    @Resource
+    private AmChatbotGreetConditionNewServiceImpl amChatbotGreetConditionNewService;
+
+    @Resource
+    private AmPositionServiceImpl amPositionService;
+
+    @Resource
+    private AmClientTasksServiceImpl amClientTasksService;
+
+    @Resource
+    private AmChatbotGreetConfigServiceImpl amChatbotGreetConfigService;
+
+
+    @Resource
+    private AmChatbotPositionOptionServiceImpl amChatbotPositionOptionService;
+
+
+
+    @Resource
+    private AmNewMaskServiceImpl amNewMaskService;
+
+
+    private static final String GREET_MESSAGE = "你好";
+
+    /**
+     * 处理临时任务,一次性塞到队列里面执行
+     */
+    public void dealGreetTask(AmChatbotGreetTask amChatbotGreetTask) {
+        try {
+            // 执行任务
+            LambdaQueryWrapper<AmChatbotGreetConfig> greetConfigQueryWrapper = new LambdaQueryWrapper<>();
+            greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getAccountId, amChatbotGreetTask.getAccountId());
+            greetConfigQueryWrapper.eq(AmChatbotGreetConfig::getIsAllOn, 1);
+            AmChatbotGreetConfig one = amChatbotGreetConfigService.getOne(greetConfigQueryWrapper, false);
+            if (Objects.isNull(one) || one.getIsGreetOn() == 0) {
+                log.info("打招呼任务跳过: 账号:{}, 未找到打招呼任务配置 或总开关关闭 或未开启打招呼", amChatbotGreetTask.getAccountId());
+                return;
+            }
+
+
+            //更新task临时status的状态
+            amChatbotGreetTask.setStatus(1);
+            amChatbotGreetTask.setUpdateTime(LocalDateTime.now());
+            amChatbotGreetTaskService.updateById(amChatbotGreetTask);
+
+            LambdaQueryWrapper<AmChatbotGreetConditionNew> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(AmChatbotGreetConditionNew::getAccountId, amChatbotGreetTask.getAccountId());
+            queryWrapper.eq(AmChatbotGreetConditionNew::getPositionId, amChatbotGreetTask.getPositionId());
+            AmChatbotGreetConditionNew condition = amChatbotGreetConditionNewService.getOne(queryWrapper, false);
+
+            if (Objects.isNull(condition)) {
+                // 如果为空,则默认取第一个
+                condition = amChatbotGreetConditionNewService.getById(1);
+            }
+
+
+            AmPosition amPosition = amPositionService.getById(amChatbotGreetTask.getPositionId());
+            if (Objects.isNull(amPosition) || amPosition.getIsDeleted() == 1 || amPosition.getIsOpen() ==0) {
+                log.error("职位已删除: amPosition={}", amPosition);
+                return;
+            }
+            AmGreetConditionVo amGreetConditionVo = AmChatBotGreetNewConditionConvert.I.convertGreetConditionVo(condition);
+
+            // 创建筛选条件
+            JSONObject conditions = new JSONObject();
+            conditions.put("学历要求", amGreetConditionVo.getDegree() != null ? amGreetConditionVo.getDegree() : Collections.singletonList(-1));
+            conditions.put("薪资待遇", amGreetConditionVo.getSalary() != null ?amGreetConditionVo.getSalary()  : "不限");
+            conditions.put("经验要求", amGreetConditionVo.getWorkYears() != null ? amGreetConditionVo.getWorkYears() :  Collections.singletonList("不限"));
+            conditions.put("求职意向", amGreetConditionVo.getIntention() != null ?amGreetConditionVo.getIntention() : Collections.singletonList(-1));
+            conditions.put("年龄", amGreetConditionVo.getAge() != null ? amGreetConditionVo.getAge() : -1);
+            conditions.put("性别", amGreetConditionVo.getGender() != null ? amGreetConditionVo.getGender() : "不限");
+
+            // 创建任务
+            AmClientTasks amClientTasks = new AmClientTasks();
+            amClientTasks.setId(UUID.randomUUID().toString());
+            amClientTasks.setBossId(amChatbotGreetTask.getAccountId());
+            amClientTasks.setTaskType(ClientTaskTypeEnums.GREET.getType());
+            amClientTasks.setOrderNumber(ClientTaskTypeEnums.GREET.getOrder());
+            amClientTasks.setStatus(AmClientTaskStatusEnums.NOT_START.getStatus());
+
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("job_name", amPosition.getName());
+            jsonObject.put("job_id", amPosition.getEncryptId());
+            jsonObject.put("conditions", conditions);
+            jsonObject.put("times", amChatbotGreetTask.getTaskNum());
+            jsonObject.put("greetId", amChatbotGreetTask.getId());
+            JSONObject messageObject = new JSONObject();
+//            messageObject.put("content", GREET_MESSAGE);
+
+            LambdaQueryWrapper<AmChatbotPositionOption> positionOptionQueryWrapper = new LambdaQueryWrapper<>();
+            positionOptionQueryWrapper.eq(AmChatbotPositionOption::getAccountId, amChatbotGreetTask.getAccountId());
+            positionOptionQueryWrapper.eq(AmChatbotPositionOption::getPositionId, amChatbotGreetTask.getPositionId());
+            AmChatbotPositionOption positionOption = amChatbotPositionOptionService.getOne(positionOptionQueryWrapper, false);
+            if (positionOption != null) {
+                Long amMaskId = positionOption.getAmMaskId();
+                AmNewMask amNewMask = amNewMaskService.getById(amMaskId);
+                if (Objects.nonNull(amNewMask) && StringUtils.isNotBlank(amNewMask.getGreetMessage())){
+                    messageObject.put("content", amNewMask.getGreetMessage());
+                }
+
+                AmChatbotGreetMessages amChatbotGreetMessages = new AmChatbotGreetMessages();
+                amChatbotGreetMessages.setTaskId(amChatbotGreetTask.getId());
+                amChatbotGreetMessages.setTaskType(MessageTypeEnums.temporary_greet.getCode());
+                amChatbotGreetMessages.setAccountId(amChatbotGreetTask.getAccountId());
+                amChatbotGreetMessages.setIsSystemSend(1);
+                amChatbotGreetMessages.setContent(GREET_MESSAGE);
+                amChatbotGreetMessages.setCreateTime(LocalDateTime.now());
+                amChatbotGreetMessagesService.save(amChatbotGreetMessages);
+            }else {
+                log.info("打招呼任务追加消息失败,未找到对应的职位:{}", amChatbotGreetTask.getPositionId());
+            }
+            jsonObject.put("message", messageObject);
+
+            amClientTasks.setData(jsonObject.toJSONString());
+            amClientTasks.setCreateTime(LocalDateTime.now());
+            amClientTasks.setUpdateTime(LocalDateTime.now());
+            boolean result = amClientTasksService.save(amClientTasks);
+            log.info("处理临时任务结果={}", result);
+        } catch (Exception e) {
+            log.error("处理临时任务异常", e);
+        }
+    }
+
+}
