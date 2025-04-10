@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.vector.factory.LLMFactory;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -14,6 +15,7 @@ import com.open.ai.eros.db.mysql.hr.service.impl.*;
 import com.open.hr.ai.constant.AmClientTaskStatusEnums;
 import com.open.ai.eros.common.constants.ClientTaskTypeEnums;
 import com.open.hr.ai.processor.bossNewMessage.ReplyUserMessageDataProcessor;
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -190,12 +192,10 @@ public class DealUserFirstSendMessageUtil {
         AtomicInteger needToReply = new AtomicInteger(1);
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
+        List<String> tools = Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time");
+        ChatLanguageModel modelService = LLMFactory.getLLM(amNewMask.getModelId());
         for (int i = 0; i < 10; i++) {
-            //AmNewMask amNewMask = maskMapper.selectById(maskId);
-            //AmModel amModel = amModelMapper.selectById(amNewMask.getModelId());
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"),
-                    "OpenAI:deepseek-r1", 0.8,
-                    statusCode,needToReply,isAiSetStatus,params);
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, tools, modelService, statusCode,needToReply,isAiSetStatus,params);
             if (Objects.isNull(chatMessage)) {
                 continue;
             }

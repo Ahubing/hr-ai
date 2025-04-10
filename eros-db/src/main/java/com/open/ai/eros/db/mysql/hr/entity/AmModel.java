@@ -73,6 +73,16 @@ public class AmModel implements Serializable {
      */
     private Integer isDefault;
 
+    /**
+     * url
+     */
+    private String url;
+
+    /**
+     * apikey
+     */
+    private String apikey;
+
 
 }
 

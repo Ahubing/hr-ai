@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.tool.function.InterviewFunction;
 import com.open.ai.eros.ai.util.SendMessageUtil;
+import com.open.ai.eros.ai.vector.factory.LLMFactory;
 import com.open.ai.eros.common.constants.RequestInfoTypeEnum;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
@@ -27,6 +28,7 @@ import com.open.hr.ai.util.AmClientTaskUtil;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.agent.tool.ToolSpecifications;
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -310,9 +312,10 @@ public class ReplyUserMessageDataProcessor implements BossNewMessageProcessor {
         AtomicInteger needToReply = new AtomicInteger(1);
         AtomicInteger statusCode = new AtomicInteger(amResume.getType());
         AtomicBoolean isAiSetStatus = new AtomicBoolean(false);
+        List<String> tools = Arrays.asList("set_status", "get_spare_time", "appoint_interview", "cancel_interview", "modify_interview_time");
+        ChatLanguageModel modelService = LLMFactory.getLLM(amNewMask.getModelId());
         for (int i = 0; i < 10; i++) {
-            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, Arrays.asList("set_status","get_spare_time","appoint_interview","cancel_interview","modify_interview_time"),
-                    "OpenAI:deepseek-r1", 0.8,
+            ChatMessage chatMessage = commonAIManager.aiNoStream(messages, tools, modelService,
                     statusCode,needToReply,isAiSetStatus,params);
            if (Objects.isNull(chatMessage)) {
               continue;

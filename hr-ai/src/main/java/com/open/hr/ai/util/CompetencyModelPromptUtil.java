@@ -1,6 +1,7 @@
 package com.open.hr.ai.util;
 
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.vector.factory.LLMFactory;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
 import com.open.ai.eros.db.constants.AIRoleEnum;
@@ -72,7 +73,7 @@ public class CompetencyModelPromptUtil {
         List<ChatMessage> chatMessages = buildPrompt(prompt);
         String aiResult = "";
         for (int i = 0; i < 10; i++) {
-            aiResult = commonAIManager.aiNoStreamWith(chatMessages, "OpenAI:gpt-4o-2024-05-13", 0.8);
+            aiResult = commonAIManager.aiNoStreamWith(chatMessages, LLMFactory.getDefaultLLM());
             if (StringUtils.isNotBlank(aiResult)){
                 break;
             }
@@ -88,7 +89,7 @@ public class CompetencyModelPromptUtil {
         List<ChatMessage> chatMessages = buildPrompt(prompt);
         String aiResult = "";
         for (int i = 0; i < 10; i++) {
-            aiResult = commonAIManager.aiNoStreamWith(chatMessages, "OpenAI:gpt-4o-2024-05-13", 0.8);
+            aiResult = commonAIManager.aiNoStreamWith(chatMessages, LLMFactory.getDefaultLLM());
             if (StringUtils.isNotBlank(aiResult)){
                 break;
             }

@@ -1,16 +1,10 @@
 package com.open.ai.eros.ai.manager;
 
 import com.alibaba.fastjson.JSONObject;
-import com.open.ai.eros.ai.bean.req.IcRecordAddReq;
-import com.open.ai.eros.ai.bean.req.IcSpareTimeReq;
-import com.open.ai.eros.ai.bean.vo.IcSpareTimeVo;
-import com.open.ai.eros.ai.constatns.ModelTypeEnum;
-import com.open.ai.eros.ai.vector.factory.LLMFactory;
-import com.open.ai.eros.common.constants.InterviewRoleEnum;
+import com.open.ai.eros.ai.lang.chain.service.ToolService;
+import com.open.ai.eros.ai.processor.FuncCallProcessor;
 import com.open.ai.eros.ai.tool.config.ToolConfig;
-import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.vo.ChatMessage;
-import com.open.ai.eros.common.vo.ResultVO;
 import com.open.ai.eros.db.constants.AIRoleEnum;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -18,16 +12,13 @@ import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.service.tool.DefaultToolExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -42,13 +33,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Component
 public class CommonAIManager {
-
-
-    @Autowired
-    private ModelConfigManager modelConfigManager;
-
-    @Autowired
-    private ICAiManager icAiManager;
 
 
     /**
@@ -66,72 +50,24 @@ public class CommonAIManager {
      * 非流获取ai结果
      *
      * @param messages
-     * @param templateModel
-     * @param temperature
      * @return
      */
-    public ChatMessage aiNoStream(List<ChatMessage> messages, List<String> tools, String templateModel,
-                                  Double temperature, AtomicInteger statusCode, AtomicInteger needToReply,
-                                  AtomicBoolean isAiSetStatus ,JSONObject preParams) {
+    public ChatMessage aiNoStream(List<ChatMessage> messages, List<String> tools,
+                                  ChatLanguageModel modelService, AtomicInteger statusCode,
+                                  AtomicInteger needToReply, AtomicBoolean isAiSetStatus ,JSONObject preParams) {
 
 
         try {
             log.info("aiNoStream begin");
-            Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
-            Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
-
-
             Map<String,DefaultToolExecutor> executorMap = new HashMap<>();
             List<ToolSpecification> toolSpecifications = new ArrayList<>();
-            for (String tool : tools) {
-                ToolSpecification toolSpecification = methodMap.get(tool);
-                if(toolSpecification==null){
-                    log.error("未发现 tool ={}",tool);
-                    continue;
-                }
-                DefaultToolExecutor defaultToolExecutor = toolExecutorMap.get(toolSpecification);
-                if(defaultToolExecutor==null){
-                    log.error("未发现 tool功能提供者 ={}",tool);
-                    continue;
-                }
-                toolSpecifications.add(toolSpecification);
-                executorMap.put(toolSpecification.name(),defaultToolExecutor);
-            }
-            //ModelConfigVo modelConfig = modelConfigManager.getModelConfig(templateModel);
-            //if (modelConfig == null) {
-            //    log.error("aiNoStream  error  无可用的渠道 templateModel={}", templateModel);
-            //    throw new AIException("无可用的渠道  templateModel={} " + templateModel);
-            //}
-            String[] split = templateModel.split(":");
-
-            List<dev.langchain4j.data.message.ChatMessage> newMessages = new ArrayList<>();
-            for (ChatMessage message : messages) {
-                if (message.getRole().equals(AIRoleEnum.SYSTEM.getRoleName())) {
-                    SystemMessage systemMessage = new SystemMessage(message.getContent().toString());
-                    newMessages.add(systemMessage);
-                    continue;
-                }
-                if (message.getRole().equals(AIRoleEnum.USER.getRoleName())) {
-                    UserMessage user = new UserMessage("user", message.getContent().toString());
-                    newMessages.add(user);
-                    continue;
-                }
-                if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
-                    AiMessage aiMessage = new AiMessage(message.getContent().toString());
-                    newMessages.add(aiMessage);
-                }
-            }
-
-            String url = getUrl("https://fast.bemore.lol/");
-            String token = "sk-RIcs0FN3f50qnO8d4f85Da40B9764399Bc161196E7492f74";
-            OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], null);
-
+            ToolService.fullToolExecutorInfo(tools,executorMap,toolSpecifications);
+            List<dev.langchain4j.data.message.ChatMessage> newMessages = parseSysMsgToLanChainMsg(messages);
             Response<AiMessage> generate = modelService.generate(newMessages, toolSpecifications);
             AiMessage content = generate.content();
             List<ToolExecutionRequest> toolExecutionRequests = content.toolExecutionRequests();
             newMessages.add(content);
             List<ToolExecutionResultMessage> resultMessages = new ArrayList<>();
-
             if (CollectionUtils.isNotEmpty(toolExecutionRequests)) {
                 for (ToolExecutionRequest toolExecutionRequest : toolExecutionRequests) {
                     String name = toolExecutionRequest.name();
@@ -145,87 +81,10 @@ public class CommonAIManager {
                         String result = executor.execute(toolExecutionRequest, toolExecutionRequest.arguments());
                         log.info("执行工具结果: tool={}, result={}", name, result);
 
-                        // 特殊业务逻辑,后续替换为策略模式
-                        if ("set_status".equals(name)) {
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                            log.info("设置状态: tool={}, result={}", name, result);
-                            JSONObject jsonObject = JSONObject.parseObject(result);
-                            if (jsonObject == null) {
-                                log.error("工具执行失败: tool={}, result={}", name, result);
-                                continue;
-                            }
-                            if (jsonObject.containsKey("reason")){
-                                preParams.put("reason",jsonObject.get("reason"));
-                            }
-                            ReviewStatusEnums enums = ReviewStatusEnums.getEnumByKey( jsonObject.get("status").toString());
-                            if (Objects.nonNull(enums)) {
-                                statusCode.set(enums.getStatus());
-                                isAiSetStatus.set(Boolean.TRUE);
-                                log.info("状态已更新: tool={}, aDefault={},status={}", name, enums.getDesc(), result);
-                            }
-                        }
-                        if ("check_need_reply".equals(name)) {
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, result));
-                            needToReply.set(0);
-                            log.info("判断是否需要回复, tool={}, status={},needToReply={}", name, result, needToReply.get());
-                        }
-
-                        if("get_spare_time".equals(name)){
-                            String maskId = preParams.getString("maskId");
-
-                            JSONObject params = JSONObject.parseObject(result);
-                            String startTime = params.getString("startTime");
-                            String endTime = params.getString("endTime");
-                            LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            LocalDateTime eTime = LocalDateTime.parse(endTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            ToolExecutionResultMessage resultMessage = null;
-                            ResultVO<IcSpareTimeVo> resultVO = icAiManager.getSpareTime(new IcSpareTimeReq(Long.parseLong(maskId), sTime, eTime));
-                            if(200 == resultVO.getCode()){
-                                if (CollectionUtils.isEmpty(resultVO.getData().getSpareDateVos())) {
-                                    resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(ResultVO.fail(500,"无空闲时间")));
-                                }
-                            }
-                            if(resultMessage == null){
-                                resultMessage = ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO));
-                            }
+                        ToolExecutionResultMessage resultMessage =
+                                FuncCallProcessor.process(toolExecutionRequest, statusCode, needToReply, isAiSetStatus, preParams, result);
+                        if (resultMessage != null) {
                             resultMessages.add(resultMessage);
-                            log.info("获取空闲时间: tool={}, spareTimeStr={}", name, JSONObject.toJSONString(resultVO));
-                        }
-
-                        if("appoint_interview".equals(name)){
-                            statusCode.set(ReviewStatusEnums.INTERVIEW_ARRANGEMENT.getStatus());
-
-                            String adminId = preParams.getString("adminId");
-                            String employeeUid = preParams.getString("employeeUid");
-                            String positionId = preParams.getString("positionId");
-                            String accountId = preParams.getString("accountId");
-                            String maskId = preParams.getString("maskId");
-
-                            JSONObject params = JSONObject.parseObject(result);
-                            String startTime = params.getString("startTime");
-                            LocalDateTime sTime = LocalDateTime.parse(startTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            ResultVO<String> resultVO = icAiManager.appointInterview(new IcRecordAddReq(Long.parseLong(maskId), Long.parseLong(adminId), employeeUid, sTime, Long.parseLong(positionId), accountId));
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
-                            log.info("预约面试: tool={}, appointInterviewStr={}", name, JSONObject.toJSONString(resultVO));
-                        }
-
-                        if("cancel_interview".equals(name)){
-                            statusCode.set(ReviewStatusEnums.INVITATION_FOLLOW_UP.getStatus());
-                            String interviewId = preParams.getString("interviewId");
-                            ResultVO<Boolean> resultVO = icAiManager.cancelInterview(interviewId, InterviewRoleEnum.EMPLOYEE.getCode());
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
-                            log.info("取消面试: tool={}, cancelInterviewStr={}", name, JSONObject.toJSONString(resultVO));
-                        }
-
-                        if("modify_interview_time".equals(name)){
-                            String interviewId = preParams.getString("interviewId");
-
-                            JSONObject params = JSONObject.parseObject(result);
-                            String newTime = params.getString("newTime");
-                            LocalDateTime sTime = LocalDateTime.parse(newTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                            ResultVO<Boolean> resultVO = icAiManager.modifyTime(interviewId, InterviewRoleEnum.EMPLOYEE.getCode(),sTime);
-                            resultMessages.add(ToolExecutionResultMessage.from(toolExecutionRequest, JSONObject.toJSONString(resultVO)));
-                            log.info("修改面试时间: tool={}, modifyTimeStr={}", name, JSONObject.toJSONString(resultVO));
                         }
                     } catch (Exception e) {
                         log.error("工具执行失败: tool={}", name, e);
@@ -247,10 +106,33 @@ public class CommonAIManager {
             return new ChatMessage(AIRoleEnum.ASSISTANT.getRoleName(),content.text());
 
         } catch (Exception e) {
-            log.error("aiNoStream error templateModel={} ", templateModel, e);
+            log.error("aiNoStream error error={} ", e.getMessage());
         }
         return null;
 
+    }
+
+
+
+    public static List<dev.langchain4j.data.message.ChatMessage> parseSysMsgToLanChainMsg(List<ChatMessage> messages) {
+        List<dev.langchain4j.data.message.ChatMessage> newMessages = new ArrayList<>();
+        for (ChatMessage message : messages) {
+            if (message.getRole().equals(AIRoleEnum.SYSTEM.getRoleName())) {
+                SystemMessage systemMessage = new SystemMessage(message.getContent().toString());
+                newMessages.add(systemMessage);
+                continue;
+            }
+            if (message.getRole().equals(AIRoleEnum.USER.getRoleName())) {
+                UserMessage user = new UserMessage("user", message.getContent().toString());
+                newMessages.add(user);
+                continue;
+            }
+            if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
+                AiMessage aiMessage = new AiMessage(message.getContent().toString());
+                newMessages.add(aiMessage);
+            }
+        }
+        return newMessages;
     }
 
 
@@ -258,42 +140,17 @@ public class CommonAIManager {
      * 非流获取ai结果,用于简历提取
      *
      * @param messages
-     * @param templateModel
-     * @param temperature
      * @return
      */
-    public String aiNoStreamWithResume(List<ChatMessage> messages,
-                                  String templateModel,
-                                  Double temperature ) {
+    public String aiNoStreamWithResume(List<ChatMessage> messages, ChatLanguageModel modelService) {
 
         try {
-            String[] split = templateModel.split(":");
-            List<dev.langchain4j.data.message.ChatMessage> newMessages = new ArrayList<>();
-            for (ChatMessage message : messages) {
-                if (message.getRole().equals(AIRoleEnum.SYSTEM.getRoleName())) {
-                    SystemMessage systemMessage = new SystemMessage(message.getContent().toString());
-                    newMessages.add(systemMessage);
-                    continue;
-                }
-                if (message.getRole().equals(AIRoleEnum.USER.getRoleName())) {
-                    UserMessage user = new UserMessage("user", message.getContent().toString());
-                    newMessages.add(user);
-                    continue;
-                }
-                if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
-                    AiMessage aiMessage = new AiMessage(message.getContent().toString());
-                    newMessages.add(aiMessage);
-                }
-            }
-
-            String url = getUrl("https://one.opengptgod.com/");
-            String token = "sk-YXkz1ruOVODeZXCG93F9847a6a784d749d2d1c2dCa3868Af";
-            OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], temperature);
+            List<dev.langchain4j.data.message.ChatMessage> newMessages = parseSysMsgToLanChainMsg(messages);
             Response<AiMessage> generate = modelService.generate(newMessages);
             AiMessage content = generate.content();
             return content.text();
         } catch (Exception e) {
-            log.error("aiNoStream error templateModel={} ", templateModel, e);
+            log.error("aiNoStream error error={} ", e.getMessage());
         }
         return null;
 
@@ -306,64 +163,34 @@ public class CommonAIManager {
      * 非流获取ai结果
      *
      * @param messages
-     * @param templateModel
-     * @param temperature
      * @return
      */
-    public String aiNoStreamWith(List<ChatMessage> messages,
-                                       String templateModel,
-                                       Double temperature ) {
+    public String aiNoStreamWith(List<ChatMessage> messages,ChatLanguageModel modelService) {
 
         try {
-            String[] split = templateModel.split(":");
-            List<dev.langchain4j.data.message.ChatMessage> newMessages = new ArrayList<>();
-            for (ChatMessage message : messages) {
-                if (message.getRole().equals(AIRoleEnum.SYSTEM.getRoleName())) {
-                    SystemMessage systemMessage = new SystemMessage(message.getContent().toString());
-                    newMessages.add(systemMessage);
-                    continue;
-                }
-                if (message.getRole().equals(AIRoleEnum.USER.getRoleName())) {
-                    UserMessage user = new UserMessage("user", message.getContent().toString());
-                    newMessages.add(user);
-                    continue;
-                }
-                if (message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())) {
-                    AiMessage aiMessage = new AiMessage(message.getContent().toString());
-                    newMessages.add(aiMessage);
-                }
-            }
-
-
-            String url = getUrl("https://bluecatai.net/");
-            String token = "sk-7e3d932bef164aedb8f3a33a90a51e7f";
-            OpenAiChatModel modelService = (OpenAiChatModel) LLMFactory.getLLM(ModelTypeEnum.OPEN_AI, token, url, split[1], temperature);
+            List<dev.langchain4j.data.message.ChatMessage> newMessages = parseSysMsgToLanChainMsg(messages);
             Response<AiMessage> generate = modelService.generate(newMessages);
             AiMessage content = generate.content();
             return content.text();
         } catch (Exception e) {
-            log.error("aiNoStream error templateModel={} ", templateModel, e);
+            log.error("aiNoStream error error={} ", e.getMessage());
         }
         return null;
 
     }
 
-    public static String getUrl(String cdnHost) {
-        return cdnHost.endsWith("/") ? cdnHost + "v1" : cdnHost + "/v1";
-    }
-
 
 
     private static String name = "setStatus";
-
-    public DefaultToolExecutor getToolExecutor(List<String> tools) {
-
-        List<DefaultToolExecutor> defaultToolExecutors = new ArrayList<>();
-        Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
-        ToolSpecification toolSpecification = methodMap.get(name);
-        Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
-        return toolExecutorMap.get(toolSpecification);
-    }
+//
+//    public DefaultToolExecutor getToolExecutor(List<String> tools) {
+//
+//        List<DefaultToolExecutor> defaultToolExecutors = new ArrayList<>();
+//        Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
+//        ToolSpecification toolSpecification = methodMap.get(name);
+//        Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
+//        return toolExecutorMap.get(toolSpecification);
+//    }
 
 //    public static void main(String[] args) {
 //        String url = getUrl("https://one.opengptgod.com/");

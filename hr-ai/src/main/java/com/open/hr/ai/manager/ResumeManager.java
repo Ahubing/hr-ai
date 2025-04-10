@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.open.ai.eros.ai.manager.CommonAIManager;
+import com.open.ai.eros.ai.vector.factory.LLMFactory;
 import com.open.ai.eros.common.constants.ReviewStatusEnums;
 import com.open.ai.eros.common.util.AIJsonUtil;
 import com.open.ai.eros.common.vo.ChatMessage;
@@ -115,7 +116,6 @@ public class ResumeManager {
      * @param type
      * @param post_id
      * @param name
-     * @param page
      * @param size
      * @return
      */
@@ -252,7 +252,7 @@ public class ResumeManager {
         String resumeUrl = addAmResumeParseReq.getResumeUrl();
         try {
             List<ChatMessage> chatMessages = ResumeParseUtil.buildPrompt(resumeUrl);
-            if (chatMessages.isEmpty()) {
+            if (CollectionUtil.isEmpty(chatMessages)) {
                 return ResultVO.fail("解析失败");
             }
             // 添加对模型空回复或者抛异常的重试，重试10次（请求模型参数异常等情况也会轮询10次）
@@ -260,7 +260,7 @@ public class ResumeManager {
             AmResume uploadAmResume = null;
             for (int i = 0; i < end; i++) {
                 try {
-                    String aiText = commonAIManager.aiNoStreamWithResume(chatMessages, "OpenAI:gpt-4o-all", 0.8);
+                    String aiText = commonAIManager.aiNoStreamWithResume(chatMessages, LLMFactory.getDefaultLLM());
                     log.info("AI解析结果 data={}", aiText);
                     String jsonContent = AIJsonUtil.getJsonContent(aiText);
                     if (StringUtils.isBlank(jsonContent)) {

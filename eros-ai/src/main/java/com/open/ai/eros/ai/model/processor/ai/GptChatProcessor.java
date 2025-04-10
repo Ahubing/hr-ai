@@ -2,6 +2,7 @@ package com.open.ai.eros.ai.model.processor.ai;
 
 import com.alibaba.fastjson.JSONObject;
 import com.open.ai.eros.ai.constatns.ModelTemplateEnum;
+import com.open.ai.eros.ai.manager.CommonAIManager;
 import com.open.ai.eros.ai.model.bean.vo.ChatMessageResultVo;
 import com.open.ai.eros.ai.model.bean.vo.ModelProcessorRequest;
 import com.open.ai.eros.ai.model.bean.vo.gpt.GptCompletionChunk;
@@ -66,23 +67,7 @@ public class GptChatProcessor  extends BaseModelProcessor implements ChatModelPr
         try {
             long currentTime = System.currentTimeMillis();
             final String[] message2 = new String[1];
-            List<dev.langchain4j.data.message.ChatMessage> newMessages = new ArrayList<>();
-            for (ChatMessage message : messages) {
-                if(message.getRole().equals(AIRoleEnum.SYSTEM.getRoleName())){
-                    SystemMessage systemMessage = new SystemMessage(message.getContent().toString());
-                    newMessages.add(systemMessage);
-                    continue;
-                }
-                if(message.getRole().equals(AIRoleEnum.USER.getRoleName())){
-                    UserMessage user = new UserMessage("user", message.getContent().toString());
-                    newMessages.add(user);
-                    continue;
-                }
-                if(message.getRole().equals(AIRoleEnum.ASSISTANT.getRoleName())){
-                    AiMessage aiMessage = new AiMessage(message.getContent().toString());
-                    newMessages.add(aiMessage);
-                }
-            }
+            CommonAIManager.parseSysMsgToLanChainMsg(messages);
 
             List<dev.langchain4j.data.message.ChatMessage> toolExecutionResultMessages = modelProcessorRequest.getChatVo().getToolExecutionResultMessages();
             if(CollectionUtils.isNotEmpty(toolExecutionResultMessages)){

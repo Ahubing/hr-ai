@@ -63,25 +63,9 @@ public class ToolService {
      */
     public ResultVO<UseToolResult> useTool(String userMessage, List<String>tools,String template,String modelName){
 
-        Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
-        Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
-
         Map<String,DefaultToolExecutor> executorMap = new HashMap<>();
         List<ToolSpecification> toolSpecifications = new ArrayList<>();
-        for (String tool : tools) {
-            ToolSpecification toolSpecification = methodMap.get(tool);
-            if(toolSpecification==null){
-                log.error("未发现 tool ={}",tool);
-                continue;
-            }
-            DefaultToolExecutor defaultToolExecutor = toolExecutorMap.get(toolSpecification);
-            if(defaultToolExecutor==null){
-                log.error("未发现 tool功能提供者 ={}",tool);
-                continue;
-            }
-            toolSpecifications.add(toolSpecification);
-            executorMap.put(toolSpecification.name(),defaultToolExecutor);
-        }
+        fullToolExecutorInfo(tools,executorMap,toolSpecifications);
 
         UseToolResult result = new UseToolResult();
         ModelConfigVo modelConfig = modelConfigService.getModelConfig(String.format("%s:%s", template, modelName));
@@ -150,6 +134,26 @@ public class ToolService {
 
     public String getUrl(String cdnHost) {
         return cdnHost.endsWith("/") ? cdnHost + "v1" : cdnHost + "/v1";
+    }
+
+    public static void fullToolExecutorInfo(List<String> tools, Map<String,DefaultToolExecutor> executorMap,
+                                            List<ToolSpecification> toolSpecifications) {
+        Map<String, ToolSpecification> methodMap = ToolConfig.methodMap;
+        Map<ToolSpecification, DefaultToolExecutor> toolExecutorMap = ToolConfig.toolExecutorMap;
+        for (String tool : tools) {
+            ToolSpecification toolSpecification = methodMap.get(tool);
+            if(toolSpecification==null){
+                log.error("未发现 tool ={}",tool);
+                continue;
+            }
+            DefaultToolExecutor defaultToolExecutor = toolExecutorMap.get(toolSpecification);
+            if(defaultToolExecutor==null){
+                log.error("未发现 tool功能提供者 ={}",tool);
+                continue;
+            }
+            toolSpecifications.add(toolSpecification);
+            executorMap.put(toolSpecification.name(),defaultToolExecutor);
+        }
     }
 
 }
